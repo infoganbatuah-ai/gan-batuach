@@ -72,3 +72,24 @@ proof.
 
 Do not move the SQL to active migrations, import the adapter into a route, or
 remove the remote-build block on the strength of these synthetic tests.
+
+## Observer challenge issuer review seam
+
+`observer-challenge-issuer.mjs` adds a disconnected, default-off issuer contract
+for the standalone Observer QA audience. Its trusted `authenticate` callback
+must be wired only to the existing server-side `getQaVerifiedSession` helper;
+account and session fields supplied by an iPhone request are ignored. The
+issuer generates a fresh 256-bit nonce and a receipt expiring in 60 seconds.
+Its trusted `reserve` callback must atomically recheck the same live Auth
+session and a currently approved installation bound to the exact Observer
+audience, then create at most one pending challenge. Any unavailable verifier,
+storage error, Gan installation, unknown audience or duplicate reservation
+fails closed. The exported active entrypoint always returns `null`.
+
+This is an interface and synthetic contract test, **not** a live database
+adapter. The baseline proposed schema still has a Gan-only challenge audience
+and no installation audience; the separate product-binding review unit must be
+integrated and its private issue transaction/ACL independently reviewed before
+activation. In particular, a pre-read plus INSERT would leave a revocation
+race and cannot satisfy `reserve`. No SQL, route, service or real session was
+used to qualify this unit, and PostgreSQL atomicity remains unproven.
