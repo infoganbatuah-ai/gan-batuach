@@ -21,7 +21,7 @@ assert.equal(byName.PersonalTeamQA.CODE_SIGN_ENTITLEMENTS, "");
 assert.equal(byName.PersonalTeamQA.APS_ENVIRONMENT, undefined);
 assert.equal(byName.PersonalTeamQA.CODE_SIGN_STYLE, "Automatic");
 assert.equal(byName.PersonalTeamQA.PRODUCT_BUNDLE_IDENTIFIER, "com.ganbatuach.app.qa");
-assert.equal(byName.PersonalTeamQA.APP_DISPLAY_NAME, "Digital Observer QA");
+assert.equal(byName.PersonalTeamQA.APP_DISPLAY_NAME, "גן בטוח QA");
 assert.equal(byName.PersonalTeamQA.PUSH44_QA_CALLBACK_SCHEME, "off");
 assert.equal(byName.PersonalTeamQA.INFOPLIST_FILE,
   "../qa-personal-team/Info-$(PUSH44_QA_CALLBACK_SCHEME).plist");
@@ -54,7 +54,8 @@ assert.equal(optInInfo.CFBundleIdentifier, offInfo.CFBundleIdentifier);
 assert.equal(qaConfig.appId, "com.ganbatuach.app.qa");
 assert.equal(qaConfig.server.url, undefined);
 assert(!qaConfig.packageClassList.includes("PushNotificationsPlugin"));
-assert.match(qaPage, /Digital Observer QA/);
+assert.equal(qaConfig.appName, "גן בטוח QA");
+assert.match(qaPage, /גן בטוח QA/);
 assert.match(qaPage, /מקומי בלבד/);
 assert.match(qaPage, /APNs כבויים/);
 assert(!/https?:\/\//.test(qaPage), "offline QA page must not contact an external host");
