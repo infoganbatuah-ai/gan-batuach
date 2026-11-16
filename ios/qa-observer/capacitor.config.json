@@ -4,7 +4,6 @@
   "webDir": "public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://observer-qa.example.invalid/digital-observer/dashboard",
     "iosScheme": "capacitor"
   },
   "packageClassList": [

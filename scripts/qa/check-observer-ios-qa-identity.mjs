@@ -13,7 +13,11 @@ test("Observer iOS QA source has separate identity, callback and offline launch 
   const settings = read("ios/qa-observer/ObserverQA.xcconfig");
   assert.equal(config.appId, "com.digitalobserver.app.qa");
   assert.equal(config.appName, "תצפיתן דיגיטלי");
-  assert.equal(config.server.url, "https://observer-qa.example.invalid/digital-observer/dashboard");
+  assert.equal(config.server.url, undefined);
+  assert.equal(config.server.iosScheme, "capacitor");
+  const offline = read("ios/qa-observer/index.html");
+  assert.match(offline, /בדיקת התקנה מקומית בלבד/);
+  assert.doesNotMatch(offline, /https?:\/\/|fetch\(|<script/);
   assert.ok(!config.packageClassList.includes("PushNotificationsPlugin"));
   assert.deepEqual(info.CFBundleURLTypes[0].CFBundleURLSchemes, ["observerqaapp"]);
   assert.equal(info.CFBundleURLTypes[0].CFBundleURLName, "com.digitalobserver.app.qa.auth");
