@@ -45,7 +45,18 @@ function hashDeviceToken(token: string) {
 
 export async function registerPushDevice(supabase: SupabaseLike, input: RegisterPushDeviceInput) {
   const now = new Date().toISOString();
-  const result = await supabase.from("push_device_tokens").upsert({
+  const table = supabase.from("push_device_tokens");
+  const existing = await table.select("id, profile_id, device_trust_status")
+    .eq("device_token", input.deviceToken).maybeSingle();
+  if (existing.error) return { ok: false, device: null, error: existing.error.message };
+  // A token cannot transfer to another account through registration. A
+  // blocked/revoked trust decision cannot be cleared by a client re-registering.
+  if (existing.data && (existing.data.profile_id !== input.profileId ||
+      existing.data.device_trust_status === "blocked" ||
+      existing.data.device_trust_status === "revoked")) {
+    return { ok: false, device: null, error: "push_token_registration_denied" };
+  }
+  const values = {
     profile_id: input.profileId,
     role: input.role,
     platform: input.platform,
@@ -57,15 +68,34 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
     disabled_reason: null,
     revoked_at: null,
     provider: getPushProviderForPlatform(input.platform).name,
+    // Device form factor and client metadata do not prove product ownership.
+    // Every registration loses any previous positive device_trust_status.
+    // A future private product-binding table requires its own atomic
+    // invalidation; no such table is deployed by this change.
+    app_channel: input.platform === "web" ? "web" : "unknown",
+    device_trust_status: "unknown",
+    device_model: null,
+    os_version: null,
+    build_number: null,
+    biometric_capable: null,
     last_seen_at: now,
     updated_at: now,
     metadata: input.metadata ?? {}
-  }, { onConflict: "device_token" }).select("id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata").single();
+  };
+  const columns = "id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata";
+  const result = existing.data
+    ? await table.update(values).eq("id", existing.data.id)
+      .eq("profile_id", input.profileId).eq("device_token", input.deviceToken)
+      .eq("device_trust_status", existing.data.device_trust_status)
+      .select(columns).maybeSingle()
+    : await table.insert(values).select(columns).single();
 
   return {
-    ok: !result.error,
+    // Zero updated rows means the compare-and-update lost a race. Never
+    // reinterpret that as a successful registration.
+    ok: !result.error && !!result.data,
     device: result.data,
-    error: result.error?.message ?? null
+    error: result.error?.message ?? (result.data ? null : "push_token_registration_conflict")
   };
 }
 
