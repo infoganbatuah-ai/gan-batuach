@@ -9,6 +9,7 @@ export function safeGanNotificationDestination(value: unknown): string | null {
   try { decoded = decodeURIComponent(path); } catch { return null; }
   if (decoded.includes("..") || decoded.includes("//") || decoded.includes("\\")) return null;
   if (path === "/dashboard" || path.startsWith("/dashboard/") ||
-      path === "/parent-onboarding" || path.startsWith("/parent-onboarding/")) return value;
+      path === "/parent-onboarding" || path.startsWith("/parent-onboarding/") ||
+      path === "/onboarding/kindergarten" || path === "/onboarding/staff") return value;
   return null;
 }
