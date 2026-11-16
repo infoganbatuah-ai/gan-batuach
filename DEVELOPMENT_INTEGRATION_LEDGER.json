@@ -18779,6 +18779,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Qualify trusted provider token binding and both send paths, then signed physical Observer app Auth/callback, actual Push receipt and live media by product audience; preserve release gates."
+    },
+    {
+      "id": "codex/push44-token-ownership-preparation-20261116",
+      "project": "Digital Observer",
+      "taskId": "DO-PUSH44-TOKEN-OWNERSHIP-PREPARATION-20261116",
+      "title": "Qualify native token ownership and test disconnected challenge/verdict policy",
+      "owner": "Digital Observer root integration owner; scoped camera executor source owner",
+      "sourceBranch": "codex/push44-token-proof-qualification-20261116; codex/push44-attestation-qualification-20261116; codex/push44-token-challenge-20261116; codex/push44-attestation-policy-20261116",
+      "sourceCommits": [
+        "bad84fdb40f22a0b93e4eb2c9e6cc0440dafc9cd",
+        "3468c374ee18dd85dc94a26c5b37142fca4dffcc",
+        "e629f1e3f9260bebe36b76b6b1a238b6f1337b5b",
+        "6a739c1def51012211d1f81dea75cfa1f0d54ae1"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "FOUR_EXACT_HEAD_NINE_CHECKS_AND_OFFLINE_SYNTHETIC_QA_PASS",
+        "evidence": [
+          "PR #555 merged b9ecf615d80a6afa1bb1c0cd70ec63dc541e7e6e after nine exact-head checks; qualified missing trusted app/token binding and broad active send paths.",
+          "PR #556 merged 50e5305059f1fd00105cc778397a1ef278ee4090 after nine exact-head checks; official Apple/Google source qualification documented release/QA prerequisites.",
+          "PR #557 merged 9aed3bb2cb562d2a22329dd5024ac3272cdfe2a6 after nine exact-head checks; provider-bound challenge and in-process fixture focused 3/3, TypeScript, lint PASS.",
+          "PR #558 merged e473232f53dc9e75994adca69ebe01a372361e66 after nine exact-head checks; disconnected synthetic already-verified verdict policy focused 3/3, TypeScript, lint PASS."
+        ],
+        "classification": "OFFLINE_TOKEN_OWNERSHIP_QUALIFICATION_AND_SYNTHETIC_POLICY",
+        "limits": "No cryptographic Apple/Google verifier, durable nonce, trusted binding writer, active send-path isolation, provider delivery or physical Observer proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "e473232f53dc9e75994adca69ebe01a372361e66",
+        "pullRequests": [
+          555,
+          556,
+          557,
+          558
+        ],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "NATIVE_PROVIDER_ATTESTATION_AND_DURABLE_BINDING_UNQUALIFIED",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "DETERMINISTIC_DISCONNECTED_CHALLENGE_AND_VERDICT_POLICY_PASS",
+      "releaseEligibility": "NOT_READY_PUSH44_PARTIAL",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify real native app/provider attestation, persistent atomic nonce and trusted binding writer before changing either sender; prove physical Auth, APNs/FCM and media separately."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
