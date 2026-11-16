@@ -92,10 +92,12 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
 }
 
 export async function getDigitalObserverApiUser(request?: Request) {
-  const authorization = request?.headers.get("authorization") ?? "";
-  const accessToken = authorization.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length).trim()
-    : null;
+  const authorization = request?.headers.get("authorization") ?? null;
+  // An explicitly supplied credential must never be replaced by a different
+  // ambient browser cookie when the header is unsupported or empty.
+  if (authorization !== null && !authorization.startsWith("Bearer ")) return null;
+  const accessToken = authorization?.slice("Bearer ".length).trim() || null;
+  if (authorization !== null && !accessToken) return null;
   const supabase: ObserverSupabaseClient = accessToken
     ? createSupabaseClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,

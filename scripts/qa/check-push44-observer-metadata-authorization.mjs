@@ -37,6 +37,9 @@ function fixture({ userMetadata = {}, appMetadata = {}, account = false, ownedSi
       if (id === "@supabase/supabase-js") return { createClient: () => supabase };
       if (id === "next/navigation") return { redirect: (path) => { redirects.push(path); throw new Error("redirect"); } };
       if (id === "@/lib/auth") return { requireUser: async () => ({ user, profile: rows.profiles }) };
+      if (id === "@/lib/domain/digital-observer/current-admin-authority") return {
+        hasCurrentObserverAdmin: async () => false
+      };
       throw new Error(`Unexpected import: ${id}`);
     }
   });
