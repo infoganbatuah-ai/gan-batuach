@@ -20,8 +20,8 @@ function config(env) {
 const observerEnv = {
   CAPACITOR_PRODUCT: "observer",
   CAPACITOR_BUILD_PROFILE: "qa",
-  CAPACITOR_SERVER_URL: "https://observer-qa.example.test/digital-observer/dashboard",
-  CAPACITOR_ALLOWED_SERVER_ORIGIN: "https://observer-qa.example.test"
+  CAPACITOR_SERVER_URL: "https://observer-qa.ganbatuach.com/digital-observer/dashboard",
+  CAPACITOR_ALLOWED_SERVER_ORIGIN: "https://observer-qa.ganbatuach.com"
 };
 
 test("Observer Android QA has its own identity and exact Development launch surface", () => {
@@ -47,8 +47,16 @@ test("Observer selection fails closed on wrong profile, URL, origin or product",
     assert.throws(() => config({ ...observerEnv, CAPACITOR_BUILD_PROFILE: profile }), /CAPACITOR_OBSERVER_QA_ONLY/);
   }
   assert.throws(() => config({ ...observerEnv, CAPACITOR_SERVER_URL: "https://gan-qa.example.test" }), /CAPACITOR_SERVER_URL_INVALID/);
-  assert.throws(() => config({ ...observerEnv, CAPACITOR_SERVER_URL: "https://observer-qa.example.test/cameras" }), /CAPACITOR_SERVER_URL_INVALID/);
+  assert.throws(() => config({ ...observerEnv, CAPACITOR_SERVER_URL: "https://observer-qa.ganbatuach.com/cameras" }), /CAPACITOR_SERVER_URL_INVALID/);
   assert.throws(() => config({ ...observerEnv, CAPACITOR_ALLOWED_SERVER_ORIGIN: "https://gan-qa.example.test" }), /CAPACITOR_SERVER_ORIGIN_NOT_APPROVED/);
+  assert.throws(() => config({ ...observerEnv,
+    CAPACITOR_SERVER_URL: "https://other.example.test/digital-observer/dashboard",
+    CAPACITOR_ALLOWED_SERVER_ORIGIN: "https://other.example.test"
+  }), /CAPACITOR_OBSERVER_QA_ORIGIN_INVALID/);
+  assert.throws(() => config({ ...observerEnv,
+    CAPACITOR_SERVER_URL: "https://ganbatuach.com/digital-observer/dashboard",
+    CAPACITOR_ALLOWED_SERVER_ORIGIN: "https://ganbatuach.com"
+  }), /CAPACITOR_OBSERVER_QA_ORIGIN_INVALID/);
   assert.throws(() => config({ ...observerEnv, CAPACITOR_PRODUCT: "unknown" }), /CAPACITOR_PRODUCT_INVALID/);
   assert.throws(() => config({ ...observerEnv, CAPACITOR_PRODUCT: "gan" }), /CAPACITOR_SERVER_URL_INVALID/);
 });
