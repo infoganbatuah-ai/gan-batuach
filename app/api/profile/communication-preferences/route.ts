@@ -4,6 +4,8 @@ import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
+const parentCategories = ["important", "safety", "attendance", "message", "document", "payment", "pickup"] as const;
+
 const schema = z.object({
   receive_sms: z.boolean().optional(),
   receive_whatsapp: z.boolean().optional(),
@@ -22,9 +24,10 @@ const schema = z.object({
   push_category_preferences: z.record(z.string(), z.boolean()).optional()
 }).refine((value) => (value.quiet_hours_start == null) === (value.quiet_hours_end == null), {
   message: "Quiet hours require both start and end"
+}).refine((value) => !value.push_category_preferences ||
+  Object.keys(value.push_category_preferences).every((category) => (parentCategories as readonly string[]).includes(category)), {
+  message: "Unsupported push category preference"
 });
-
-const parentCategories = ["important", "safety", "attendance", "message", "document", "payment", "pickup"] as const;
 
 function defaultParentCategoryChannels() {
   return {
@@ -118,7 +121,6 @@ export async function PATCH(request: Request) {
     }
     if (payload.push_category_preferences) {
       const rows = Object.entries(payload.push_category_preferences)
-        .filter(([category]) => (parentCategories as readonly string[]).includes(category))
         .map(([category, enabled]) => ({
           profile_id: profile.id,
           category,

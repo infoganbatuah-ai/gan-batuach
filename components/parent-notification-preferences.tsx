@@ -30,6 +30,9 @@ const categories = [
   { key: "task", label: "משימות", text: "פעולות שהוקצו לך" },
   { key: "inspection", label: "פיקוח", text: "בדיקות ופעולות מתקנות" }
 ];
+// Task and inspection have channel preferences, but no persisted Push-category
+// toggle in the current Management schema. Do not display a false save control.
+const pushToggleCategories = new Set(["important", "safety", "attendance", "message", "document", "payment"]);
 
 const channelInfo = {
   in_app: { label: "בתוך האפליקציה", icon: BellRing, preference: null },
@@ -95,7 +98,8 @@ export function NotificationPreferencesPanel({ preferences, pushCategoryPreferen
       quiet_hours_start: quietEnabled ? String(data.get("quiet_hours_start") || "") || null : null,
       quiet_hours_end: quietEnabled ? String(data.get("quiet_hours_end") || "") || null : null,
       quiet_hours_timezone: String(data.get("quiet_hours_timezone") || "Asia/Jerusalem"),
-      push_category_preferences: categoryEnabled
+      push_category_preferences: Object.fromEntries(Object.entries(categoryEnabled)
+        .filter(([category]) => pushToggleCategories.has(category)))
     };
     setMessage("");
     startTransition(async () => {
@@ -136,7 +140,9 @@ export function NotificationPreferencesPanel({ preferences, pushCategoryPreferen
         <div className="notification-category-list">
           {categories.map((category) => (
             <article key={category.key}>
-              <label className="notification-category-toggle"><input type="checkbox" checked={categoryEnabled[category.key]} onChange={(event) => setCategoryEnabled((current) => ({ ...current, [category.key]: event.target.checked }))} /><span /><div><strong>{category.label}</strong><small>{category.text}</small></div></label>
+              {pushToggleCategories.has(category.key)
+                ? <label className="notification-category-toggle"><input type="checkbox" checked={categoryEnabled[category.key]} onChange={(event) => setCategoryEnabled((current) => ({ ...current, [category.key]: event.target.checked }))} /><span /><div><strong>{category.label}</strong><small>{category.text}</small></div></label>
+                : <div className="notification-category-toggle"><div><strong>{category.label}</strong><small>{category.text} · בחירת ערוצים בלבד</small></div></div>}
               <div className="notification-channel-pills">
                 {(Object.keys(channelInfo) as ChannelKey[]).map((channel) => {
                   const item = channelInfo[channel]; const Icon = item.icon;
