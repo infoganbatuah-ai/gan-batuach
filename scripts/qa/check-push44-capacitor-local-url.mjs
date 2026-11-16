@@ -62,6 +62,7 @@ test("Android policy sources deny general cleartext and retain deep-link/Push bo
   assert.doesNotMatch(debug, /10\.0\.2\.2/);
   assert.match(gradle, /applicationIdSuffix "\.qa"/);
   assert.match(manifest, /android:scheme="\$\{mobileCallbackScheme\}"/);
-  assert.match(gradle, /mobileCallbackScheme: mobileProduct == 'observer' \? 'observerqaandroid' : 'digitalobserver'/);
+  assert.match(gradle, /mobileCallbackScheme: 'observerqaandroid'/);
+  assert.match(gradle, /mobileCallbackScheme: 'digitalobserver'/);
   assert.match(manifest, /android:allowBackup="false"/);
 });

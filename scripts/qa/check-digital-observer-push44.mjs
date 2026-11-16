@@ -102,7 +102,8 @@ assert(login.includes("HttpOnly cookies"));
 
 assert(android.includes("android.permission.POST_NOTIFICATIONS"));
 assert(android.includes('android:scheme="${mobileCallbackScheme}"'));
-assert(androidGradle.includes("mobileCallbackScheme: mobileProduct == 'observer' ? 'observerqaandroid' : 'digitalobserver'"));
+assert(androidGradle.includes("mobileCallbackScheme: 'observerqaandroid'") && androidGradle.includes("mobileCallbackScheme: 'digitalobserver'"));
+assert(androidGradle.includes("(product == 'observer' && variant.buildType == 'observerQa')"));
 assert(android.includes('android:allowBackup="false"'));
 assert(ios.includes("CFBundleURLSchemes") && ios.includes("digitalobserver"));
 assert(appDelegate.includes("capacitorDidRegisterForRemoteNotifications"));

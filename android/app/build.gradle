@@ -12,14 +12,7 @@ android {
     namespace = "com.ganbatuach.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId = mobileProduct == 'observer' ? 'com.digitalobserver.app' : 'com.ganbatuach.app'
-        manifestPlaceholders = [
-            mobileAppLabel: mobileProduct == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח',
-            mobileCallbackScheme: mobileProduct == 'observer' ? 'observerqaandroid' : 'digitalobserver',
-            mobileLauncherIcon: mobileProduct == 'observer' ? '@drawable/observer_qa_icon' : '@mipmap/ic_launcher',
-            mobileRoundIcon: mobileProduct == 'observer' ? '@drawable/observer_qa_icon' : '@mipmap/ic_launcher_round',
-            mobileLaunchTheme: mobileProduct == 'observer' ? '@style/ObserverQALaunch' : '@style/AppTheme.NoActionBarLaunch'
-        ]
+        applicationId 'com.ganbatuach.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -29,6 +22,23 @@ android {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    flavorDimensions 'product'
+    productFlavors {
+        gan {
+            dimension 'product'
+            applicationId 'com.ganbatuach.app'
+            manifestPlaceholders = [mobileAppLabel: 'גן בטוח', mobileCallbackScheme: 'digitalobserver',
+                mobileLauncherIcon: '@mipmap/ic_launcher', mobileRoundIcon: '@mipmap/ic_launcher_round',
+                mobileLaunchTheme: '@style/AppTheme.NoActionBarLaunch']
+        }
+        observer {
+            dimension 'product'
+            applicationId 'com.digitalobserver.app'
+            manifestPlaceholders = [mobileAppLabel: 'תצפיתן דיגיטלי', mobileCallbackScheme: 'observerqaandroid',
+                mobileLauncherIcon: '@drawable/observer_qa_icon', mobileRoundIcon: '@drawable/observer_qa_icon',
+                mobileLaunchTheme: '@style/ObserverQALaunch']
         }
     }
     buildTypes {
@@ -41,6 +51,19 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        observerQa {
+            initWith debug
+            matchingFallbacks = ['debug']
+            applicationIdSuffix '.qa'
+        }
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        def product = variant.productFlavors.find { it.first == 'product' }?.second
+        variant.enable = (product == 'gan' && variant.buildType in ['debug', 'release']) ||
+            (product == 'observer' && variant.buildType == 'observerQa')
     }
 }
 
@@ -66,25 +89,26 @@ apply from: 'capacitor.build.gradle'
 
 // cap sync and Gradle are separate steps. Refuse a stale or wrong-profile
 // capacitor.config.json before packaging a QA or release artifact.
-def verifyMobileConfig = { String buildType ->
+def verifyMobileConfig = { String product, String buildType ->
     def packedConfig = file('src/main/assets/capacitor.config.json')
     if (!packedConfig.isFile()) throw new GradleException('CAPACITOR_SYNC_REQUIRED')
     def config = new JsonSlurper().parse(packedConfig)
     def profile = System.getenv('CAPACITOR_BUILD_PROFILE') ?: 'development'
-    if (mobileProduct == 'observer' && buildType != 'debug') throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
+    if (mobileProduct != product) throw new GradleException('CAPACITOR_PRODUCT_VARIANT_MISMATCH')
+    if (product == 'observer' && (buildType != 'observerQa' || profile != 'qa')) throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
     def expectedUrl = System.getenv('CAPACITOR_SERVER_URL')
     if (!expectedUrl || config.server?.url != expectedUrl) throw new GradleException('CAPACITOR_SERVER_URL_MISMATCH')
     if (buildType == 'release' && profile != 'release') throw new GradleException('CAPACITOR_RELEASE_PROFILE_REQUIRED')
-    if (buildType == 'debug' && !(profile in ['development', 'qa'])) throw new GradleException('CAPACITOR_DEBUG_PROFILE_REQUIRED')
-    def expectedAppId = mobileProduct == 'observer' ? 'com.digitalobserver.app.qa' :
+    if (buildType != 'release' && !(profile in ['development', 'qa'])) throw new GradleException('CAPACITOR_DEBUG_PROFILE_REQUIRED')
+    def expectedAppId = product == 'observer' ? 'com.digitalobserver.app.qa' :
         buildType == 'release' ? 'com.ganbatuach.app' : 'com.ganbatuach.app.qa'
     if (config.appId != expectedAppId) throw new GradleException('CAPACITOR_APP_ID_MISMATCH')
-    if (config.appName != (mobileProduct == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח'))
+    if (config.appName != (product == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח'))
         throw new GradleException('CAPACITOR_APP_NAME_MISMATCH')
     def url = new URI(expectedUrl)
     def origin = "${url.scheme}://${url.authority}"
     if (url.rawQuery || url.rawFragment ||
-        (mobileProduct == 'observer' ? url.path != '/digital-observer/dashboard' : !(url.path in ['', '/'])))
+        (product == 'observer' ? url.path != '/digital-observer/dashboard' : !(url.path in ['', '/'])))
         throw new GradleException('CAPACITOR_PRODUCT_LAUNCH_PATH_MISMATCH')
     if (profile != 'development' || url.scheme == 'https') {
         if (url.scheme != 'https' || origin != System.getenv('CAPACITOR_ALLOWED_SERVER_ORIGIN') || config.server.cleartext != false)
@@ -93,10 +117,12 @@ def verifyMobileConfig = { String buildType ->
         throw new GradleException('CAPACITOR_LOCAL_URL_INVALID')
     }
 }
-tasks.register('verifyDebugMobileConfig') { doLast { verifyMobileConfig('debug') } }
-tasks.register('verifyReleaseMobileConfig') { doLast { verifyMobileConfig('release') } }
-tasks.matching { it.name == 'preDebugBuild' }.configureEach { dependsOn 'verifyDebugMobileConfig' }
-tasks.matching { it.name == 'preReleaseBuild' }.configureEach { dependsOn 'verifyReleaseMobileConfig' }
+tasks.register('verifyGanDebugMobileConfig') { doLast { verifyMobileConfig('gan', 'debug') } }
+tasks.register('verifyGanReleaseMobileConfig') { doLast { verifyMobileConfig('gan', 'release') } }
+tasks.register('verifyObserverQaMobileConfig') { doLast { verifyMobileConfig('observer', 'observerQa') } }
+tasks.matching { it.name == 'preGanDebugBuild' }.configureEach { dependsOn 'verifyGanDebugMobileConfig' }
+tasks.matching { it.name == 'preGanReleaseBuild' }.configureEach { dependsOn 'verifyGanReleaseMobileConfig' }
+tasks.matching { it.name == 'preObserverObserverQaBuild' }.configureEach { dependsOn 'verifyObserverQaMobileConfig' }
 
 try {
     def servicesJSON = file('google-services.json')
