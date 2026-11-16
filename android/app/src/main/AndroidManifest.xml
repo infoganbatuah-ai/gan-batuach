@@ -9,9 +9,9 @@
         tools:replace="android:usesCleartextTraffic"
         android:fullBackupContent="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="${mobileLauncherIcon}"
         android:label="${mobileAppLabel}"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="${mobileRoundIcon}"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
@@ -19,7 +19,7 @@
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
             android:label="${mobileAppLabel}"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:theme="${mobileLaunchTheme}"
             android:launchMode="singleTask"
             android:exported="true">
 
