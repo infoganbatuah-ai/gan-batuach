@@ -139,7 +139,7 @@ async function preferencesAllowPush(supabase: SupabaseLike, profileId: string, c
     .select("receive_push, critical_push_allowed")
     .eq("profile_id", profileId)
     .maybeSingle();
-  if (error) return { allowed: true, error: error.message };
+  if (error) return { allowed: false, error: error.message };
   if (!data) return { allowed: true, error: null };
   if (critical && data.critical_push_allowed !== false) return { allowed: true, error: null };
   return { allowed: data.receive_push !== false, error: null };
@@ -153,7 +153,7 @@ async function categoryPreferencesAllowPush(supabase: SupabaseLike, profileId: s
     .eq("profile_id", profileId)
     .eq("category", category)
     .maybeSingle();
-  if (error) return { allowed: true, error: error.message };
+  if (error) return { allowed: false, error: error.message };
   if (!data) return { allowed: true, error: null };
   if (data.enabled === false) return { allowed: false, error: null };
   if (data.critical_only && !critical) return { allowed: false, error: null };
@@ -178,6 +178,25 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
   const actionUrl = input.actionUrl ?? template?.default_action_url ?? null;
   const preference = await preferencesAllowPush(supabase, input.profileId, input.critical);
   const categoryPreference = await categoryPreferencesAllowPush(supabase, input.profileId, category, input.critical);
+  const preferenceError = preference.error ?? categoryPreference.error;
+  if (preferenceError) {
+    const failed = await supabase.from("push_notification_logs").insert({
+      notification_id: input.notificationId ?? null,
+      profile_id: input.profileId,
+      platform: "web",
+      template_id: template?.id ?? null,
+      category,
+      title: input.title,
+      body: input.body ?? null,
+      action_url: actionUrl,
+      deep_link_type: deepLinkType,
+      status: "failed",
+      provider: "preferences",
+      failure_reason: preferenceError,
+      metadata: input.metadata ?? {}
+    });
+    return { ok: false, logs: [], error: failed.error?.message ?? preferenceError };
+  }
   const { data: tokens, error: tokensError } = await supabase
     .from("push_device_tokens")
     .select("id, platform, device_token, is_active")
