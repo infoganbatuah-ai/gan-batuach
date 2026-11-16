@@ -4,6 +4,7 @@ type SupabaseLike = {
 
 import { createHash } from "crypto";
 import { getPushProviderForPlatform } from "./push-provider";
+import type { PushProviderResult } from "./push-provider";
 
 export type PushPlatform = "web" | "android" | "ios";
 export type PushProvider = "mock" | "mock_push" | "web_push" | "fcm" | "apns" | "capacitor" | "custom";
@@ -263,18 +264,27 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
 
   const rows = await Promise.all(activeTokens.map(async (token) => {
     const provider = getPushProviderForPlatform(token.platform);
-    const providerResult = await provider.send({
-      profileId: input.profileId,
-      deviceTokenId: token.id,
-      deviceToken: token.device_token,
-      platform: token.platform,
-      title: input.title,
-      body: input.body ?? null,
-      actionUrl,
-      category,
-      deepLinkType,
-      metadata: input.metadata ?? {}
-    });
+    let providerResult: PushProviderResult;
+    let outcomeUnknown = false;
+    try {
+      providerResult = await provider.send({
+        profileId: input.profileId,
+        deviceTokenId: token.id,
+        deviceToken: token.device_token,
+        platform: token.platform,
+        title: input.title,
+        body: input.body ?? null,
+        actionUrl,
+        category,
+        deepLinkType,
+        metadata: input.metadata ?? {}
+      });
+    } catch {
+      // A provider may have accepted the message before its response failed.
+      // Record this token independently without scheduling an unsafe retry.
+      outcomeUnknown = true;
+      providerResult = { ok: false, status: "failed", provider: provider.name, failureReason: "provider_submission_outcome_unknown" };
+    }
     return {
       notification_id: input.notificationId ?? null,
       profile_id: input.profileId,
@@ -293,7 +303,7 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
       failure_reason: providerResult.failureReason ?? null,
       sent_at: providerResult.sentAt ?? null,
       failed_at: providerResult.status === "failed" ? new Date().toISOString() : null,
-      next_retry_at: providerResult.status === "failed" ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null,
+      next_retry_at: providerResult.status === "failed" && !outcomeUnknown ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null,
       metadata: {
         ...(input.metadata ?? {}),
         ...(providerResult.metadata ?? {})
