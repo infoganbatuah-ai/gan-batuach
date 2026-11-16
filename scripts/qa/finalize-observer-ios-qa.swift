@@ -65,5 +65,9 @@ guard let page = String(data: offline, encoding: .utf8),
     fatalError("OBSERVER_QA_OFFLINE_PAGE_INVALID")
 }
 try offline.write(to: app.appendingPathComponent("public/index.html"), options: .atomic)
+for name in ["sw.js", "firebase-messaging-sw.js"] {
+    let worker = app.appendingPathComponent("public/\(name)")
+    if files.fileExists(atPath: worker.path) { try files.removeItem(at: worker) }
+}
 try data.write(to: app.appendingPathComponent("capacitor.config.json"), options: .atomic)
 print("Observer iOS QA unsigned bundle finalized with isolated identity and local offline screen")
