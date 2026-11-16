@@ -11,13 +11,25 @@ const exactPost = new Set(["/api/digital-observer/auth/login", "/api/auth/logout
 const assetPrefixes = ["/_next/static/", "/assets/digital-observer/"];
 const secretKeys = /^(?:code|token|token_hash|access_token|refresh_token|id_token|session|password|secret|key)$/i;
 
+function hasRawTraversal(rawPath) {
+  if (/%(?:00|25|2f|5c)/i.test(rawPath)) return true;
+  for (const segment of rawPath.split("/")) {
+    let decoded;
+    try { decoded = decodeURIComponent(segment); } catch { return true; }
+    if (decoded === "." || decoded === ".." || decoded.includes("\\")) return true;
+  }
+  return false;
+}
+
 function parsedPath(rawUrl) {
   if (typeof rawUrl !== "string" || !rawUrl.startsWith("/") || rawUrl.startsWith("//") ||
       rawUrl.length > 2048 || /[\\\r\n#]/.test(rawUrl)) return null;
+  // URL() normalizes dot segments. Inspect the unparsed request target first.
+  if (hasRawTraversal(rawUrl.split("?", 1)[0])) return null;
   let url;
   try { url = new URL(rawUrl, localOrigin); } catch { return null; }
-  if (url.origin !== localOrigin || /%(?:00|25|2e|2f|5c)/i.test(url.pathname) ||
-      url.pathname.includes("//") || url.pathname.includes("..")) return null;
+  if (url.origin !== localOrigin || /%(?:00|25|2f|5c)/i.test(url.pathname) ||
+      url.pathname.includes("//")) return null;
   for (const key of url.searchParams.keys()) if (secretKeys.test(key)) return null;
   return url;
 }
@@ -42,6 +54,8 @@ export function observerQaRedirect(rawLocation, gate) {
   if (typeof rawLocation !== "string" || rawLocation.length > 2048) return null;
   let destination = rawLocation;
   if (rawLocation.startsWith("https://")) {
+    const rawPath = rawLocation.replace(/^https:\/\/[^/?#]+/, "").split("?", 1)[0];
+    if (hasRawTraversal(rawPath)) return null;
     let absolute;
     try { absolute = new URL(rawLocation); } catch { return null; }
     if (absolute.origin !== localOrigin || absolute.username || absolute.password ||

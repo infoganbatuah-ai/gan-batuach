@@ -12,6 +12,7 @@ test("only the bounded Observer login, session page and static paths pass", () =
   }
   assert.equal(allows("POST", "/api/digital-observer/auth/login"), true);
   assert.equal(allows("POST", "/api/auth/logout"), true);
+  assert.equal(allows("GET", "/_next/static/chunk..js"), true);
 });
 
 test("wrong host, absent owner gate or untrusted TLS deny before route selection", () => {
@@ -35,12 +36,17 @@ test("bearer URLs, host spoofing, traversal and open redirects fail closed", () 
     "/digital-observer/login?access_token=x", "/digital-observer/login?code=x",
     "/digital-observer/login#access_token=x", "/digital-observer/%2e%2e/dashboard",
     "/digital-observer/%252e%252e/dashboard", "/digital-observer/../dashboard",
+    "/x/../digital-observer/login", "/%2e%2e/digital-observer/login",
+    "/.%2e/digital-observer/login", "/x/./../digital-observer/login",
     "/digital-observer/login?next=//evil.test", "/digital-observer/login\\evil"])
     assert.equal(allows("GET", path), false, path);
   assert.equal(observerQaRedirect("/digital-observer/dashboard", gate), "/digital-observer/dashboard");
   assert.equal(observerQaRedirect("https://observer-qa.ganbatuach.com/digital-observer/dashboard", gate),
     "/digital-observer/dashboard");
   assert.equal(observerQaRedirect("https://evil.test/digital-observer/dashboard", gate), null);
+  assert.equal(observerQaRedirect("/x/../digital-observer/login", gate), null);
+  assert.equal(observerQaRedirect("https://observer-qa.ganbatuach.com/x/../digital-observer/login", gate), null);
+  assert.equal(observerQaRedirect("https://observer-qa.ganbatuach.com/%2e%2e/digital-observer/login", gate), null);
   assert.equal(observerQaRedirect("https://user@observer-qa.ganbatuach.com/digital-observer/dashboard", gate), null);
   assert.equal(observerQaRedirect("/digital-observer/login?code=secret", gate), null);
 });
