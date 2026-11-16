@@ -8,7 +8,8 @@ type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 function canonicalCustomLink(rawUrl: string) {
   const link = parseMobileLink(rawUrl);
   const resource = link.resourceId ? `/${link.resourceId}` : "";
-  return `digitalobserver://${link.kind}${resource}?site=${link.observerSiteId}`;
+  const scheme = new URL(rawUrl).protocol.slice(0, -1);
+  return `${scheme}://${link.kind}${resource}?site=${link.observerSiteId}`;
 }
 
 export function rememberPendingMobileLink(storage: StorageLike, rawUrl: string, now = Date.now()) {
