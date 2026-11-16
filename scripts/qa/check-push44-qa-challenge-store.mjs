@@ -88,12 +88,31 @@ test("changed authenticated account or session is denied", async () => {
   assert.equal(f.writes, 0);
 });
 
+test("standalone Observer challenge consumes only under its own product audience", async () => {
+  const observer = { ...context, audience: "com.digitalobserver.app.qa" };
+  const f = fixture({ audience: observer.audience });
+  const observerSignature = sign("sha256", qaDeviceProofMessage(observer), keys.privateKey).toString("base64");
+  assert.equal(await consumeStoredQaChallenge(f.db, { ...f.input, audience: observer.audience,
+    signatureBase64: signature }, f.verifyLiveSession), false, "Gan-signed bytes cannot satisfy Observer");
+  assert.equal(await consumeStoredQaChallenge(f.db, { ...f.input, audience: observer.audience,
+    signatureBase64: observerSignature }, f.verifyLiveSession), true);
+  assert.equal(f.writes, 1);
+});
+
+test("unknown product audience fails before any challenge lookup", async () => {
+  const f = fixture();
+  assert.equal(await consumeStoredQaChallenge(f.db, { ...f.input, audience: "unknown.qa" }, f.verifyLiveSession), false);
+  assert.equal(f.statements.length, 0);
+});
+
 test("review-only SQL proposes private scoped tables and bounded expiry", () => {
   const sql = readFileSync(new URL("../../review-only/push44-qa-device-proof/proposed-schema.sql", import.meta.url), "utf8");
   assert.match(sql, /CREATE SCHEMA observer_qa_private/);
   assert.match(sql, /REVOKE ALL ON SCHEMA observer_qa_private FROM PUBLIC, anon, authenticated/);
   assert.match(sql, /auth_session_id uuid NOT NULL/);
-  assert.match(sql, /UNIQUE \(id, account_profile_id\)/);
+  assert.match(sql, /UNIQUE \(id, account_profile_id, audience\)/);
+  assert.match(sql, /FOREIGN KEY \(installation_id, account_profile_id, audience\)/);
+  assert.match(sql, /approved_installations\(account_profile_id, audience\)/);
   assert.match(sql, /approved_one_qa_installation_per_account/);
   assert.match(sql, /expires_at <= issued_at \+ interval '60 seconds'/);
   assert.match(sql, /SECURITY DEFINER/);

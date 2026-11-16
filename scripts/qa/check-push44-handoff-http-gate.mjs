@@ -23,8 +23,11 @@ test("default-off gate rejects before touching Auth or storage", async () => {
 
 test("enabled isolated adapter binds only server identity and returns no credential", async () => {
   const d = deps();
-  const response = await handleQaHandoff(request(), { ...d, enabled: true });
+  let audience;
+  const response = await handleQaHandoff(request(), { ...d, enabled: true,
+    consume: async (input) => { d.calls.consume++; audience = input.audience; return true; } });
   assert.equal(response.status, 204);
+  assert.equal(audience, "com.digitalobserver.app.qa");
   assert.deepEqual(d.calls, { attempts: 1, auth: 1, consume: 1 });
   assert.equal(response.headers.get("location"), null);
   assert.equal(await response.text(), "");

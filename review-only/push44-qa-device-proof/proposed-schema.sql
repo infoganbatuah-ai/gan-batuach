@@ -7,16 +7,17 @@ GRANT USAGE ON SCHEMA observer_qa_private TO service_role;
 CREATE TABLE observer_qa_private.approved_installations (
   id uuid PRIMARY KEY,
   account_profile_id uuid NOT NULL REFERENCES public.profiles(id),
+  audience text NOT NULL CHECK (audience IN ('com.ganbatuach.app.qa', 'com.digitalobserver.app.qa')),
   public_key_spki_base64 text NOT NULL CHECK (length(public_key_spki_base64) BETWEEN 80 AND 512),
   approved_at timestamptz,
   expires_at timestamptz NOT NULL,
   revoked_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT clock_timestamp(),
-  UNIQUE (id, account_profile_id),
+  UNIQUE (id, account_profile_id, audience),
   CHECK (expires_at > created_at)
 );
 CREATE UNIQUE INDEX approved_one_qa_installation_per_account
-  ON observer_qa_private.approved_installations(account_profile_id)
+  ON observer_qa_private.approved_installations(account_profile_id, audience)
   WHERE approved_at IS NOT NULL AND revoked_at IS NULL;
 
 CREATE TABLE observer_qa_private.device_handoff_challenges (
@@ -24,14 +25,14 @@ CREATE TABLE observer_qa_private.device_handoff_challenges (
   installation_id uuid NOT NULL,
   account_profile_id uuid NOT NULL,
   auth_session_id uuid NOT NULL,
-  audience text NOT NULL CHECK (audience = 'com.ganbatuach.app.qa'),
+  audience text NOT NULL CHECK (audience IN ('com.ganbatuach.app.qa', 'com.digitalobserver.app.qa')),
   nonce text NOT NULL UNIQUE CHECK (nonce ~ '^[a-f0-9]{64}$'),
   issued_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   expires_at timestamptz NOT NULL,
   consumed_at timestamptz,
   revoked_at timestamptz,
-  FOREIGN KEY (installation_id, account_profile_id)
-    REFERENCES observer_qa_private.approved_installations(id, account_profile_id),
+  FOREIGN KEY (installation_id, account_profile_id, audience)
+    REFERENCES observer_qa_private.approved_installations(id, account_profile_id, audience),
   CHECK (expires_at > issued_at AND expires_at <= issued_at + interval '60 seconds'),
   CHECK (consumed_at IS NULL OR consumed_at >= issued_at)
 );
@@ -70,6 +71,7 @@ AS $fn$
       AND c.installation_id = p_installation_id AND c.audience = p_audience
       AND c.nonce = p_nonce AND i.id = c.installation_id
       AND i.account_profile_id = c.account_profile_id
+      AND i.audience = c.audience AND i.audience = p_audience
       AND i.public_key_spki_base64 = p_public_key
       AND i.approved_at IS NOT NULL AND i.revoked_at IS NULL
       AND i.expires_at > clock_timestamp()

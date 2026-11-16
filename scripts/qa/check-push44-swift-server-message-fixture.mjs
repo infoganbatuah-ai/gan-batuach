@@ -47,7 +47,7 @@ print(bytes.base64EncodedString())`;
     const expected = { ...challenge, publicKeySpkiBase64 };
     assert.deepEqual(swiftBytes, qaDeviceProofMessage(expected));
     const signature = sign("sha256", swiftBytes, keys.privateKey).toString("base64");
-    assert.equal(verifyQaDeviceProof(expected, signature, 1_000), true);
+    assert.equal(verifyQaDeviceProof(expected, signature, 1_000, "com.ganbatuach.app.qa"), true);
   } finally {
     rmSync(cache, { recursive: true, force: true });
   }
