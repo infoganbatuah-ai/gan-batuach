@@ -103,6 +103,28 @@ extension Notification.Name {
     static let qaAccessReturnValidated = Notification.Name("qaAccessReturnValidated")
 }
 
+// The two QA products share an Xcode target, not an installation identity.
+// Only these exact bundle IDs may create a device-proof key or accept a return.
+private struct QaBundleIdentity: Equatable {
+    let audience: String
+    let callbackScheme: String
+
+    var keyTag: Data { Data("\(audience).device-proof.v1".utf8) }
+
+    static func resolve(_ bundleId: String?) -> QaBundleIdentity? {
+        switch bundleId {
+        case "com.ganbatuach.app.qa":
+            return QaBundleIdentity(audience: "com.ganbatuach.app.qa", callbackScheme: "observerqa")
+        case "com.digitalobserver.app.qa":
+            return QaBundleIdentity(audience: "com.digitalobserver.app.qa", callbackScheme: "observerqaapp")
+        default:
+            return nil
+        }
+    }
+
+    static func current() -> QaBundleIdentity? { resolve(Bundle.main.bundleIdentifier) }
+}
+
 // Local, default-off primitive. No entitlement, pending-state producer, network
 // exchange, or QA-flow subscriber is installed by this change.
 enum QaAccessReturnGate {
@@ -114,21 +136,22 @@ enum QaAccessReturnGate {
                                  audience: String, expires: Date)?
 
     static func begin(account: String, installation: String, now: Date = Date()) -> String? {
-        guard enabled, pending == nil, !account.isEmpty, !installation.isEmpty else { return nil }
+        guard enabled, let bundle = QaBundleIdentity.current(), pending == nil,
+              !account.isEmpty, !installation.isEmpty else { return nil }
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
         let state = bytes.map { String(format: "%02x", $0) }.joined()
-        pending = (state, account, installation, "com.ganbatuach.app.qa",
+        pending = (state, account, installation, bundle.audience,
                    now.addingTimeInterval(maxAge))
         return state
     }
 
     static func consume(_ url: URL, account: String? = nil, installation: String? = nil,
-                        audience: String = "com.ganbatuach.app.qa", now: Date = Date()) -> Bool {
-        guard enabled, let expected = pending else { return false }
+                        now: Date = Date()) -> Bool {
+        guard enabled, let bundle = QaBundleIdentity.current(), let expected = pending else { return false }
         pending = nil // A callback attempt cannot be replayed, including after rejection.
         guard now < expected.expires, account == expected.account,
-              installation == expected.installation, audience == expected.audience,
+              installation == expected.installation, bundle.audience == expected.audience,
               url.absoluteString.utf8.count <= 1024,
               let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
               parts.scheme == "https", parts.host == expectedHost,
@@ -151,10 +174,8 @@ enum QaAsWebAuthReturn {
         let installation: String
     }
     private static let identityProvider: (() -> Identity?)? = nil
-    private static let callbackScheme = "observerqa"
-
     static func prepare(onValidated: @escaping () -> Void) -> ASWebAuthenticationSession? {
-        guard enabled, let identity = identityProvider?(),
+        guard enabled, let bundle = QaBundleIdentity.current(), let identity = identityProvider?(),
               !identity.account.isEmpty, !identity.installation.isEmpty else { return nil }
         var bytes = [UInt8](repeating: 0, count: 32)
         guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else { return nil }
@@ -162,12 +183,13 @@ enum QaAsWebAuthReturn {
         guard let startURL = URL(string:
             "https://qa-iphone-device-proof.ganbatuach.com/qa/device-proof/start?state=\(state)") else { return nil }
         var consumed = false
-        return ASWebAuthenticationSession(url: startURL, callbackURLScheme: callbackScheme) {
+        return ASWebAuthenticationSession(url: startURL, callbackURLScheme: bundle.callbackScheme) {
             callback, error in
             guard !consumed else { return }
             consumed = true // A failed return also burns this local one-use attempt.
-            guard error == nil, identityProvider?() == identity,
-                  callback?.absoluteString == "observerqa://return/qa/device-proof?state=\(state)" else { return }
+            guard error == nil, QaBundleIdentity.current() == bundle,
+                  identityProvider?() == identity,
+                  callback?.absoluteString == "\(bundle.callbackScheme)://return/qa/device-proof?state=\(state)" else { return }
             onValidated() // No URL, state, bearer or cookie reaches the caller.
         }
     }
@@ -178,7 +200,6 @@ enum QaAsWebAuthReturn {
 enum QaSecureEnclaveProof {
     enum ProofError: Error { case unavailable, invalidChallenge, invalidPublicKey, signingFailed }
 
-    private static let tag = Data("com.ganbatuach.app.qa.device-proof.v1".utf8)
     private static let spkiPrefix = Data([
         0x30, 0x59, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02,
         0x01, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07,
@@ -186,10 +207,10 @@ enum QaSecureEnclaveProof {
     ])
 
     private static func privateKey() throws -> SecKey {
-        guard Bundle.main.bundleIdentifier == "com.ganbatuach.app.qa" else { throw ProofError.unavailable }
+        guard let bundle = QaBundleIdentity.current() else { throw ProofError.unavailable }
         let query: [String: Any] = [
             kSecClass as String: kSecClassKey,
-            kSecAttrApplicationTag as String: tag,
+            kSecAttrApplicationTag as String: bundle.keyTag,
             kSecAttrKeyType as String: kSecAttrKeyTypeECSECPrimeRandom,
             kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
             kSecReturnRef as String: true
@@ -215,7 +236,7 @@ enum QaSecureEnclaveProof {
             kSecAttrTokenID as String: kSecAttrTokenIDSecureEnclave,
             kSecPrivateKeyAttrs as String: [
                 kSecAttrIsPermanent as String: true,
-                kSecAttrApplicationTag as String: tag,
+                kSecAttrApplicationTag as String: bundle.keyTag,
                 kSecAttrAccessControl as String: access
             ]
         ]
@@ -237,6 +258,7 @@ enum QaSecureEnclaveProof {
 
     static func sign(nonce: String, accountId: String, sessionId: String,
                      installationId: String, expiresAtMs: Int64) throws -> String {
+        guard let bundle = QaBundleIdentity.current() else { throw ProofError.unavailable }
         let identifiers = [accountId, sessionId, installationId]
         guard nonce.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil,
               identifiers.allSatisfy({ value in
@@ -245,7 +267,7 @@ enum QaSecureEnclaveProof {
               }), expiresAtMs > 0 else { throw ProofError.invalidChallenge }
         let message: [Any] = ["digital-observer-qa-device-proof-v1", nonce,
                               accountId, sessionId, installationId,
-                              "com.ganbatuach.app.qa", expiresAtMs]
+                              bundle.audience, expiresAtMs]
         guard let bytes = try? JSONSerialization.data(withJSONObject: message, options: []) else {
             throw ProofError.invalidChallenge
         }
