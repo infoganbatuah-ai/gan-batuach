@@ -49,7 +49,11 @@ export async function GET() {
       return fail("לא ניתן לטעון העדפות תקשורת כרגע.", 500);
     }
     const pushCategoryRows = await supabase.from("push_category_preferences" as any).select("category, enabled, critical_only").eq("profile_id", profile.id).in("category", [...parentCategories]);
-    if (pushCategoryRows.error) console.error("[communication-preferences] push category load failed", { profile_id: profile.id, error: pushCategoryRows.error.message });
+    if (pushCategoryRows.error) {
+      console.error("[communication-preferences] push category load failed", { profile_id: profile.id, error: pushCategoryRows.error.message });
+      // A failed read cannot be represented as consent to every category.
+      return fail("לא ניתן לטעון העדפות התראות כרגע.", 500);
+    }
     const pushCategoryPreferences = Object.fromEntries(parentCategories.map((category) => {
       const row = (pushCategoryRows.data ?? []).find((item: any) => item.category === category);
       return [category, row?.enabled ?? true];
