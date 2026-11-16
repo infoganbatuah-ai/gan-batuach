@@ -69,6 +69,19 @@ test("native HTTPS return stays on the exact Observer origin and product path", 
   assert.throws(() => mobile.parseMobileLink(`observerqaapp://auth/callback?code=opaque`), /MOBILE_LINK_INVALID/);
 });
 
+test("same-origin HTTPS link survives login replay, foreign origin cannot be stored or replayed", () => {
+  const storage = store();
+  const httpsLink = `${origin}/digital-observer/open/camera/${camera}?site=${site}`;
+  assert.equal(pending.rememberPendingMobileLink(storage, `${httpsLink}&ignored=1`, 1_000, origin), true);
+  assert.equal(pending.takePendingMobileLink(storage, 2_000, origin), httpsLink);
+  assert.equal(pending.takePendingMobileLink(storage, 2_000, origin), null);
+  assert.equal(pending.rememberPendingMobileLink(storage, httpsLink, 3_000, origin), true);
+  assert.equal(pending.takePendingMobileLink(storage, 4_000, "https://other.example.invalid"), null);
+  assert.equal(pending.rememberPendingMobileLink(storage, `https://other.example.invalid/digital-observer/open/camera/${camera}?site=${site}`, 5_000, origin), false);
+  assert.equal(pending.firstLaunchOfMobileLink(storage, httpsLink, 6_000, origin), true);
+  assert.equal(pending.firstLaunchOfMobileLink(storage, httpsLink, 7_000, origin), false);
+});
+
 test("native bundle schemes and server-side authorization remain separate gates", () => {
   const ios = readFileSync(new URL("ios/qa-observer/Info.plist", root), "utf8");
   const gradle = readFileSync(new URL("android/app/build.gradle", root), "utf8");

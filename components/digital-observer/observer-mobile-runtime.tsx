@@ -68,7 +68,7 @@ async function authorizeAndOpen(rawUrl: string) {
   const payload = await response.json().catch(() => ({}));
   const destination = payload?.data?.destination;
   if (response.status === 401 && Capacitor.isNativePlatform() && window.sessionStorage &&
-    rememberPendingMobileLink(window.sessionStorage, rawUrl)) {
+    rememberPendingMobileLink(window.sessionStorage, rawUrl, Date.now(), window.location.origin)) {
     if (window.location.pathname !== "/digital-observer/login") window.location.replace("/digital-observer/login");
     throw new Error("SESSION_REVALIDATION_REQUIRED");
   }
@@ -176,7 +176,7 @@ export function ObserverMobileRuntime() {
           const permission = await PushNotifications.checkPermissions();
           if (permission.receive === "granted") await PushNotifications.register();
         }
-        const pendingLink = window.sessionStorage ? takePendingMobileLink(window.sessionStorage) : null;
+        const pendingLink = window.sessionStorage ? takePendingMobileLink(window.sessionStorage, Date.now(), window.location.origin) : null;
         if (pendingLink) {
           try { await authorizeAndOpen(pendingLink); return; }
           catch (error) {
@@ -330,7 +330,7 @@ export function ObserverMobileRuntime() {
       removers.push(() => appUrl.remove());
       const launch = await App.getLaunchUrl();
       if (disposed || !playbackPublisher.isCurrent()) return;
-      if (launch?.url && window.sessionStorage && firstLaunchOfMobileLink(window.sessionStorage, launch.url))
+      if (launch?.url && window.sessionStorage && firstLaunchOfMobileLink(window.sessionStorage, launch.url, Date.now(), window.location.origin))
         void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
 
       if (pushEnabled) {

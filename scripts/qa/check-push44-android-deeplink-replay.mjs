@@ -62,10 +62,10 @@ test("initial launch URL is suppressed across login reload, but can be retried a
 test("native runtime queues only a 401 link and replays after authenticated bootstrap", () => {
   const runtime = readFileSync(new URL("components/digital-observer/observer-mobile-runtime.tsx", root), "utf8");
   assert.match(runtime, /response\.status === 401 && Capacitor\.isNativePlatform\(\)/);
-  assert.match(runtime, /rememberPendingMobileLink\(window\.sessionStorage, rawUrl\)/);
-  assert.match(runtime, /takePendingMobileLink\(window\.sessionStorage\)/);
+  assert.match(runtime, /rememberPendingMobileLink\(window\.sessionStorage, rawUrl, Date\.now\(\), window\.location\.origin\)/);
+  assert.match(runtime, /takePendingMobileLink\(window\.sessionStorage, Date\.now\(\), window\.location\.origin\)/);
   assert.match(runtime, /if \(pendingLink\) \{/);
-  assert.match(runtime, /firstLaunchOfMobileLink\(window\.sessionStorage, launch\.url\)/);
+  assert.match(runtime, /firstLaunchOfMobileLink\(window\.sessionStorage, launch\.url, Date\.now\(\), window\.location\.origin\)/);
 });
 
 async function authorizeLink({ session = true, siteAllowed = true, resourceAllowed = true } = {}) {
