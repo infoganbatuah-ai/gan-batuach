@@ -7,7 +7,8 @@ guard CommandLine.arguments.count == 3 else {
 }
 let app = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let template = URL(fileURLWithPath: CommandLine.arguments[2])
-let offlinePage = template.deletingLastPathComponent().appendingPathComponent("index.html")
+let offlinePage = URL(fileURLWithPath: "ios/qa-observer/index.html", relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true))
+let authenticated = ProcessInfo.processInfo.environment["OBSERVER_QA_AUTH_BUILD"] == "1"
 let files = FileManager.default
 guard app.pathExtension == "app", files.fileExists(atPath: app.appendingPathComponent("Info.plist").path) else {
     fatalError("OBSERVER_QA_APP_REQUIRED")
@@ -52,10 +53,19 @@ guard let config = try JSONSerialization.jsonObject(with: data) as? [String: Any
       config["appName"] as? String == "תצפיתן דיגיטלי",
       config["webDir"] as? String == "public",
       let server = config["server"] as? [String: Any],
-      server["url"] == nil, server["iosScheme"] as? String == "capacitor",
+      server["iosScheme"] as? String == "capacitor",
       let classes = config["packageClassList"] as? [String],
       !classes.contains("PushNotificationsPlugin") else {
     fatalError("OBSERVER_QA_RUNTIME_CONFIG_INVALID")
+}
+if authenticated {
+    guard server["url"] as? String == "https://observer-qa.ganbatuach.com/digital-observer/dashboard",
+          server["cleartext"] as? Bool == false,
+          ProcessInfo.processInfo.environment["OBSERVER_QA_CALLBACK"] == "observerqaapp://return/qa/device-proof" else {
+        fatalError("OBSERVER_QA_AUTH_BUILD_BOUNDARY_INVALID")
+    }
+} else {
+    guard server["url"] == nil else { fatalError("OBSERVER_QA_OFFLINE_URL_FORBIDDEN") }
 }
 let offline = try Data(contentsOf: offlinePage)
 guard let page = String(data: offline, encoding: .utf8),
@@ -70,4 +80,5 @@ for name in ["sw.js", "firebase-messaging-sw.js"] {
     if files.fileExists(atPath: worker.path) { try files.removeItem(at: worker) }
 }
 try data.write(to: app.appendingPathComponent("capacitor.config.json"), options: .atomic)
-print("Observer iOS QA unsigned bundle finalized with isolated identity and local offline screen")
+print(authenticated ? "Observer iOS QA unsigned authenticated-origin candidate finalized; external route not verified" :
+    "Observer iOS QA unsigned bundle finalized with isolated identity and local offline screen")

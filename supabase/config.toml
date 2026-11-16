@@ -55,7 +55,8 @@ enabled = false
 [auth]
 enabled = true
 site_url = "http://127.0.0.1:3100"
-additional_redirect_urls = []
+# Local Development Auth allowlist only; hosted Development project must be configured separately.
+additional_redirect_urls = ["https://observer-qa.ganbatuach.com/auth/callback"]
 jwt_expiry = 3600
 enable_signup = false
 enable_anonymous_sign_ins = false
