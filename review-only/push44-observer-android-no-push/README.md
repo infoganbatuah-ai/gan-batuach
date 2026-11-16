@@ -7,8 +7,10 @@ provider from the shared Push plugin. No provider credentials were present.
 `src/observerObserverQa/AndroidManifest.xml` removes only this variant's
 notification/FCM permissions and entry points. `ganDebug` and `ganRelease`
 retain the existing shared plugin manifest. The Observer runtime additionally
-waits for the native app ID and fails closed on Android unless it is the future
-qualified `com.digitalobserver.app` release package. The offline
+waits for the native app ID and permits only the real Gan release package
+(`com.ganbatuach.app`, which can open Observer screens) or the future Observer
+release package (`com.digitalobserver.app`) on Android/iOS. Both `.qa` packages,
+unknown IDs and other platforms fail closed. The offline
 `com.digitalobserver.app.qa` package cannot call the runtime's permission or
 registration path, even though the shared Capacitor plugin class and
 `assets/capacitor.plugins.json` remain packaged. This is not a general removal

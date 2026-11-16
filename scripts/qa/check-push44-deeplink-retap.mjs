@@ -27,9 +27,9 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
     addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => {}
   };
   const plugin = {
-    Capacitor: { isNativePlatform: () => true, isPluginAvailable: () => false },
+    Capacitor: { isNativePlatform: () => true, isPluginAvailable: () => false, getPlatform: () => "ios" },
     App: { addListener: async (name, callback) => { if (name === "appUrlOpen") appUrlOpen = callback; return { remove: async () => {} }; },
-      getLaunchUrl: async () => ({ url: link }) },
+      getLaunchUrl: async () => ({ url: link }), getInfo: async () => ({ id: "com.ganbatuach.app" }) },
     Network: { addListener: async () => ({ remove: async () => {} }), getStatus: async () => ({ connected: true }) },
     Preferences: { get: async () => ({ value: null }), set: async () => {} }, Device: {}, PushNotifications: {}
   };
@@ -39,6 +39,7 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
     "@/lib/domain/digital-observer/mobile-runtime": { mobileRuntimeRequiresSession: () => false, sanitizeOfflineQueue: () => [], mobileNotificationPreview: () => ({}) },
     "@/lib/domain/digital-observer/mobile-playback-lifecycle": { openMobilePlaybackPublisher: () => ({ isCurrent: () => true, networkOffline: () => true, appInactive: () => true, close: () => {} }) },
     "@/lib/domain/digital-observer/native-push-request": { parseNativePushRequest: () => null, nativePushResult: () => ({}) },
+    "@/lib/domain/digital-observer/native-push-availability": { observerNativePushAvailable: ({ appId, pluginAvailable }) => !!pluginAvailable && appId === "com.ganbatuach.app" },
     "@/lib/domain/digital-observer/pending-mobile-link": {
       firstLaunchOfMobileLink: () => ++launchChecks === 1,
       rememberPendingMobileLink: () => false, takePendingMobileLink: () => null

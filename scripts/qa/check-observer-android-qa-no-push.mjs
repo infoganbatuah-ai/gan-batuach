@@ -17,6 +17,14 @@ test("offline Observer Android QA denies prompt and provider registration even w
   assert.equal(available({ appId: null, platform: "android", pluginAvailable: true }), false);
   assert.equal(available({ appId: "com.digitalobserver.app", platform: "android", pluginAvailable: true }), true);
   assert.equal(available({ appId: "com.digitalobserver.app", platform: "android", pluginAvailable: false }), false);
+  assert.equal(available({ appId: "com.ganbatuach.app", platform: "android", pluginAvailable: true }), true);
+  assert.equal(available({ appId: "com.ganbatuach.app.qa", platform: "android", pluginAvailable: true }), false);
+  assert.equal(available({ appId: "com.ganbatuach.app", platform: "ios", pluginAvailable: true }), true);
+  assert.equal(available({ appId: "com.digitalobserver.app", platform: "ios", pluginAvailable: true }), true);
+  assert.equal(available({ appId: "com.digitalobserver.app.qa", platform: "ios", pluginAvailable: true }), false);
+  assert.equal(available({ appId: "com.ganbatuach.app.qa", platform: "ios", pluginAvailable: true }), false);
+  assert.equal(available({ appId: "unrecognized", platform: "ios", pluginAvailable: true }), false);
+  assert.equal(available({ appId: "com.ganbatuach.app", platform: "web", pluginAvailable: true }), false);
 });
 
 test("Observer runtime gates every native Push path after app identity lookup", () => {
