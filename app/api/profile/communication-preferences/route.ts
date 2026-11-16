@@ -90,51 +90,16 @@ export async function PATCH(request: Request) {
     if (!user || !profile) return fail("Authentication required.", 401);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
-    const existing = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
-    if (existing.error) {
-      console.error("[communication-preferences] existing load failed", { profile_id: profile.id, error: existing.error.message });
-      return fail("לא ניתן לטעון העדפות קיימות כרגע.", 500);
-    }
-    const current = existing.data as any;
-    const patch = {
-      profile_id: profile.id,
-      receive_sms: payload.receive_sms ?? current?.receive_sms ?? false,
-      receive_whatsapp: payload.receive_whatsapp ?? current?.receive_whatsapp ?? false,
-      receive_email: payload.receive_email ?? current?.receive_email ?? true,
-      receive_push: payload.receive_push ?? current?.receive_push ?? true,
-      critical_push_allowed: payload.critical_push_allowed ?? current?.critical_push_allowed ?? true,
-      emergency_messages_allowed: payload.emergency_messages_allowed ?? current?.emergency_messages_allowed ?? true,
-      preferred_language: payload.preferred_language ?? current?.preferred_language ?? "he",
-      parent_daily_digest_enabled: payload.parent_daily_digest_enabled ?? current?.parent_daily_digest_enabled ?? true,
-      parent_ai_summary_enabled: payload.parent_ai_summary_enabled ?? current?.parent_ai_summary_enabled ?? true,
-      parent_category_channels: payload.parent_category_channels ?? current?.parent_category_channels ?? defaultParentCategoryChannels(),
-      notification_category_channels: payload.notification_category_channels ?? current?.notification_category_channels ?? {},
-      quiet_hours_start: payload.quiet_hours_start === undefined ? current?.quiet_hours_start ?? null : payload.quiet_hours_start,
-      quiet_hours_end: payload.quiet_hours_end === undefined ? current?.quiet_hours_end ?? null : payload.quiet_hours_end,
-      quiet_hours_timezone: payload.quiet_hours_timezone ?? current?.quiet_hours_timezone ?? "Asia/Jerusalem",
-      updated_at: new Date().toISOString()
-    };
-    const { data, error } = await supabase.from("communication_preferences" as any).upsert(patch, { onConflict: "profile_id" }).select("*").single();
+    const { push_category_preferences, ...preferencePatch } = payload;
+    // A single database transaction must own both writes; never fall back to
+    // separate upserts when the RPC is missing or unavailable.
+    const { data, error } = await supabase.rpc("save_communication_preferences_atomic", {
+      p_patch: preferencePatch,
+      p_categories: push_category_preferences ?? null
+    });
     if (error) {
-      console.error("[communication-preferences] save failed", { profile_id: profile.id, error: error.message });
-      return fail("שמירת העדפות התקשורת נכשלה.", 500);
-    }
-    if (payload.push_category_preferences) {
-      const rows = Object.entries(payload.push_category_preferences)
-        .map(([category, enabled]) => ({
-          profile_id: profile.id,
-          category,
-          enabled,
-          role: profile.role ?? "parent",
-          updated_at: new Date().toISOString()
-        }));
-      if (rows.length) {
-        const upsert = await supabase.from("push_category_preferences" as any).upsert(rows, { onConflict: "profile_id,category" });
-        if (upsert.error) {
-          console.error("[communication-preferences] push category save failed", { profile_id: profile.id, error: upsert.error.message });
-          return fail("שמירת העדפות ההתראות נכשלה.", 500);
-        }
-      }
+      console.error("[communication-preferences] atomic save failed", { profile_id: profile.id, error: error.message });
+      return fail("שמירת העדפות ההתראות נכשלה.", 500);
     }
     return ok({ preferences: data });
   } catch (error) {
