@@ -9,6 +9,11 @@ if (mobileProduct == 'observer' && file('google-services.json').isFile())
     throw new GradleException('CAPACITOR_OBSERVER_GAN_PUSH_CONFIG_FORBIDDEN')
 
 android {
+    // Observer QA packages only generated, offline assets. Gan keeps its
+    // existing synced main assets and build behavior unchanged.
+    if (mobileProduct == 'observer') {
+        sourceSets.main.assets.srcDirs = [layout.buildDirectory.dir('generated/observerQaOfflineAssets').get().asFile]
+    }
     namespace = "com.ganbatuach.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
@@ -55,6 +60,9 @@ android {
             initWith debug
             matchingFallbacks = ['debug']
             applicationIdSuffix '.qa'
+            // This offline qualification artifact must not inherit the shared
+            // Android debug signing identity or be installable by accident.
+            signingConfig null
         }
     }
 }
@@ -90,12 +98,34 @@ apply from: 'capacitor.build.gradle'
 // cap sync and Gradle are separate steps. Refuse a stale or wrong-profile
 // capacitor.config.json before packaging a QA or release artifact.
 def verifyMobileConfig = { String product, String buildType ->
-    def packedConfig = file('src/main/assets/capacitor.config.json')
+    def observerAssets = layout.buildDirectory.dir('generated/observerQaOfflineAssets').get().asFile
+    def packedConfig = product == 'observer' ? new File(observerAssets, 'capacitor.config.json') : file('src/main/assets/capacitor.config.json')
     if (!packedConfig.isFile()) throw new GradleException('CAPACITOR_SYNC_REQUIRED')
     def config = new JsonSlurper().parse(packedConfig)
     def profile = System.getenv('CAPACITOR_BUILD_PROFILE') ?: 'development'
     if (mobileProduct != product) throw new GradleException('CAPACITOR_PRODUCT_VARIANT_MISMATCH')
     if (product == 'observer' && (buildType != 'observerQa' || profile != 'qa')) throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
+    if (product == 'observer') {
+        if (System.getenv('CAPACITOR_SERVER_URL') || System.getenv('CAPACITOR_ALLOWED_SERVER_ORIGIN') ||
+            config.appId != 'com.digitalobserver.app.qa' || config.appName != 'תצפיתן דיגיטלי' ||
+            config.webDir != 'public' || config.server?.url != null ||
+            config.server?.androidScheme != 'https' || config.server?.cleartext != null ||
+            config.plugins?.PushNotifications != null)
+            throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_BOUNDARY_INVALID')
+        def page = new File(observerAssets, 'public/index.html')
+        def plugins = new File(observerAssets, 'capacitor.plugins.json')
+        def approvedPlugins = [
+            'com.capacitorjs.plugins.app.AppPlugin',
+            'com.capacitorjs.plugins.device.DevicePlugin',
+            'com.capacitorjs.plugins.network.NetworkPlugin',
+            'com.capacitorjs.plugins.preferences.PreferencesPlugin'
+        ]
+        if (!page.isFile() || !page.getText('UTF-8').contains('בדיקת התקנה מקומית בלבד') ||
+            page.getText('UTF-8') =~ /(?i)https?:\/\/|fetch\(|<script/ || !plugins.isFile() ||
+            new JsonSlurper().parse(plugins).collect { it.classpath } != approvedPlugins)
+            throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_ASSETS_INVALID')
+        return
+    }
     def expectedUrl = System.getenv('CAPACITOR_SERVER_URL')
     if (!expectedUrl || config.server?.url != expectedUrl) throw new GradleException('CAPACITOR_SERVER_URL_MISMATCH')
     if (buildType == 'release' && profile != 'release') throw new GradleException('CAPACITOR_RELEASE_PROFILE_REQUIRED')
@@ -119,7 +149,15 @@ def verifyMobileConfig = { String product, String buildType ->
 }
 tasks.register('verifyGanDebugMobileConfig') { doLast { verifyMobileConfig('gan', 'debug') } }
 tasks.register('verifyGanReleaseMobileConfig') { doLast { verifyMobileConfig('gan', 'release') } }
+tasks.register('prepareObserverQaOfflineAssets', Sync) {
+    from('../qa-observer/capacitor.config.json')
+    from('../qa-observer/capacitor.plugins.json')
+    from('../../ios/qa-observer/index.html') { into 'public' }
+    into layout.buildDirectory.dir('generated/observerQaOfflineAssets')
+}
 tasks.register('verifyObserverQaMobileConfig') { doLast { verifyMobileConfig('observer', 'observerQa') } }
+tasks.named('verifyObserverQaMobileConfig') { dependsOn 'prepareObserverQaOfflineAssets' }
+tasks.matching { it.name == 'mergeObserverObserverQaAssets' }.configureEach { dependsOn 'prepareObserverQaOfflineAssets' }
 tasks.matching { it.name == 'preGanDebugBuild' }.configureEach { dependsOn 'verifyGanDebugMobileConfig' }
 tasks.matching { it.name == 'preGanReleaseBuild' }.configureEach { dependsOn 'verifyGanReleaseMobileConfig' }
 tasks.matching { it.name == 'preObserverObserverQaBuild' }.configureEach { dependsOn 'verifyObserverQaMobileConfig' }
