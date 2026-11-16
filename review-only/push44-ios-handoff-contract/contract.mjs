@@ -4,7 +4,6 @@ import { createHash, timingSafeEqual } from "node:crypto";
 const nonempty = (value) => typeof value === "string" && value.length > 0;
 const codePattern = /^[a-f0-9]{64}$/;
 const observerAudience = "com.digitalobserver.app.qa";
-const observerCallback = "https://qa-iphone-device-proof.ganbatuach.com/qa/device-proof/return";
 
 function codeHash(code) { return createHash("sha256").update(code, "utf8").digest("hex"); }
 function sameHash(a, b) {
@@ -16,7 +15,7 @@ export async function redeemQaHandoff(store, input) {
   if (!store || typeof store.load !== "function" || typeof store.consumeIfCurrent !== "function"
     || !input || !nonempty(input.receiptId) || !nonempty(input.accountId)
     || !nonempty(input.installationId) || !nonempty(input.sessionId)
-    || !nonempty(input.audience) || !nonempty(input.callback)
+    || !nonempty(input.audience) || input.audience === observerAudience || !nonempty(input.callback)
     || !codePattern.test(input.code) || !codePattern.test(input.nonce)
     || !Number.isSafeInteger(input.now)
     || input.activeSession !== true || input.deviceProofValid !== true) return false;
@@ -47,10 +46,8 @@ export async function redeemQaHandoff(store, input) {
   }
 }
 
-// Observer-specific entry point remains disabled until a reviewed atomic store
-// and approved origin exist. This is not a Supabase code exchange or API route.
-export function redeemObserverQaCode(store, input, { enabled = false } = {}) {
-  if (!enabled || !input || input.audience !== observerAudience || input.callback !== observerCallback)
-    return Promise.resolve(false);
-  return redeemQaHandoff(store, input);
+// No Observer HTTPS/AASA origin is approved. Refuse even if a caller supplies
+// a feature flag or the existing Gan-only host; no active route imports this.
+export function redeemObserverQaCode() {
+  return Promise.resolve(false);
 }

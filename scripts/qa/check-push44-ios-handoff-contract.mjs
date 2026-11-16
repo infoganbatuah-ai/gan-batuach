@@ -51,9 +51,9 @@ test("a matching Development session and device proof consumes exactly once", as
   assert.equal(f.consumes, 1);
 });
 
-test("concurrent redemption selects one winner only when the adapter consumes atomically", async () => {
+test("20-way synthetic Gan contract race selects one winner only with an atomic adapter", async () => {
   const f = fixture();
-  const results = await Promise.all(Array.from({ length: 10 }, () => redeemQaHandoff(f.store, f.request)));
+  const results = await Promise.all(Array.from({ length: 20 }, () => redeemQaHandoff(f.store, f.request)));
   assert.equal(results.filter(Boolean).length, 1);
   assert.equal(f.consumes, 1);
 });
@@ -85,25 +85,25 @@ for (const [name, receiptChanges, requestChanges] of [
   assert.equal(f.consumes, 0);
 });
 
-test("Observer redemption is default-off and rejects Gan audience and callback", async () => {
+test("Observer redemption remains closed even with a supplied flag or Gan-only host", async () => {
   const observer = fixture({ audience: "com.digitalobserver.app.qa" });
   const request = { ...observer.request, audience: "com.digitalobserver.app.qa" };
   assert.equal(await redeemObserverQaCode(observer.store, request), false);
   assert.equal(await redeemObserverQaCode(observer.store, { ...request, audience: base.audience }, { enabled: true }), false);
   assert.equal(await redeemObserverQaCode(observer.store, { ...request,
     callback: "https://ganbatuach.com/qa/device-proof/return" }, { enabled: true }), false);
-  assert.equal(await redeemObserverQaCode(observer.store, request, { enabled: true }), true);
   assert.equal(await redeemObserverQaCode(observer.store, request, { enabled: true }), false);
-  assert.equal(observer.consumes, 1);
+  assert.equal(await redeemQaHandoff(observer.store, request), false);
+  assert.equal(observer.consumes, 0);
 });
 
-test("Observer concurrent redemption has one winner only with atomic adapter", async () => {
+test("Observer 20-way race cannot redeem without an approved origin", async () => {
   const observer = fixture({ audience: "com.digitalobserver.app.qa" });
   const request = { ...observer.request, audience: "com.digitalobserver.app.qa" };
   const results = await Promise.all(Array.from({ length: 20 }, () =>
     redeemObserverQaCode(observer.store, request, { enabled: true })));
-  assert.equal(results.filter(Boolean).length, 1);
-  assert.equal(observer.consumes, 1);
+  assert.equal(results.filter(Boolean).length, 0);
+  assert.equal(observer.consumes, 0);
 });
 
 test("missing atomic store or missing binding fails closed", async () => {

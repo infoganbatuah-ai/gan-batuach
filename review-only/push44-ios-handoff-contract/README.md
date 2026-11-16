@@ -26,13 +26,16 @@ stored SHA-256 code hash, exact callback, and an issued/expires lifetime no
 longer than two minutes. It rejects missing or mismatched account,
 installation, session, callback audience, code hash and nonce; expired,
 consumed or revoked receipts; inactive sessions; invalid device proof; missing
-storage; and storage errors. `redeemObserverQaCode` is default-off and permits
-only `com.digitalobserver.app.qa` with the exact proposed HTTPS QA return URL;
-Gan audience or another host is denied. The code itself is not stored in the
+storage; and storage errors. `redeemObserverQaCode` now always denies because
+there is no approved Observer HTTPS/AASA origin. The existing
+`qa-iphone-device-proof.ganbatuach.com` return belongs to the separate Gan QA
+contract and must not be treated as an Observer callback. The generic contract
+also refuses the Observer audience. The code itself is not stored in the
 receipt or passed to the atomic adapter. Final success
 requires `consumeIfCurrent` to return true. That operation must be implemented
 as one durable compare-and-update transaction; the preceding read is not a
-fence. The concurrency test's fake adapter models that atomic outcome only.
+fence. The 20-way Gan synthetic concurrency test's fake adapter models that
+atomic outcome only; 20 concurrent Observer attempts all deny.
 
 ## Hard dependency before product wiring
 
