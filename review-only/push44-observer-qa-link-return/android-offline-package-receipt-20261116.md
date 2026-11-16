@@ -12,3 +12,7 @@ This is a Development-only, unsigned offline qualification artifact. It has not 
 - The generated asset directory is synchronized, so stale assets cannot survive between builds. The Gan variant's source assets and existing guard remain separate.
 
 No device installation, external endpoint, database access, Production change, remote Git action, or media activation occurred.
+
+## Negative guard qualification
+
+On 2026-11-16 the actual local Gradle verification task was run with four deliberate violations. `CAPACITOR_SERVER_URL` and `CAPACITOR_ALLOWED_SERVER_ORIGIN` injections each failed with `CAPACITOR_OBSERVER_OFFLINE_BOUNDARY_INVALID`. A wrong Observer app ID in the generated temporary config failed with the same code. An added PushNotifications plugin in the generated temporary plugin list failed with `CAPACITOR_OBSERVER_OFFLINE_ASSETS_INVALID`. These were expected negative-test failures, not build regressions. The temporary generated files were restored byte-for-byte against their checked-in sources; the clean Observer guard passed afterward. The unchanged Gan Development guard also passed with its existing localhost config. No tracked source was mutated by these injections.
