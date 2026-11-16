@@ -17,7 +17,15 @@ export type PushBindingReceipt = {
 
 export type PushBindingAdapters = {
   // Must validate Apple/Google cryptography and provenance, not client JSON.
-  verifyEvidence: (challengeDigest: string) => Promise<AlreadyVerifiedPushVerdict | null>;
+  verifyEvidence: (untrustedEvidence: unknown, expected: {
+    challengeDigest: string;
+    authenticatedProfileId: string;
+    installationId: string;
+    tokenSha256: string;
+    audience: PushRegistrationChallenge["audience"];
+    provider: PushRegistrationChallenge["provider"];
+    appId: string;
+  }) => Promise<AlreadyVerifiedPushVerdict | null>;
   // One database transaction: consume nonce once and persist binding/receipt.
   consumeAndPersist: (nonce: string, receipt: PushBindingReceipt) => Promise<boolean>;
 };
@@ -30,12 +38,15 @@ export async function issuePushBindingOfflineContract(input: {
   enabled?: boolean;
   authenticatedProfileId: string;
   challenge: PushRegistrationChallenge;
+  untrustedEvidence?: unknown;
   nowMs: number;
   adapters?: Partial<PushBindingAdapters>;
 }): Promise<PushBindingResult> {
   if (input.enabled !== true) return { status: "denied", reason: "disabled" };
   if (!input.adapters?.verifyEvidence || !input.adapters.consumeAndPersist)
     return { status: "denied", reason: "missing_adapter" };
+  if (input.untrustedEvidence == null || input.untrustedEvidence === "")
+    return { status: "denied", reason: "unverified_evidence" };
   const { challenge } = input;
   if (!challenge || !Number.isFinite(input.nowMs)) return { status: "denied", reason: "invalid_challenge" };
   if (!input.authenticatedProfileId || input.authenticatedProfileId !== challenge.profileId)
@@ -46,14 +57,19 @@ export async function issuePushBindingOfflineContract(input: {
   try { challengeDigest = pushRegistrationChallengeHash(challenge); }
   catch { return { status: "denied", reason: "invalid_challenge" }; }
   try {
-    const verdict = await input.adapters.verifyEvidence(challengeDigest);
+    const tokenSha256 = createHash("sha256").update(challenge.providerToken, "utf8").digest("hex");
+    const verdict = await input.adapters.verifyEvidence(input.untrustedEvidence, {
+      challengeDigest, authenticatedProfileId: input.authenticatedProfileId,
+      installationId: challenge.installationId, tokenSha256, audience: challenge.audience,
+      provider: challenge.provider, appId: challenge.appId
+    });
     if (!verdict || !pushAttestationPolicyAllows({
       verdict, expectedChallengeDigest: challengeDigest, expectedAudience: challenge.audience,
       expectedProvider: challenge.provider, expectedAppId: challenge.appId, nowMs: input.nowMs
     })) return { status: "denied", reason: "unverified_evidence" };
     const receipt: PushBindingReceipt = {
       profileId: challenge.profileId, installationId: challenge.installationId,
-      tokenSha256: createHash("sha256").update(challenge.providerToken, "utf8").digest("hex"),
+      tokenSha256,
       audience: challenge.audience, provider: challenge.provider, appId: challenge.appId,
       challengeDigest, expiresAt: new Date(Math.min(expiry, verdict.expiresAtMs)).toISOString()
     };

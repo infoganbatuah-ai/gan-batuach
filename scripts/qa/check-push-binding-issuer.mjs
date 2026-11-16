@@ -23,8 +23,12 @@ const verdict = { source: "apple_app_attest", platform: "ios", build: "release",
 function fixture() {
   const consumed = new Set();
   const receipts = [];
-  return { consumed, receipts, adapters: {
-    verifyEvidence: async () => verdict,
+  const expectations = [];
+  return { consumed, receipts, expectations, adapters: {
+    verifyEvidence: async (evidence, expected) => {
+      expectations.push(expected);
+      return evidence === "synthetic-signed-evidence" ? verdict : null;
+    },
     consumeAndPersist: async (nonce, receipt) => {
       if (consumed.has(nonce)) return false;
       consumed.add(nonce); receipts.push(receipt); return true;
@@ -32,7 +36,7 @@ function fixture() {
   } };
 }
 const issue = (options = {}) => issuePushBindingOfflineContract({
-  authenticatedProfileId: challenge.profileId, challenge, nowMs, ...options
+  authenticatedProfileId: challenge.profileId, challenge, untrustedEvidence: "synthetic-signed-evidence", nowMs, ...options
 });
 
 test("default-off and missing trusted adapters cannot issue a binding", async () => {
@@ -54,6 +58,12 @@ test("synthetic trusted adapters bind exact token hash and consume nonce once", 
   assert.equal(first.receipt.profileId, challenge.profileId);
   assert.equal(first.receipt.appId, challenge.appId);
   assert.equal(first.receipt.expiresAt, new Date(verdict.expiresAtMs).toISOString());
+  assert.deepEqual(f.expectations[0], {
+    challengeDigest: digest, authenticatedProfileId: challenge.profileId,
+    installationId: challenge.installationId,
+    tokenSha256: createHash("sha256").update(challenge.providerToken).digest("hex"),
+    audience: challenge.audience, provider: challenge.provider, appId: challenge.appId
+  });
   assert.equal(JSON.stringify(first).includes(challenge.providerToken), false);
   assert.deepEqual(await issue(input), { status: "denied", reason: "persistence_denied" });
   assert.equal(f.receipts.length, 1);
@@ -80,6 +90,12 @@ test("profile, exact token, app, nonce, expiry and revocation fail closed", asyn
 });
 
 test("unverified, forged, failed and throwing adapters never produce a binding", async () => {
+  const direct = fixture();
+  assert.deepEqual(await issue({ enabled: true, adapters: direct.adapters, untrustedEvidence: verdict }),
+    { status: "denied", reason: "unverified_evidence" });
+  assert.deepEqual(await issue({ enabled: true, adapters: direct.adapters, untrustedEvidence: null }),
+    { status: "denied", reason: "unverified_evidence" });
+  assert.equal(direct.receipts.length, 0);
   for (const verifyEvidence of [async () => null, async () => ({ ...verdict, challengeDigest: "b".repeat(64) }),
     async () => { throw new Error("provider_down"); }]) {
     const f = fixture();
