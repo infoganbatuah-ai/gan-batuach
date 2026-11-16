@@ -22,7 +22,10 @@ explicitly an offline installation-status screen, not the authenticated
 Digital Observer Product. No external HTTPS route, media, APNs, Home camera,
 Production service or Cloudflare configuration was activated.
 
-Installation and launch success do not establish visible-screen success.
-Physical screen appearance remains **NOT PROVEN** until directly observed or
-reported by the owner. Real Product login, Secure Enclave proof and native
-return remain unqualified by this offline build.
+The owner subsequently identified the separate Hebrew-labeled Observer app
+with its Observer icon on the physical iPhone and reported that opening it
+displayed "בדיקת התקנה מקומית בלבד". This is owner-reported visible-screen
+PASS for the offline QA status page. The observation does not independently
+identify the installed executable hash or prove which exact staged build was
+shown. Real Product login, Secure Enclave proof, authenticated native return,
+media and Push remain unqualified by this offline build.
