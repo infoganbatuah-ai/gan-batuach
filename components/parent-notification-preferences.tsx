@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { BellRing, CheckCircle2, Clock3, Mail, MessageCircleOff, MessageSquareText, Send, ShieldCheck, Smartphone, XCircle } from "lucide-react";
+import { loadPersistedPreferences, saveAndReconcilePreferences } from "@/lib/management/preference-save-reconciliation";
 
 export type NotificationPreferences = {
   receive_push?: boolean; receive_email?: boolean; receive_sms?: boolean; receive_whatsapp?: boolean;
@@ -55,7 +56,39 @@ function initialChannels(preferences?: NotificationPreferences | null) {
   };
 }
 
-export function NotificationPreferencesPanel({ preferences, pushCategoryPreferences, capability = defaultCapability, audienceLabel = "העדכונים שלך" }: Props) {
+export function NotificationPreferencesPanel(props: Props) {
+  const [snapshot, setSnapshot] = useState({ preferences: props.preferences, pushCategoryPreferences: props.pushCategoryPreferences });
+  const [revision, setRevision] = useState(0);
+  const [error, setError] = useState("");
+  const [unavailable, setUnavailable] = useState(false);
+
+  async function reloadPersisted() {
+    const persisted = await loadPersistedPreferences(fetch);
+    if (!persisted) { setUnavailable(true); setError("לא ניתן לאמת מה נשמר. העדפות העריכה הוסתרו; נסו לטעון אותן מחדש."); return; }
+    setSnapshot({ preferences: persisted.preferences as NotificationPreferences, pushCategoryPreferences: persisted.push_category_preferences });
+    setRevision((current) => current + 1);
+    setUnavailable(false);
+    setError("ההעדפות נטענו מחדש מהשרת. בדקו אותן לפני שמירה חוזרת.");
+  }
+
+  async function save(payload: unknown) {
+    const result = await saveAndReconcilePreferences(fetch, payload);
+    if (result.status === "saved") { setError(""); return true; }
+    setError(result.message);
+    if (result.status === "reconciled") {
+      setSnapshot({ preferences: result.snapshot.preferences as NotificationPreferences, pushCategoryPreferences: result.snapshot.push_category_preferences });
+      setRevision((current) => current + 1);
+      setUnavailable(false);
+    } else setUnavailable(true);
+    return false;
+  }
+
+  return <div>{error ? <div role="alert" className="communication-save-message error">{error}</div> : null}
+    {unavailable ? <button type="button" className="button" onClick={() => void reloadPersisted()}>טעינה מחדש של העדפות</button>
+      : <NotificationPreferencesForm key={revision} {...props} preferences={snapshot.preferences} pushCategoryPreferences={snapshot.pushCategoryPreferences} onSave={save} />}</div>;
+}
+
+function NotificationPreferencesForm({ preferences, pushCategoryPreferences, capability = defaultCapability, audienceLabel = "העדכונים שלך", onSave }: Props & { onSave: (payload: unknown) => Promise<boolean> }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const availableChannels = useMemo(() => new Set((Object.keys(channelInfo) as ChannelKey[]).filter((channel) => ready(capability[channel]))), [capability]);
@@ -103,11 +136,7 @@ export function NotificationPreferencesPanel({ preferences, pushCategoryPreferen
     };
     setMessage("");
     startTransition(async () => {
-      const response = await fetch("/api/profile/communication-preferences", {
-        method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
-      });
-      const body = await response.json();
-      setMessage(response.ok ? "העדפות ההתראות נשמרו." : body.error ?? "שמירת ההעדפות נכשלה.");
+      if (await onSave(payload)) setMessage("העדפות ההתראות נשמרו.");
     });
   }
 
