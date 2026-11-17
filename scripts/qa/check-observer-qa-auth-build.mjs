@@ -70,4 +70,9 @@ test("native build paths opt in without weakening offline or Gan variants", () =
   assert.match(android, /prepare-observer-qa-auth-config\.mjs/);
   assert.match(android, /CAPACITOR_PRODUCT_VARIANT_MISMATCH/);
   assert.match(android, /CAPACITOR_OBSERVER_GAN_PUSH_CONFIG_FORBIDDEN/);
+  assert.match(android, /authenticated \? 'חיבור QA טרם אומת' : 'בדיקת התקנה מקומית בלבד'/);
+  assert.match(android, /System\.getenv\('OBSERVER_QA_AUTH_BUILD'\) == '1' \? '\.\.\/\.\.\/ios\/qa-observer\/auth-unavailable\.html' : '\.\.\/\.\.\/ios\/qa-observer\/index\.html'/);
+  const authFallback = readFileSync(new URL("ios/qa-observer/auth-unavailable.html", root), "utf8");
+  assert.match(authFallback, /חיבור QA טרם אומת/);
+  assert.doesNotMatch(authFallback, /בדיקת התקנה מקומית בלבד|אין חיבור ל־Production או לשרת חיצוני|https?:\/\/|fetch\(|<script/);
 });

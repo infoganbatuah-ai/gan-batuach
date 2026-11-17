@@ -129,7 +129,8 @@ def verifyMobileConfig = { String product, String buildType ->
             'com.capacitorjs.plugins.network.NetworkPlugin',
             'com.capacitorjs.plugins.preferences.PreferencesPlugin'
         ]
-        if (!page.isFile() || !page.getText('UTF-8').contains('בדיקת התקנה מקומית בלבד') ||
+        def expectedStatus = authenticated ? 'חיבור QA טרם אומת' : 'בדיקת התקנה מקומית בלבד'
+        if (!page.isFile() || !page.getText('UTF-8').contains(expectedStatus) ||
             page.getText('UTF-8') =~ /(?i)https?:\/\/|fetch\(|<script/ || !plugins.isFile() ||
             new JsonSlurper().parse(plugins).collect { it.classpath } != approvedPlugins)
             throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_ASSETS_INVALID')
@@ -165,7 +166,10 @@ tasks.register('prepareObserverQaOfflineAssets', Sync) {
     inputs.property('observerQaCallback', System.getenv('OBSERVER_QA_CALLBACK') ?: '')
     from('../qa-observer/capacitor.config.json')
     from('../qa-observer/capacitor.plugins.json')
-    from('../../ios/qa-observer/index.html') { into 'public' }
+    from(System.getenv('OBSERVER_QA_AUTH_BUILD') == '1' ? '../../ios/qa-observer/auth-unavailable.html' : '../../ios/qa-observer/index.html') {
+        into 'public'
+        rename { 'index.html' }
+    }
     into layout.buildDirectory.dir('generated/observerQaOfflineAssets')
     doLast {
         if (System.getenv('OBSERVER_QA_AUTH_BUILD') == '1') {
