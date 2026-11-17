@@ -81,6 +81,10 @@ export function parseMobileLink(rawUrl: string, allowedHttpsOrigins: string[] = 
   const customScheme = nativeLinkSchemes.has(url.protocol);
   const allowedHttps = url.protocol === "https:" && allowedHttpsOrigins.includes(url.origin);
   if (!customScheme && !allowedHttps) throw new Error("MOBILE_LINK_ORIGIN_DENIED");
+  // The server must enforce the same URL-metadata boundary as the native app.
+  // A fragment/userinfo/port is never part of a canonical resource identity.
+  if (url.username || url.password || url.port || url.hash)
+    throw new Error("MOBILE_LINK_INVALID");
   if (allowedHttps && !url.pathname.startsWith("/digital-observer/open/")) throw new Error("MOBILE_LINK_PATH_DENIED");
   // A resource link is not an Auth return. Reject extra or duplicate query
   // fields before forwarding or persisting it, even if the extra field would
