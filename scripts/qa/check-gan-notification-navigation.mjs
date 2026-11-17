@@ -31,6 +31,17 @@ test("legitimate Gan dashboard and onboarding links remain available", () => {
   ]) assert.equal(safeGanNotificationDestination(value), value);
 });
 
+test("notification navigation rejects credential-like query keys without blocking ordinary filters", () => {
+  for (const value of [
+    "/dashboard?access_token=synthetic",
+    "/dashboard/parent/notifications?code=synthetic",
+    "/dashboard?%61ccess_token=synthetic",
+    "/dashboard?token_hash=synthetic"
+  ]) assert.equal(safeGanNotificationDestination(value), null, value);
+  assert.equal(safeGanNotificationDestination("/dashboard/garden/children?status=pending"),
+    "/dashboard/garden/children?status=pending");
+});
+
 test("existing manager and staff notification producers target the exact allowed onboarding pages", () => {
   const manager = readFileSync(new URL("../../app/api/admin/kindergarten-approval/route.ts", import.meta.url), "utf8");
   const staff = readFileSync(new URL("../../app/api/garden/staff/[id]/approve/route.ts", import.meta.url), "utf8");
