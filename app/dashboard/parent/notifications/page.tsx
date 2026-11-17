@@ -35,7 +35,7 @@ export default async function ParentNotificationsPage() {
         <section className="parent-notification-categories">{categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
         <ParentSection title="העדפות התראות" subtitle="בחירה אילו עדכונים לקבל ובאיזה ערוץ.">
           {preferencesAvailable
-            ? <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />
+            ? <ParentNotificationPreferences ownerKey={profile.id} preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />
             : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}
         </ParentSection>
         <ParentSection title="התראות אחרונות" subtitle="אירועים רגישים מוצגים רק אחרי בדיקה ואישור.">

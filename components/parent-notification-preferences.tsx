@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { BellRing, CheckCircle2, Clock3, Mail, MessageCircleOff, MessageSquareText, Send, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { loadPersistedPreferences, saveAndReconcilePreferences } from "@/lib/management/preference-save-reconciliation";
+import { availableChannelPatch, externalCategoryChoices } from "@/lib/management/notification-preference-payload";
 
 export type NotificationPreferences = {
   receive_push?: boolean; receive_email?: boolean; receive_sms?: boolean; receive_whatsapp?: boolean;
@@ -15,6 +16,7 @@ export type DeliveryCapability = {
   in_app: string; push: string; email: string; whatsapp: string; sms: string;
 };
 type Props = {
+  ownerKey: string;
   preferences?: NotificationPreferences | null;
   pushCategoryPreferences?: Record<string, boolean>;
   capability?: DeliveryCapability;
@@ -57,10 +59,15 @@ function initialChannels(preferences?: NotificationPreferences | null) {
 }
 
 export function NotificationPreferencesPanel(props: Props) {
+  return <ScopedNotificationPreferencesPanel key={props.ownerKey} {...props} />;
+}
+
+function ScopedNotificationPreferencesPanel(props: Props) {
   const [snapshot, setSnapshot] = useState({ preferences: props.preferences, pushCategoryPreferences: props.pushCategoryPreferences });
   const [revision, setRevision] = useState(0);
   const [error, setError] = useState("");
   const [unavailable, setUnavailable] = useState(false);
+  const [accountChanged, setAccountChanged] = useState(false);
 
   async function reloadPersisted() {
     const persisted = await loadPersistedPreferences(fetch);
@@ -79,22 +86,26 @@ export function NotificationPreferencesPanel(props: Props) {
       setSnapshot({ preferences: result.snapshot.preferences as NotificationPreferences, pushCategoryPreferences: result.snapshot.push_category_preferences });
       setRevision((current) => current + 1);
       setUnavailable(false);
-    } else setUnavailable(true);
+    } else {
+      setUnavailable(true);
+      if (result.status === "account_changed") setAccountChanged(true);
+    }
     return false;
   }
 
   return <div>{error ? <div role="alert" className="communication-save-message error">{error}</div> : null}
-    {unavailable ? <button type="button" className="button" onClick={() => void reloadPersisted()}>טעינה מחדש של העדפות</button>
+    {unavailable ? accountChanged
+      ? <button type="button" className="button" onClick={() => window.location.reload()}>רענון העמוד לחשבון הנוכחי</button>
+      : <button type="button" className="button" onClick={() => void reloadPersisted()}>טעינה מחדש של העדפות</button>
       : <NotificationPreferencesForm key={revision} {...props} preferences={snapshot.preferences} pushCategoryPreferences={snapshot.pushCategoryPreferences} onSave={save} />}</div>;
 }
 
-function NotificationPreferencesForm({ preferences, pushCategoryPreferences, capability = defaultCapability, audienceLabel = "העדכונים שלך", onSave }: Props & { onSave: (payload: unknown) => Promise<boolean> }) {
+function NotificationPreferencesForm({ ownerKey, preferences, pushCategoryPreferences, capability = defaultCapability, audienceLabel = "העדכונים שלך", onSave }: Props & { onSave: (payload: unknown) => Promise<boolean> }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const availableChannels = useMemo(() => new Set((Object.keys(channelInfo) as ChannelKey[]).filter((channel) => ready(capability[channel]))), [capability]);
   const [categoryChannels, setCategoryChannels] = useState<Record<string, string[]>>(() => {
-    const initial = initialChannels(preferences);
-    return Object.fromEntries(Object.entries(initial).map(([key, values]) => [key, values.filter((value) => ready(capability[value as ChannelKey] ?? "not_configured"))]));
+    return initialChannels(preferences);
   });
   const [categoryEnabled, setCategoryEnabled] = useState<Record<string, boolean>>(() => Object.fromEntries(categories.map((category) => [category.key, pushCategoryPreferences?.[category.key] ?? true])));
   const [quietEnabled, setQuietEnabled] = useState(Boolean(preferences?.quiet_hours_start && preferences?.quiet_hours_end));
@@ -115,12 +126,10 @@ function NotificationPreferencesForm({ preferences, pushCategoryPreferences, cap
     const data = new FormData(event.currentTarget);
     // In-app delivery is canonical and always available, but the persisted channel
     // maps describe external delivery intents only.
-    const sanitized = Object.fromEntries(Object.entries(categoryChannels).map(([key, values]) => [key, values.filter((value) => value !== "in_app" && availableChannels.has(value as ChannelKey))]));
+    const sanitized = externalCategoryChoices(categoryChannels);
     const payload = {
-      receive_push: availableChannels.has("push") && data.get("receive_push") === "on",
-      receive_email: availableChannels.has("email") && data.get("receive_email") === "on",
-      receive_sms: availableChannels.has("sms") && data.get("receive_sms") === "on",
-      receive_whatsapp: availableChannels.has("whatsapp") && data.get("receive_whatsapp") === "on",
+      expected_profile_id: ownerKey,
+      ...availableChannelPatch(data, availableChannels),
       critical_push_allowed: data.get("critical_push_allowed") === "on",
       emergency_messages_allowed: data.get("emergency_messages_allowed") === "on",
       parent_daily_digest_enabled: data.get("parent_daily_digest_enabled") === "on",

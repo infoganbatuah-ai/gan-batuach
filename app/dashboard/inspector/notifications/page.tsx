@@ -38,7 +38,7 @@ export default async function InspectorNotificationsPage() {
       </InspectorSection>
       <InspectorSection title="העדפות ושעות שקט" subtitle="רק ערוצים שמוכנים באמת ניתנים להפעלה" icon={Bell}>
         {preferencesAvailable
-          ? <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="התראות הפיקוח שלך" />
+          ? <NotificationPreferencesPanel ownerKey={profile.id} preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="התראות הפיקוח שלך" />
           : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}
       </InspectorSection>
     </InspectorAppFrame>

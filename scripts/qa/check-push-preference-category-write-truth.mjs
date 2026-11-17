@@ -4,22 +4,29 @@ import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { z, ZodError } from "zod";
+import { availableChannelPatch, externalCategoryChoices } from "../../lib/management/notification-preference-payload.ts";
 
 const source = readFileSync(new URL("../../app/api/profile/communication-preferences/route.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS }
 }).outputText;
 
-function route({ authenticated = true } = {}) {
+function route({ authenticated = true, atomic = false, rpcError = false, profileMismatch = false, existingPreferences, role = "parent" } = {}) {
   const writes = [];
+  const rpcCalls = [];
   const exports = {};
-  const profile = { id: "parent-1", role: "parent" };
+  const profile = { id: "parent-1", role };
   const db = {
+    rpc: async (name, args) => {
+      rpcCalls.push([name, args]);
+      return rpcError ? { data: null, error: { message: "synthetic RPC failure" } }
+        : { data: { profile_id: profile.id, receive_push: false }, error: null };
+    },
     from(table) {
       const query = {
         select: () => query,
         eq: () => query,
-        maybeSingle: async () => ({ data: { profile_id: profile.id, receive_push: false }, error: null }),
+        maybeSingle: async () => ({ data: existingPreferences ?? { profile_id: profile.id, receive_push: false }, error: null }),
         upsert: (values) => { writes.push([table, values]); return query; },
         single: async () => ({ data: { profile_id: profile.id }, error: null })
       };
@@ -37,17 +44,18 @@ function route({ authenticated = true } = {}) {
         : (() => { throw error; })()
     };
     if (name === "@/lib/auth") return {
-      getSessionProfile: async () => authenticated ? { user: { id: profile.id }, profile } : { user: null, profile: null }
+      getSessionProfile: async () => authenticated ? { user: { id: profileMismatch ? "different-user" : profile.id }, profile } : { user: null, profile: null }
     };
     if (name === "@/lib/supabase/server") return { createClient: async () => db };
     if (name === "@/lib/management/external-delivery") return { managementDeliveryCapability: () => ({}) };
     throw new Error(`unexpected import: ${name}`);
   };
-  runInNewContext(compiled, { exports, require, console: { error() {} }, Date });
+  runInNewContext(compiled, { exports, require, console: { error() {} }, Date,
+    process: { env: atomic === null ? {} : { PUSH44_ATOMIC_PREFERENCES_RPC: atomic ? "enabled" : "disabled" } } });
   const patch = (body) => exports.PATCH(new Request("http://localhost/api/profile/communication-preferences", {
     method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body)
   }));
-  return { writes, patch };
+  return { writes, rpcCalls, patch };
 }
 
 test("unsupported category is rejected before any preference write", async () => {
@@ -70,6 +78,15 @@ test("supported category persists the authenticated profile's exact setting", as
   assert.equal(h.writes[1][1][0].enabled, false);
 });
 
+test("absent atomic flag preserves the legacy route and its historical half-populated quiet hours", async () => {
+  const h = route({ atomic: null, existingPreferences: { profile_id: "parent-1", receive_push: true, quiet_hours_start: "22:00", quiet_hours_end: null } });
+  assert.equal((await h.patch({ receive_push: false })).status, 200);
+  assert.deepEqual(h.rpcCalls, []);
+  assert.equal(h.writes.length, 1);
+  assert.equal(h.writes[0][1].quiet_hours_start, "22:00");
+  assert.equal(h.writes[0][1].quiet_hours_end, null);
+});
+
 test("unauthenticated request cannot write preferences", async () => {
   const h = route({ authenticated: false });
   assert.equal((await h.patch({ push_category_preferences: { safety: true } })).status, 401);
@@ -81,4 +98,110 @@ test("client-supplied profile id cannot change the authenticated write owner", a
   assert.equal((await h.patch({ profile_id: "other-user", push_category_preferences: { safety: true } })).status, 200);
   assert.equal(h.writes[0][1].profile_id, "parent-1");
   assert.equal(h.writes[1][1][0].profile_id, "parent-1");
+});
+
+test("enabled atomic path sends only validated fields to one RPC", async () => {
+  const h = route({ atomic: true });
+  const response = await h.patch({ receive_push: false, push_category_preferences: { safety: false } });
+  assert.equal(response.status, 200);
+  assert.deepEqual(h.writes, []);
+  assert.equal(h.rpcCalls.length, 1);
+  assert.equal(h.rpcCalls[0][0], "save_communication_preferences_atomic");
+  assert.equal(h.rpcCalls[0][1].p_patch.receive_push, false);
+  assert.equal(h.rpcCalls[0][1].p_categories.safety, false);
+  assert.equal(h.rpcCalls[0][1].p_patch.profile_id, undefined);
+});
+
+test("atomic PATCH does not invent an omitted unavailable channel setting", async () => {
+  const h = route({ atomic: true });
+  assert.equal((await h.patch({ receive_push: false, quiet_hours_timezone: "UTC" })).status, 200);
+  assert.equal(h.rpcCalls.length, 1);
+  assert.equal(h.rpcCalls[0][1].p_patch.receive_push, false);
+  assert.equal(Object.hasOwn(h.rpcCalls[0][1].p_patch, "receive_email"), false);
+  assert.equal(h.rpcCalls[0][1].p_categories, null);
+});
+
+test("RPC failure fails closed without a legacy first-table write", async () => {
+  const h = route({ atomic: true, rpcError: true });
+  assert.equal((await h.patch({ receive_push: false, push_category_preferences: { safety: false } })).status, 500);
+  assert.equal(h.rpcCalls.length, 1);
+  assert.deepEqual(h.writes, []);
+});
+
+test("atomic mode rejects unauthenticated and ignores forged profile ownership", async () => {
+  const anonymous = route({ atomic: true, authenticated: false });
+  assert.equal((await anonymous.patch({ receive_push: false })).status, 401);
+  assert.deepEqual(anonymous.rpcCalls, []);
+  const owner = route({ atomic: true });
+  assert.equal((await owner.patch({ profile_id: "other-user", receive_push: false })).status, 200);
+  assert.equal(owner.rpcCalls.length, 1);
+  assert.equal(owner.rpcCalls[0][1].p_patch.profile_id, undefined);
+});
+
+test("mismatched authenticated user and profile cannot reach either write path", async () => {
+  for (const atomic of [false, true]) {
+    const h = route({ atomic, profileMismatch: true });
+    assert.equal((await h.patch({ receive_push: false })).status, 401);
+    assert.deepEqual(h.writes, []);
+    assert.deepEqual(h.rpcCalls, []);
+  }
+});
+
+test("provider-off form-to-route save retains unavailable channel choices for every Management role", async () => {
+  for (const audience of ["parent", "staff", "garden", "inspector"]) {
+    const page = readFileSync(new URL(`../../app/dashboard/${audience}/notifications/page.tsx`, import.meta.url), "utf8");
+    assert.match(page, /NotificationPreferencesPanel|ParentNotificationPreferences/, audience);
+    assert.match(page, /managementDeliveryCapability\(\)/, audience);
+    assert.match(page, /ownerKey=\{profile\.id\}/, audience);
+  }
+  const form = new FormData();
+  form.set("receive_push", "on");
+  const selected = externalCategoryChoices({ message: ["in_app", "email", "push"], document: ["in_app", "email"] });
+  const payload = {
+    expected_profile_id: "parent-1",
+    ...availableChannelPatch(form, new Set(["in_app", "push"])),
+    notification_category_channels: selected,
+    parent_category_channels: selected,
+    push_category_preferences: { message: false }
+  };
+  assert.equal(Object.hasOwn(payload, "receive_email"), false);
+  assert.deepEqual(selected.message, ["email", "push"]);
+  assert.deepEqual(selected.document, ["email"]);
+
+  for (const role of ["parent", "staff", "manager", "inspector"]) {
+    for (const atomic of [false, true]) {
+      const h = route({ role, atomic, existingPreferences: { profile_id: "parent-1", receive_email: true } });
+      const response = await h.patch(payload);
+      assert.equal(response.status, 200, `${role} atomic=${atomic}`);
+      if (atomic) {
+        assert.equal(h.writes.length, 0);
+        assert.equal(h.rpcCalls.length, 1);
+        assert.equal(Object.hasOwn(h.rpcCalls[0][1].p_patch, "receive_email"), false);
+        assert.equal(Object.hasOwn(h.rpcCalls[0][1].p_patch, "expected_profile_id"), false);
+        assert.deepEqual(h.rpcCalls[0][1].p_patch.notification_category_channels.message, ["email", "push"]);
+      } else {
+        assert.equal(h.rpcCalls.length, 0);
+        assert.equal(h.writes[0][1].receive_email, true);
+        assert.deepEqual(h.writes[0][1].notification_category_channels.message, ["email", "push"]);
+        assert.equal(h.writes[1][1][0].role, role);
+      }
+    }
+  }
+});
+
+test("late save from previous account cannot overwrite current account when provider is off", async () => {
+  for (const atomic of [false, true]) {
+    const h = route({ atomic, existingPreferences: { profile_id: "parent-1", receive_email: true } });
+    const response = await h.patch({
+      expected_profile_id: "previous-account",
+      notification_category_channels: { message: ["email"] },
+      receive_push: false
+    });
+    assert.equal(response.status, 409);
+    assert.deepEqual(h.writes, []);
+    assert.deepEqual(h.rpcCalls, []);
+  }
+  const panel = readFileSync(new URL("../../components/parent-notification-preferences.tsx", import.meta.url), "utf8");
+  assert.match(panel, /ScopedNotificationPreferencesPanel key=\{props\.ownerKey\}/);
+  assert.match(panel, /expected_profile_id: ownerKey/);
 });
