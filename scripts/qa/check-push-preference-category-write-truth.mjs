@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS }
 }).outputText;
 
-function route({ authenticated = true, atomic = false, rpcError = false } = {}) {
+function route({ authenticated = true, atomic = false, rpcError = false, profileMismatch = false } = {}) {
   const writes = [];
   const rpcCalls = [];
   const exports = {};
@@ -43,7 +43,7 @@ function route({ authenticated = true, atomic = false, rpcError = false } = {}) 
         : (() => { throw error; })()
     };
     if (name === "@/lib/auth") return {
-      getSessionProfile: async () => authenticated ? { user: { id: profile.id }, profile } : { user: null, profile: null }
+      getSessionProfile: async () => authenticated ? { user: { id: profileMismatch ? "different-user" : profile.id }, profile } : { user: null, profile: null }
     };
     if (name === "@/lib/supabase/server") return { createClient: async () => db };
     if (name === "@/lib/management/external-delivery") return { managementDeliveryCapability: () => ({}) };
@@ -117,4 +117,13 @@ test("atomic mode rejects unauthenticated and ignores forged profile ownership",
   assert.equal((await owner.patch({ profile_id: "other-user", receive_push: false })).status, 200);
   assert.equal(owner.rpcCalls.length, 1);
   assert.equal(owner.rpcCalls[0][1].p_patch.profile_id, undefined);
+});
+
+test("mismatched authenticated user and profile cannot reach either write path", async () => {
+  for (const atomic of [false, true]) {
+    const h = route({ atomic, profileMismatch: true });
+    assert.equal((await h.patch({ receive_push: false })).status, 401);
+    assert.deepEqual(h.writes, []);
+    assert.deepEqual(h.rpcCalls, []);
+  }
 });

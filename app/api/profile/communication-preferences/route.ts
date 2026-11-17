@@ -5,6 +5,22 @@ import { createClient } from "@/lib/supabase/server";
 import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
 const parentCategories = ["important", "safety", "attendance", "message", "document", "payment", "pickup"] as const;
+type CommunicationPreferences = {
+  receive_sms: boolean;
+  receive_whatsapp: boolean;
+  receive_email: boolean;
+  receive_push: boolean;
+  critical_push_allowed: boolean;
+  emergency_messages_allowed: boolean;
+  preferred_language: string;
+  parent_daily_digest_enabled: boolean;
+  parent_ai_summary_enabled: boolean;
+  parent_category_channels: Record<string, string[]>;
+  notification_category_channels: Record<string, string[]>;
+  quiet_hours_start: string | null;
+  quiet_hours_end: string | null;
+  quiet_hours_timezone: string;
+};
 
 const schema = z.object({
   receive_sms: z.boolean().optional(),
@@ -44,21 +60,22 @@ function defaultParentCategoryChannels() {
 export async function GET() {
   try {
     const { user, profile } = await getSessionProfile();
-    if (!user || !profile) return fail("Authentication required.", 401);
+    if (!user || !profile || profile.id !== user.id) return fail("Authentication required.", 401);
     const supabase = await createClient();
-    const { data, error } = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
+    const { data, error } = await supabase.from("communication_preferences").select("*").eq("profile_id", profile.id).maybeSingle();
     if (error) {
       console.error("[communication-preferences] load failed", { profile_id: profile.id, error: error.message });
       return fail("לא ניתן לטעון העדפות תקשורת כרגע.", 500);
     }
-    const pushCategoryRows = await supabase.from("push_category_preferences" as any).select("category, enabled, critical_only").eq("profile_id", profile.id).in("category", [...parentCategories]);
+    const pushCategoryRows = await supabase.from("push_category_preferences").select("category, enabled, critical_only").eq("profile_id", profile.id).in("category", [...parentCategories]);
     if (pushCategoryRows.error) {
       console.error("[communication-preferences] push category load failed", { profile_id: profile.id, error: pushCategoryRows.error.message });
       // A failed read cannot be represented as consent to every category.
       return fail("לא ניתן לטעון העדפות התראות כרגע.", 500);
     }
+    const categoryRows = (pushCategoryRows.data ?? []) as Array<{ category: string; enabled: boolean }>;
     const pushCategoryPreferences = Object.fromEntries(parentCategories.map((category) => {
-      const row = (pushCategoryRows.data ?? []).find((item: any) => item.category === category);
+      const row = categoryRows.find((item) => item.category === category);
       return [category, row?.enabled ?? true];
     }));
 
@@ -87,7 +104,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const { user, profile } = await getSessionProfile();
-    if (!user || !profile) return fail("Authentication required.", 401);
+    if (!user || !profile || profile.id !== user.id) return fail("Authentication required.", 401);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     // Enable only after the reviewed 275th Development migration is applied.
@@ -104,12 +121,12 @@ export async function PATCH(request: Request) {
       }
       return ok({ preferences: data });
     }
-    const existing = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
+    const existing = await supabase.from("communication_preferences").select("*").eq("profile_id", profile.id).maybeSingle();
     if (existing.error) {
       console.error("[communication-preferences] existing load failed", { profile_id: profile.id, error: existing.error.message });
       return fail("לא ניתן לטעון העדפות קיימות כרגע.", 500);
     }
-    const current = existing.data as any;
+    const current = existing.data as CommunicationPreferences | null;
     const patch = {
       profile_id: profile.id,
       receive_sms: payload.receive_sms ?? current?.receive_sms ?? false,
@@ -128,7 +145,7 @@ export async function PATCH(request: Request) {
       quiet_hours_timezone: payload.quiet_hours_timezone ?? current?.quiet_hours_timezone ?? "Asia/Jerusalem",
       updated_at: new Date().toISOString()
     };
-    const { data, error } = await supabase.from("communication_preferences" as any).upsert(patch, { onConflict: "profile_id" }).select("*").single();
+    const { data, error } = await supabase.from("communication_preferences").upsert(patch, { onConflict: "profile_id" }).select("*").single();
     if (error) {
       console.error("[communication-preferences] save failed", { profile_id: profile.id, error: error.message });
       return fail("שמירת העדפות התקשורת נכשלה.", 500);
@@ -143,7 +160,7 @@ export async function PATCH(request: Request) {
           updated_at: new Date().toISOString()
         }));
       if (rows.length) {
-        const upsert = await supabase.from("push_category_preferences" as any).upsert(rows, { onConflict: "profile_id,category" });
+        const upsert = await supabase.from("push_category_preferences").upsert(rows, { onConflict: "profile_id,category" });
         if (upsert.error) {
           console.error("[communication-preferences] push category save failed", { profile_id: profile.id, error: upsert.error.message });
           return fail("שמירת העדפות ההתראות נכשלה.", 500);
