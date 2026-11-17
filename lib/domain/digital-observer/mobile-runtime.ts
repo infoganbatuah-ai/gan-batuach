@@ -82,6 +82,11 @@ export function parseMobileLink(rawUrl: string, allowedHttpsOrigins: string[] = 
   const allowedHttps = url.protocol === "https:" && allowedHttpsOrigins.includes(url.origin);
   if (!customScheme && !allowedHttps) throw new Error("MOBILE_LINK_ORIGIN_DENIED");
   if (allowedHttps && !url.pathname.startsWith("/digital-observer/open/")) throw new Error("MOBILE_LINK_PATH_DENIED");
+  // A resource link is not an Auth return. Reject extra or duplicate query
+  // fields before forwarding or persisting it, even if the extra field would
+  // otherwise be ignored when building the authorized destination.
+  if (url.searchParams.size !== 1 || !url.searchParams.has("site"))
+    throw new Error("MOBILE_LINK_INVALID");
 
   const parts = customScheme
     ? [url.hostname, ...url.pathname.split("/").filter(Boolean)]
