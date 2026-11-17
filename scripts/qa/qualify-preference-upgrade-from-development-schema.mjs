@@ -2,8 +2,11 @@
 // Opt-in schema-only qualification. Source Development DB is read-only;
 // all SQL writes target a random, disposable database on an internal network.
 import { createHash, randomBytes } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import { execFile, execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
 
 if (process.env.PUSH44_SCHEMA_UPGRADE !== "YES") {
   console.log("NOT RUN: opt in with PUSH44_SCHEMA_UPGRADE=YES");
@@ -29,6 +32,13 @@ function docker(args, input, timeout = 60_000, environment = {}) {
 function sql(query) {
   return docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
     "-U", "supabase_admin", "-d", "postgres"], query, 90_000);
+}
+async function sqlAsync(query) {
+  const { stdout } = await execFileAsync("docker", ["--host", socket, "exec", "-i", container,
+    "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1", "-U", "supabase_admin", "-d", "postgres", "-c", query],
+  { encoding: "utf8", timeout: 20_000, maxBuffer: 1024 * 1024,
+    env: process.env });
+  return stdout.trim();
 }
 function schemaFingerprint() {
   const schema = docker(["exec", container, "pg_dump", "--schema-only", "--no-owner",
@@ -158,7 +168,32 @@ try {
       (select count(*) from public.communication_preferences where profile_id='${otherId}'),
       (select count(*) from public.push_category_preferences where profile_id='${otherId}'); rollback;`);
   if (repeat !== "f\nf\n1|1|0|0") throw new Error(`IDEMPOTENCY_OR_ISOLATION_MISMATCH_${repeat}`);
-  console.log(`PASS: source 227+47=274; schema-only disposable 274→275; public schema fingerprints ${beforeFingerprint} → ${afterFingerprint}; invoker ACL/RLS, two-write rollback, repeat idempotency and other-user isolation on synthetic rows; source untouched. LIMITATION: no real Auth/profile row restore or PostgreSQL concurrent-writer proof.`);
+  stage = "synthetic_concurrent_writers";
+  sql(setup);
+  const concurrentWrite = (enabled, hold) => `begin;
+    set local statement_timeout = '10s';
+    set local lock_timeout = '8s';
+    set local role authenticated;
+    set local request.jwt.claim.sub = '${syntheticId}';
+    select receive_email from public.save_communication_preferences_atomic(
+      '{"receive_email":${enabled}}'::jsonb, '{"message":${enabled}}'::jsonb);
+    ${hold ? "select pg_sleep(1);" : ""}
+    commit;`;
+  const concurrent = await Promise.all([
+    sqlAsync(concurrentWrite("false", true)),
+    sqlAsync(concurrentWrite("true", false)),
+  ]);
+  if (!concurrent.every((value) => value === "f" || value === "t" || value === "f\n" || value === "t\n"))
+    throw new Error(`CONCURRENT_RETURN_MISMATCH_${concurrent.join("_")}`);
+  const final = sql(`select cp.receive_email, pcp.enabled,
+      (select count(*) from public.communication_preferences where profile_id='${syntheticId}'),
+      (select count(*) from public.push_category_preferences where profile_id='${syntheticId}' and category='message')
+    from public.communication_preferences cp join public.push_category_preferences pcp
+      on pcp.profile_id=cp.profile_id and pcp.category='message'
+    where cp.profile_id='${syntheticId}';`);
+  if (final !== "f|f|1|1" && final !== "t|t|1|1")
+    throw new Error(`CONCURRENT_PARTIAL_OR_DUPLICATE_${final}`);
+  console.log(`PASS: source 227+47=274; schema-only disposable 274→275; public schema fingerprints ${beforeFingerprint} → ${afterFingerprint}; invoker ACL/RLS, two-write rollback, repeat idempotency, other-user isolation, two concurrent same-user writers with 10s statement/8s lock timeout and paired final state ${final}; source untouched. LIMITATION: no real Auth/profile row restore, Data API proof, or arbitrary crash-durability proof.`);
 } catch (error) {
   const diagnostic = String(error?.stderr ?? "").split("\n")
     .find((line) => /(?:ERROR|FATAL):/.test(line))?.slice(0, 240);
