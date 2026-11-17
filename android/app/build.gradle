@@ -116,7 +116,7 @@ def verifyMobileConfig = { String product, String buildType ->
         if (authenticated) {
             if (config.server?.url != 'https://observer-qa.ganbatuach.com/digital-observer/dashboard' ||
                 config.server?.cleartext != false ||
-                System.getenv('OBSERVER_QA_CALLBACK') != 'observerqaapp://return/qa/device-proof')
+                System.getenv('OBSERVER_QA_CALLBACK') != 'observerqaandroid://return/qa/device-proof')
                 throw new GradleException('CAPACITOR_OBSERVER_AUTH_BOUNDARY_INVALID')
         } else if (config.server?.url != null || config.server?.cleartext != null) {
             throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_URL_FORBIDDEN')

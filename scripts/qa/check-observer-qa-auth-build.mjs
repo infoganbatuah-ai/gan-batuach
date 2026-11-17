@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { OBSERVER_QA_BUNDLE_ID, OBSERVER_QA_CALLBACK, OBSERVER_QA_ORIGIN,
+import { OBSERVER_QA_BUNDLE_ID, OBSERVER_QA_CALLBACK, OBSERVER_QA_ANDROID_CALLBACK, OBSERVER_QA_ORIGIN,
   prepareObserverQaAuthConfig, validateObserverQaAuthBuild } from "../../lib/domain/digital-observer/observer-qa-auth-build.mjs";
 
 const valid = {
-  optIn: "1", bundleId: OBSERVER_QA_BUNDLE_ID,
+  optIn: "1", platform: "ios", bundleId: OBSERVER_QA_BUNDLE_ID,
   origin: OBSERVER_QA_ORIGIN,
   launchUrl: `${OBSERVER_QA_ORIGIN}/digital-observer/dashboard`,
   callback: OBSERVER_QA_CALLBACK
@@ -16,6 +16,16 @@ test("exact preparatory Observer QA contract accepts one candidate without activ
     bundleId: OBSERVER_QA_BUNDLE_ID, origin: OBSERVER_QA_ORIGIN,
     launchUrl: valid.launchUrl, callback: OBSERVER_QA_CALLBACK
   });
+});
+
+test("Android callback matches its packaged scheme and rejects the iOS return", () => {
+  const android = { ...valid, platform: "android", callback: OBSERVER_QA_ANDROID_CALLBACK };
+  assert.equal(validateObserverQaAuthBuild(android).callback, OBSERVER_QA_ANDROID_CALLBACK);
+  assert.throws(() => validateObserverQaAuthBuild({ ...android, callback: OBSERVER_QA_CALLBACK }));
+  assert.throws(() => validateObserverQaAuthBuild({ ...valid, platform: undefined }));
+  const gradle = readFileSync(new URL("../../android/app/build.gradle", import.meta.url), "utf8");
+  assert.match(gradle, /mobileCallbackScheme: 'observerqaandroid'/);
+  assert.match(gradle, /System\.getenv\('OBSERVER_QA_CALLBACK'\) != 'observerqaandroid:\/\/return\/qa\/device-proof'/);
 });
 
 test("absent opt-in, Gan origin, wrong bundle, and callback mismatch fail closed", () => {
@@ -44,7 +54,8 @@ test("opt-in config derives only from existing offline Observer templates", () =
   for (const platform of ["ios", "android"]) {
     const path = new URL(`../../${platform}/qa-observer/capacitor.config.json`, import.meta.url);
     const offline = JSON.parse(readFileSync(path, "utf8"));
-    const prepared = prepareObserverQaAuthConfig({ ...valid, platform }, offline);
+    const prepared = prepareObserverQaAuthConfig({ ...valid, platform,
+      callback: platform === "android" ? OBSERVER_QA_ANDROID_CALLBACK : OBSERVER_QA_CALLBACK }, offline);
     assert.equal(prepared.appId, OBSERVER_QA_BUNDLE_ID);
     assert.equal(prepared.server.url, valid.launchUrl);
     assert.equal(prepared.server.cleartext, false);
