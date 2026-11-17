@@ -230,7 +230,9 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
     .from("push_device_tokens")
     .select("id, platform, device_token, is_active")
     .eq("profile_id", input.profileId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("platform", "web")
+    .contains("metadata", { source: "fcm_web" });
 
   if (tokensError) {
     const log = await supabase.from("push_notification_logs").insert({
