@@ -115,3 +115,15 @@ test("authenticated server refuses bearer-bearing resource link before Site look
   assert.equal(result.status, 400);
   assert.equal(result.calls.length, 0);
 });
+
+test("server rejects fragment, userinfo and explicit port before Site lookup", async () => {
+  for (const rawUrl of [
+    `${link}#access_token=synthetic`,
+    link.replace("//camera/", "//user@camera/"),
+    link.replace("//camera/", "//camera:1234/")
+  ]) {
+    const result = await authorizeLink({ rawUrl });
+    assert.equal(result.status, 400, rawUrl);
+    assert.equal(result.calls.length, 0);
+  }
+});
