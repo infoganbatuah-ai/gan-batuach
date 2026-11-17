@@ -5,11 +5,13 @@ export type PreferenceSnapshot = {
 
 export type PreferenceSaveResult =
   | { status: "saved" }
+  | { status: "account_changed"; message: string }
   | { status: "reconciled"; snapshot: PreferenceSnapshot; message: string }
   | { status: "unknown"; message: string };
 
 const failureMessage = "השמירה לא הושלמה. הבחירות המוצגות נטענו מחדש מהשרת; בדקו אותן ונסו שוב.";
 const unknownMessage = "לא ניתן לאמת מה נשמר. העדפות העריכה הוסתרו; נסו לטעון אותן מחדש.";
+const accountChangedMessage = "החשבון השתנה מאז פתיחת הטופס. לא בוצעה שמירה; רעננו את העמוד כדי לטעון את העדפות החשבון הנוכחי.";
 
 export async function loadPersistedPreferences(request: typeof fetch): Promise<PreferenceSnapshot | null> {
   try {
@@ -35,6 +37,9 @@ export async function saveAndReconcilePreferences(request: typeof fetch, payload
     const response = await request("/api/profile/communication-preferences", {
       method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
     });
+    // A stale-account response is definitive. Reading the new account's
+    // preferences into the old account's mounted form would mix identities.
+    if (response.status === 409) return { status: "account_changed", message: accountChangedMessage };
     const body: unknown = await response.json();
     if (response.ok && body && typeof body === "object" && "data" in body) return { status: "saved" };
   } catch {

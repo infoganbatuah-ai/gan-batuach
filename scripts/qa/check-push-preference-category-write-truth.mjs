@@ -4,17 +4,18 @@ import { test } from "node:test";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { z, ZodError } from "zod";
+import { availableChannelPatch, externalCategoryChoices } from "../../lib/management/notification-preference-payload.ts";
 
 const source = readFileSync(new URL("../../app/api/profile/communication-preferences/route.ts", import.meta.url), "utf8");
 const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS }
 }).outputText;
 
-function route({ authenticated = true, atomic = false, rpcError = false, profileMismatch = false, existingPreferences } = {}) {
+function route({ authenticated = true, atomic = false, rpcError = false, profileMismatch = false, existingPreferences, role = "parent" } = {}) {
   const writes = [];
   const rpcCalls = [];
   const exports = {};
-  const profile = { id: "parent-1", role: "parent" };
+  const profile = { id: "parent-1", role };
   const db = {
     rpc: async (name, args) => {
       rpcCalls.push([name, args]);
@@ -144,4 +145,63 @@ test("mismatched authenticated user and profile cannot reach either write path",
     assert.deepEqual(h.writes, []);
     assert.deepEqual(h.rpcCalls, []);
   }
+});
+
+test("provider-off form-to-route save retains unavailable channel choices for every Management role", async () => {
+  for (const audience of ["parent", "staff", "garden", "inspector"]) {
+    const page = readFileSync(new URL(`../../app/dashboard/${audience}/notifications/page.tsx`, import.meta.url), "utf8");
+    assert.match(page, /NotificationPreferencesPanel|ParentNotificationPreferences/, audience);
+    assert.match(page, /managementDeliveryCapability\(\)/, audience);
+    assert.match(page, /ownerKey=\{profile\.id\}/, audience);
+  }
+  const form = new FormData();
+  form.set("receive_push", "on");
+  const selected = externalCategoryChoices({ message: ["in_app", "email", "push"], document: ["in_app", "email"] });
+  const payload = {
+    expected_profile_id: "parent-1",
+    ...availableChannelPatch(form, new Set(["in_app", "push"])),
+    notification_category_channels: selected,
+    parent_category_channels: selected,
+    push_category_preferences: { message: false }
+  };
+  assert.equal(Object.hasOwn(payload, "receive_email"), false);
+  assert.deepEqual(selected.message, ["email", "push"]);
+  assert.deepEqual(selected.document, ["email"]);
+
+  for (const role of ["parent", "staff", "manager", "inspector"]) {
+    for (const atomic of [false, true]) {
+      const h = route({ role, atomic, existingPreferences: { profile_id: "parent-1", receive_email: true } });
+      const response = await h.patch(payload);
+      assert.equal(response.status, 200, `${role} atomic=${atomic}`);
+      if (atomic) {
+        assert.equal(h.writes.length, 0);
+        assert.equal(h.rpcCalls.length, 1);
+        assert.equal(Object.hasOwn(h.rpcCalls[0][1].p_patch, "receive_email"), false);
+        assert.equal(Object.hasOwn(h.rpcCalls[0][1].p_patch, "expected_profile_id"), false);
+        assert.deepEqual(h.rpcCalls[0][1].p_patch.notification_category_channels.message, ["email", "push"]);
+      } else {
+        assert.equal(h.rpcCalls.length, 0);
+        assert.equal(h.writes[0][1].receive_email, true);
+        assert.deepEqual(h.writes[0][1].notification_category_channels.message, ["email", "push"]);
+        assert.equal(h.writes[1][1][0].role, role);
+      }
+    }
+  }
+});
+
+test("late save from previous account cannot overwrite current account when provider is off", async () => {
+  for (const atomic of [false, true]) {
+    const h = route({ atomic, existingPreferences: { profile_id: "parent-1", receive_email: true } });
+    const response = await h.patch({
+      expected_profile_id: "previous-account",
+      notification_category_channels: { message: ["email"] },
+      receive_push: false
+    });
+    assert.equal(response.status, 409);
+    assert.deepEqual(h.writes, []);
+    assert.deepEqual(h.rpcCalls, []);
+  }
+  const panel = readFileSync(new URL("../../components/parent-notification-preferences.tsx", import.meta.url), "utf8");
+  assert.match(panel, /ScopedNotificationPreferencesPanel key=\{props\.ownerKey\}/);
+  assert.match(panel, /expected_profile_id: ownerKey/);
 });

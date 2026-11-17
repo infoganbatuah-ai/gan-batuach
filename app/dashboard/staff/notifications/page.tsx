@@ -18,6 +18,6 @@ export default async function StaffNotificationsPage() {
   const pushCategoryPreferences = Object.fromEntries(((pushPreferencesRes.data ?? []) as Array<{ category: string; enabled: boolean }>).map((row) => [row.category, row.enabled]));
   const preferencesAvailable = !preferencesRes.error && !pushPreferencesRes.error;
   return <StaffAppFrame active="messages"><StaffPageHero eyebrow="עדכוני צוות" title="מה חדש במשמרת?" text="משימות, הודעות מנהלת, מסמכים חסרים ואירועים שהוקצו." icon={Bell} badge={<StatusChip tone="success">צוות</StatusChip>} /><StaffSection title="מרכז התראות"><NotificationCenter notifications={(notificationsRes.data ?? []) as any[]} /></StaffSection><StaffSection title="העדפות ושעות שקט">{preferencesAvailable
-    ? <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="עדכוני הצוות שלך" />
+    ? <NotificationPreferencesPanel ownerKey={profile.id} preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="עדכוני הצוות שלך" />
     : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}</StaffSection></StaffAppFrame>;
 }

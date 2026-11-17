@@ -23,6 +23,7 @@ type CommunicationPreferences = {
 };
 
 const schema = z.object({
+  expected_profile_id: z.string().min(1).optional(),
   receive_sms: z.boolean().optional(),
   receive_whatsapp: z.boolean().optional(),
   receive_email: z.boolean().optional(),
@@ -106,11 +107,16 @@ export async function PATCH(request: Request) {
     const { user, profile } = await getSessionProfile();
     if (!user || !profile || profile.id !== user.id) return fail("Authentication required.", 401);
     const payload = schema.parse(await request.json());
+    // This is a stale-form fence, not an authorization source: the authenticated
+    // profile remains the sole write owner. A form from another login must fail.
+    if (payload.expected_profile_id && payload.expected_profile_id !== profile.id) {
+      return fail("החשבון השתנה מאז פתיחת הטופס. טענו את ההעדפות מחדש.", 409);
+    }
     const supabase = await createClient();
     // Enable only after the reviewed 275th Development migration is applied.
     // A failed RPC must never fall back to the legacy two-request write path.
     if (typeof process !== "undefined" && process.env.PUSH44_ATOMIC_PREFERENCES_RPC === "enabled") {
-      const { push_category_preferences, ...preferencePatch } = payload;
+      const { push_category_preferences, expected_profile_id: _expectedProfileId, ...preferencePatch } = payload;
       const { data, error } = await supabase.rpc("save_communication_preferences_atomic", {
         p_patch: preferencePatch,
         p_categories: push_category_preferences ?? null

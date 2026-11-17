@@ -16,6 +16,7 @@ export type DeliveryCapability = {
   in_app: string; push: string; email: string; whatsapp: string; sms: string;
 };
 type Props = {
+  ownerKey: string;
   preferences?: NotificationPreferences | null;
   pushCategoryPreferences?: Record<string, boolean>;
   capability?: DeliveryCapability;
@@ -58,10 +59,15 @@ function initialChannels(preferences?: NotificationPreferences | null) {
 }
 
 export function NotificationPreferencesPanel(props: Props) {
+  return <ScopedNotificationPreferencesPanel key={props.ownerKey} {...props} />;
+}
+
+function ScopedNotificationPreferencesPanel(props: Props) {
   const [snapshot, setSnapshot] = useState({ preferences: props.preferences, pushCategoryPreferences: props.pushCategoryPreferences });
   const [revision, setRevision] = useState(0);
   const [error, setError] = useState("");
   const [unavailable, setUnavailable] = useState(false);
+  const [accountChanged, setAccountChanged] = useState(false);
 
   async function reloadPersisted() {
     const persisted = await loadPersistedPreferences(fetch);
@@ -80,16 +86,21 @@ export function NotificationPreferencesPanel(props: Props) {
       setSnapshot({ preferences: result.snapshot.preferences as NotificationPreferences, pushCategoryPreferences: result.snapshot.push_category_preferences });
       setRevision((current) => current + 1);
       setUnavailable(false);
-    } else setUnavailable(true);
+    } else {
+      setUnavailable(true);
+      if (result.status === "account_changed") setAccountChanged(true);
+    }
     return false;
   }
 
   return <div>{error ? <div role="alert" className="communication-save-message error">{error}</div> : null}
-    {unavailable ? <button type="button" className="button" onClick={() => void reloadPersisted()}>טעינה מחדש של העדפות</button>
+    {unavailable ? accountChanged
+      ? <button type="button" className="button" onClick={() => window.location.reload()}>רענון העמוד לחשבון הנוכחי</button>
+      : <button type="button" className="button" onClick={() => void reloadPersisted()}>טעינה מחדש של העדפות</button>
       : <NotificationPreferencesForm key={revision} {...props} preferences={snapshot.preferences} pushCategoryPreferences={snapshot.pushCategoryPreferences} onSave={save} />}</div>;
 }
 
-function NotificationPreferencesForm({ preferences, pushCategoryPreferences, capability = defaultCapability, audienceLabel = "העדכונים שלך", onSave }: Props & { onSave: (payload: unknown) => Promise<boolean> }) {
+function NotificationPreferencesForm({ ownerKey, preferences, pushCategoryPreferences, capability = defaultCapability, audienceLabel = "העדכונים שלך", onSave }: Props & { onSave: (payload: unknown) => Promise<boolean> }) {
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const availableChannels = useMemo(() => new Set((Object.keys(channelInfo) as ChannelKey[]).filter((channel) => ready(capability[channel]))), [capability]);
@@ -117,6 +128,7 @@ function NotificationPreferencesForm({ preferences, pushCategoryPreferences, cap
     // maps describe external delivery intents only.
     const sanitized = externalCategoryChoices(categoryChannels);
     const payload = {
+      expected_profile_id: ownerKey,
       ...availableChannelPatch(data, availableChannels),
       critical_push_allowed: data.get("critical_push_allowed") === "on",
       emergency_messages_allowed: data.get("emergency_messages_allowed") === "on",
