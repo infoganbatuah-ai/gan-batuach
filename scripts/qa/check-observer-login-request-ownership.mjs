@@ -18,6 +18,12 @@ if (process.platform === 'darwin') {
   assert.equal(flags & 0x40000000, 0, 'refuse dataless source before content read');
 }
 const ts = createRequire(resolve(root, 'package.json'))('typescript');
+const guardPath = resolve(root, 'lib/domain/digital-observer/safe-return-path.ts');
+const guardCode = ts.transpileModule(readFileSync(guardPath, 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
+}).outputText;
+const guardExports = {};
+new vm.Script(guardCode, { filename: guardPath }).runInNewContext({ exports: guardExports, URL }, { timeout: 1000 });
 const code = ts.transpileModule(readFileSync(path, 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX }
 }).outputText;
@@ -95,6 +101,7 @@ function harness({ native = false, autoPassive = true } = {}) {
       if (name === 'lucide-react') return { LoaderCircle: 'LoaderCircle', LockKeyhole: 'LockKeyhole', ShieldCheck: 'ShieldCheck' };
       if (name === '@/components/digital-observer/observer-app-shell') return { ObserverMark: 'ObserverMark' };
       if (name === '@/lib/domain/digital-observer/client-session') return { rememberObserverAccessToken(value) { stored.push(value); maybeThrow('remember'); onRemember?.(); } };
+      if (name === '@/lib/domain/digital-observer/safe-return-path') return guardExports;
       if (name === '@/lib/supabase/browser') return { createClient };
       throw Error(`Unexpected import ${name}`);
     }
@@ -195,9 +202,10 @@ const routes = [
   ['editable-user-admin-not-authority', { site: false, userMetadata: { digital_observer_admin: true } }, '/digital-observer/onboarding?type=home'],
   ['strict-admin-boolean', { site: false, appMetadata: { digital_observer_admin: 'true' } }, '/digital-observer/onboarding?type=home'],
   ['unknown-account-type', { site: false, accountType: 'other' }, '/digital-observer/onboarding?type=home'],
-  ['original-prefix-policy', { path: '/digital-observer-extra' }, '/digital-observer-extra']
+  ['prefix-confusion-denied', { path: '/digital-observer-extra' }, '/digital-observer/dashboard'],
+  ['encoded-traversal-denied', { path: '/digital-observer/%2e%2e/dashboard/admin' }, '/digital-observer/dashboard']
 ];
-for (const [name, options, destination] of routes) test(`unchanged routing ${name}`, async () => {
+for (const [name, options, destination] of routes) test(`routing ${name}`, async () => {
   const h = harness(); if (options.path) h.render({ ...initial, nextPath: options.path }); h.submit(); await h.finish(undefined, options);
   assert.deepEqual(h.navigations, [destination]); assert.deepEqual(h.stored, ['SYNTHETIC-TOKEN']);
   assert.equal(h.button().props.disabled, true, 'returning assign stays locked'); const before = h.snapshot(); h.submit(); assert.deepEqual(h.snapshot(), before);

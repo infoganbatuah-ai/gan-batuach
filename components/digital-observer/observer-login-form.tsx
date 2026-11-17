@@ -6,13 +6,8 @@ import { useEffect, useLayoutEffect, useRef, useState, type FormEvent } from "re
 import { LoaderCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { rememberObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
+import { safeObserverReturnPath } from "@/lib/domain/digital-observer/safe-return-path";
 import { createClient } from "@/lib/supabase/browser";
-
-function safeReturnPath(value: string) {
-  return value.startsWith("/digital-observer") && !value.startsWith("//")
-    ? value
-    : "/digital-observer/dashboard";
-}
 
 function loginErrorMessage(error: { code?: string; message?: string } | null) {
   const code = String(error?.code ?? "").toLowerCase();
@@ -126,7 +121,7 @@ function ScopedObserverLoginForm({ initialType, nextPath, registered, verified, 
         return;
       }
 
-      const requestedDestination = safeReturnPath(submittedNextPath);
+      const requestedDestination = safeObserverReturnPath(submittedNextPath);
       const observerAdmin = user.app_metadata?.digital_observer_admin === true;
       const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
       const accountType = account.account_type === "business" ? "business" : "home";
