@@ -4,7 +4,7 @@ import "server-only";
 import crypto from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
-import { evaluatePrivacyGate, legalApprovalMatchesPolicy, type PrivacyContext, type SensitiveCapability } from "./privacy-compliance";
+import { evaluatePrivacyGate, legalApprovalMatchesPolicy, privacyPolicyMatchesTrustedTenant, type PrivacyContext, type SensitiveCapability } from "./privacy-compliance";
 
 type DbClient = SupabaseClient<Database>;
 
@@ -154,7 +154,7 @@ export async function evaluateStoredPrivacyApproval(db: DbClient, input: {
 }) {
   const client = db as any;
   const { data: profile, error: profileError } = await client.from("digital_observer_privacy_policy_profiles")
-    .select("id,active,legal_decision_state,stated_purpose,jurisdiction").eq("observer_site_id", input.siteId)
+    .select("id,active,legal_decision_state,stated_purpose,jurisdiction,organization_id").eq("observer_site_id", input.siteId)
     .eq("product_context", input.context).eq("stated_purpose", input.purpose).order("policy_version", { ascending: false }).limit(1).maybeSingle();
   if (profileError) fail(profileError, "PRIVACY_PROFILE_LOOKUP_FAILED");
   const { data: approval, error: approvalError } = profile ? await client.from("digital_observer_legal_approvals")
@@ -176,6 +176,9 @@ export async function evaluateStoredPrivacyApproval(db: DbClient, input: {
       requestedPurpose: input.purpose,
       approvalJurisdiction: approval?.jurisdiction ?? null,
       policyJurisdiction: profile?.jurisdiction ?? null
+    }) && privacyPolicyMatchesTrustedTenant({
+      policyOrganizationId: profile?.organization_id ?? null,
+      trustedTenantId: input.tenantId
     }),
     approvalEffectiveAt: approval?.effective_at ?? null,
     approvalExpiresAt: approval?.expires_at ?? null,
