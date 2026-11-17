@@ -102,6 +102,15 @@ test("enabled atomic path sends only validated fields to one RPC", async () => {
   assert.equal(h.rpcCalls[0][1].p_patch.profile_id, undefined);
 });
 
+test("atomic PATCH does not invent an omitted unavailable channel setting", async () => {
+  const h = route({ atomic: true });
+  assert.equal((await h.patch({ receive_push: false, quiet_hours_timezone: "UTC" })).status, 200);
+  assert.equal(h.rpcCalls.length, 1);
+  assert.equal(h.rpcCalls[0][1].p_patch.receive_push, false);
+  assert.equal(Object.hasOwn(h.rpcCalls[0][1].p_patch, "receive_email"), false);
+  assert.equal(h.rpcCalls[0][1].p_categories, null);
+});
+
 test("RPC failure fails closed without a legacy first-table write", async () => {
   const h = route({ atomic: true, rpcError: true });
   assert.equal((await h.patch({ receive_push: false, push_category_preferences: { safety: false } })).status, 500);
