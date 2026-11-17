@@ -21,9 +21,11 @@ const migration = readFileSync("supabase/migrations/20261116224059_push44_atomic
 const container = `push44-schema-${randomBytes(6).toString("hex")}`;
 const network = `${container}-net`;
 const restContainer = `${container}-rest`;
+const restoredContainer = `${container}-restore`;
 let networkCreated = false;
 let containerAttempted = false;
 let restAttempted = false;
+let restoreAttempted = false;
 let stage = "source_dump";
 
 function docker(args, input, timeout = 60_000, environment = {}) {
@@ -32,8 +34,8 @@ function docker(args, input, timeout = 60_000, environment = {}) {
     stdio: ["pipe", "pipe", "pipe"], env: { ...process.env, ...environment }
   }).trim();
 }
-function sql(query) {
-  return docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+function sql(query, target = container) {
+  return docker(["exec", "-i", target, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
     "-U", "supabase_admin", "-d", "postgres"], query, 90_000);
 }
 async function sqlAsync(query) {
@@ -43,10 +45,10 @@ async function sqlAsync(query) {
     env: process.env });
   return stdout.trim();
 }
-function schemaFingerprint() {
-  const schema = docker(["exec", container, "pg_dump", "--schema-only", "--no-owner",
+function schemaFingerprint(target = container) {
+  const schema = docker(["exec", target, "pg_dump", "--schema-only", "--no-owner",
     "--schema=public", "-U", "supabase_admin", "-d", "postgres"], undefined, 120_000);
-  return createHash("sha256").update(schema).digest("hex");
+  return createHash("sha256").update(schema.replace(/^\\(?:un)?restrict .*$/gm, "")).digest("hex");
 }
 function jwt(secret, claims) {
   const encode = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
@@ -126,6 +128,29 @@ try {
   sql(authHelpers);
   stage = "schema_restore";
   sql(schema);
+  const recoveryId = "00000000-0000-4000-8000-000000000046";
+  sql(`insert into auth.users(id,email,aud,role,raw_user_meta_data,raw_app_meta_data)
+    values ('${recoveryId}','p44-recovery@example.invalid','authenticated','authenticated','{}'::jsonb,'{}'::jsonb);
+    insert into public.profiles(id,role,full_name) values ('${recoveryId}','parent','Recovery Fixture');
+    insert into public.communication_preferences(profile_id,receive_email)
+      values ('${recoveryId}',false);
+    insert into public.push_category_preferences(profile_id,category,enabled,role)
+      values ('${recoveryId}','message',false,'parent');`);
+  const recoveryRowsBefore = sql(`select cp.receive_email,pcp.enabled,
+      (select count(*) from auth.users where id='${recoveryId}'),
+      (select count(*) from public.profiles where id='${recoveryId}')
+    from public.communication_preferences cp join public.push_category_preferences pcp
+      on pcp.profile_id=cp.profile_id and pcp.category='message'
+    where cp.profile_id='${recoveryId}';`);
+  if (recoveryRowsBefore !== "f|f|1|1") throw new Error("RECOVERY_FIXTURE_SETUP_FAILED");
+  const recoveryData = docker(["exec", container, "pg_dump", "--data-only", "--column-inserts",
+    "--table=auth.users", "--table=public.profiles", "--table=public.communication_preferences",
+    "--table=public.push_category_preferences", "-U", "supabase_admin", "-d", "postgres"],
+  undefined, 120_000);
+  if (!recoveryData.includes("p44-recovery@example.invalid") ||
+      /-----BEGIN (?:PRIVATE|OPENSSH)|AGE-SECRET-KEY-/m.test(recoveryData))
+    throw new Error("RECOVERY_SNAPSHOT_SAFETY_FAILED");
+  const recoveryDataDigest = createHash("sha256").update(recoveryData.replace(/^\\(?:un)?restrict .*$/gm, "")).digest("hex");
   const beforeFingerprint = schemaFingerprint();
   stage = "migration_275";
   sql(migration);
@@ -258,13 +283,46 @@ try {
     join public.push_category_preferences pcp on pcp.profile_id=cp.profile_id
     where cp.profile_id='${syntheticId}' and pcp.category='message';`);
   if (apiState !== "f|f") throw new Error(`DATA_API_PARTIAL_WRITE_${apiState}`);
-  console.log(`PASS: source 227+47=274; disposable 274→275; public schema fingerprints ${beforeFingerprint} → ${afterFingerprint}; invoker ACL/RLS, rollback, idempotency, other-user isolation, concurrent writers (${final}); official cached PostgREST authenticated RPC 200, anon ${anon.status}, forged profile_id ${forged.status}, failed second write ${failedApi.status} leaves f|f; source untouched. LIMITATION: synthetic rows only, no real Auth/profile restore or arbitrary crash-durability proof.`);
+  stage = "disposable_recovery_rehearsal";
+  restoreAttempted = true;
+  docker(["run", "--rm", "-d", "--name", restoredContainer, "--network", network,
+    "--network-alias", "restore-pg", "--memory", "2g", "--cpus", "1", "--pids-limit", "128",
+    "--tmpfs", "/var/lib/postgresql/data:rw,nosuid,size=1g",
+    "-e", "POSTGRES_HOST_AUTH_METHOD=trust", "-e", "POSTGRES_USER=supabase_admin",
+    pgImage, "postgres", "-D", "/var/lib/postgresql/data", "-c", "listen_addresses=*"],
+  undefined, 60_000);
+  let restoreReady = false;
+  for (let attempt = 0; attempt < 120; attempt++) {
+    try { if (sql("select 1;", restoredContainer) === "1") { restoreReady = true; break; } }
+    catch { await new Promise((resolve) => setTimeout(resolve, 500)); }
+  }
+  if (!restoreReady) throw new Error("RESTORE_DISPOSABLE_NOT_READY");
+  docker(["run", "--rm", "--network", network, "--memory", "512m", "--cpus", "1",
+    "--pids-limit", "128", "-e", "DATABASE_URL=postgres://supabase_admin@restore-pg:5432/postgres",
+    "-e", "PGRST_JWT_SECRET", "--entrypoint", "node", storageImage,
+    "dist/scripts/migrate-call.js"], undefined, 120_000,
+  { PGRST_JWT_SECRET: randomBytes(32).toString("hex") });
+  sql(authHelpers, restoredContainer);
+  sql(schema, restoredContainer);
+  sql(recoveryData, restoredContainer);
+  const restoredFingerprint = schemaFingerprint(restoredContainer);
+  const recoveredRows = sql(`select cp.receive_email,pcp.enabled,
+      (select count(*) from auth.users where id='${recoveryId}'),
+      (select count(*) from public.profiles where id='${recoveryId}')
+    from public.communication_preferences cp join public.push_category_preferences pcp
+      on pcp.profile_id=cp.profile_id and pcp.category='message'
+    where cp.profile_id='${recoveryId}';`, restoredContainer);
+  const restoredRpcAbsent = sql("select to_regprocedure('public.save_communication_preferences_atomic(jsonb,jsonb)') is null;", restoredContainer);
+  if (restoredFingerprint !== beforeFingerprint || recoveredRows !== recoveryRowsBefore ||
+      restoredRpcAbsent !== "t") throw new Error("RECOVERY_REHEARSAL_MISMATCH");
+  console.log(`PASS: source 227+47=274; disposable 274→275; public schema fingerprints ${beforeFingerprint} → ${afterFingerprint}; invoker ACL/RLS, rollback, idempotency, isolation, concurrent writers (${final}); local PostgREST authenticated 200/anon ${anon.status}/forged-id ${forged.status}/failed second write ${failedApi.status}; in-memory synthetic-only snapshot SHA256 ${recoveryDataDigest} restored into second no-host-ports container with exact 274 fingerprint, four fixture rows and RPC absent; source untouched. LIMITATION: synthetic rows only, not real-row/full-provider restore or arbitrary crash durability.`);
 } catch (error) {
   const diagnostic = String(error?.stderr ?? "").split("\n")
     .find((line) => /(?:ERROR|FATAL):/.test(line))?.slice(0, 240);
   console.error(`BLOCKED: schema-only upgrade at ${stage}${diagnostic ? ` (${diagnostic})` : ""}`);
   process.exitCode = 1;
 } finally {
+  if (restoreAttempted) docker(["rm", "-f", restoredContainer]);
   if (restAttempted) docker(["rm", "-f", restContainer]);
   if (containerAttempted) {
     try { docker(["rm", "-f", container]); }
