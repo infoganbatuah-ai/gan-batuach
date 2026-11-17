@@ -4,7 +4,7 @@ import "server-only";
 import crypto from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
-import { evaluatePrivacyGate, type PrivacyContext, type SensitiveCapability } from "./privacy-compliance";
+import { evaluatePrivacyGate, legalApprovalMatchesPolicy, privacyPolicyMatchesTrustedTenant, type PrivacyContext, type SensitiveCapability } from "./privacy-compliance";
 
 type DbClient = SupabaseClient<Database>;
 
@@ -154,11 +154,11 @@ export async function evaluateStoredPrivacyApproval(db: DbClient, input: {
 }) {
   const client = db as any;
   const { data: profile, error: profileError } = await client.from("digital_observer_privacy_policy_profiles")
-    .select("id,active,legal_decision_state,stated_purpose").eq("observer_site_id", input.siteId)
+    .select("id,active,legal_decision_state,stated_purpose,jurisdiction,organization_id").eq("observer_site_id", input.siteId)
     .eq("product_context", input.context).eq("stated_purpose", input.purpose).order("policy_version", { ascending: false }).limit(1).maybeSingle();
   if (profileError) fail(profileError, "PRIVACY_PROFILE_LOOKUP_FAILED");
   const { data: approval, error: approvalError } = profile ? await client.from("digital_observer_legal_approvals")
-    .select("approval_status,stated_purpose,effective_at,expires_at,revoked_at").eq("privacy_policy_profile_id", profile.id)
+    .select("approval_status,stated_purpose,jurisdiction,effective_at,expires_at,revoked_at").eq("privacy_policy_profile_id", profile.id)
     .eq("sensitive_capability", input.capability).eq("stated_purpose", input.purpose).limit(1).maybeSingle() : { data: null, error: null };
   if (approvalError) fail(approvalError, "LEGAL_APPROVAL_LOOKUP_FAILED");
   return evaluatePrivacyGate({
@@ -169,7 +169,17 @@ export async function evaluateStoredPrivacyApproval(db: DbClient, input: {
     siteId: input.siteId,
     policyActive: profile?.active === true,
     decisionState: profile?.legal_decision_state ?? null,
-    approvalScopeMatches: approval?.approval_status === "approved" && approval?.revoked_at == null && approval?.stated_purpose === input.purpose,
+    approvalScopeMatches: legalApprovalMatchesPolicy({
+      approvalStatus: approval?.approval_status ?? null,
+      revokedAt: approval?.revoked_at ?? null,
+      approvalPurpose: approval?.stated_purpose ?? null,
+      requestedPurpose: input.purpose,
+      approvalJurisdiction: approval?.jurisdiction ?? null,
+      policyJurisdiction: profile?.jurisdiction ?? null
+    }) && privacyPolicyMatchesTrustedTenant({
+      policyOrganizationId: profile?.organization_id ?? null,
+      trustedTenantId: input.tenantId
+    }),
     approvalEffectiveAt: approval?.effective_at ?? null,
     approvalExpiresAt: approval?.expires_at ?? null,
     humanReviewRequired: true,

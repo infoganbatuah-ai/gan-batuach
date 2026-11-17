@@ -87,6 +87,27 @@ export type PrivacyGateDecision = {
   consentAloneIsSufficient: false;
 };
 
+export function legalApprovalMatchesPolicy(input: {
+  approvalStatus: string | null;
+  revokedAt: string | null;
+  approvalPurpose: string | null;
+  requestedPurpose: string;
+  approvalJurisdiction: string | null;
+  policyJurisdiction: string | null;
+}): boolean {
+  return input.approvalStatus === "approved" && input.revokedAt === null &&
+    input.approvalPurpose === input.requestedPurpose &&
+    !!input.policyJurisdiction && input.approvalJurisdiction === input.policyJurisdiction;
+}
+
+export function privacyPolicyMatchesTrustedTenant(input: {
+  policyOrganizationId: string | null;
+  trustedTenantId: string;
+}): boolean {
+  return !!input.trustedTenantId &&
+    (input.policyOrganizationId === null || input.policyOrganizationId === input.trustedTenantId);
+}
+
 const childRestricted = new Set<SensitiveCapability>([
   "FACE_RECOGNITION",
   "PERSON_REIDENTIFICATION",
