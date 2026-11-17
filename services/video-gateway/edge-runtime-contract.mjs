@@ -12,6 +12,15 @@ export const DEFAULT_RESOURCE_LIMITS = Object.freeze({
   recommended_memory_mb: 1024,
   recommended_cpu_cores: 2
 });
+export const PHYSICAL_GATEWAY_RESOURCE_LIMITS = Object.freeze({
+  ...DEFAULT_RESOURCE_LIMITS,
+  // The Home DVR contract has sixteen physical slots. Four bounded warm
+  // replacements may overlap the sixteen authoritative relays during finite
+  // recorder-response handoff, so the advertised runtime limit must describe
+  // the Gateway rather than inherit the smaller Software Connector default.
+  max_cameras: 16,
+  max_parallel_relays: 20
+});
 
 const IDENTIFIER = /^[A-Za-z0-9._:-]{8,160}$/;
 const SECRET_KEY = /^[a-z0-9_]{2,80}$/;
@@ -105,6 +114,8 @@ export function connectorRuntimeIdentity(environment = process.env) {
     known_good_version: String(environment.OBSERVER_EDGE_KNOWN_GOOD_VERSION || environment.OBSERVER_EDGE_VERSION || "development").slice(0, 80),
     outbound_only: true,
     arbitrary_shell_commands: false,
-    resource_limits: DEFAULT_RESOURCE_LIMITS
+    resource_limits: deviceType === "PHYSICAL_GATEWAY"
+      ? PHYSICAL_GATEWAY_RESOURCE_LIMITS
+      : DEFAULT_RESOURCE_LIMITS
   });
 }

@@ -62,7 +62,7 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
   const managerDisplayName = cleanSyntheticLabel(profile.full_name, "מנהלת הגן");
   const query = await searchParams;
   const sessionClient = await createClient();
-  const targetGardenId = query.gardenId ?? (query.new === "1" ? null : profile.garden_id);
+  const targetGardenId = query.gardenId ?? null;
   const supabase = isAdminClientConfigured() ? createAdminClient() : sessionClient;
   if (!targetGardenId && query.new !== "1" && isAdminClientConfigured()) {
     const draft = await supabase.from("kindergarten_onboarding_records" as never)
@@ -81,7 +81,8 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
       }
     }
   }
-  if (!targetGardenId) {
+  const selectedGardenId = targetGardenId ?? (query.new === "1" ? null : profile.garden_id);
+  if (!selectedGardenId) {
     return (
       <KindergartenOnboardingShell
         title="רישום גן ילדים"
@@ -95,18 +96,18 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
       </KindergartenOnboardingShell>
     );
   }
-  const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: targetGardenId } as never);
+  const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: selectedGardenId } as never);
   if (authority.error || authority.data !== true) redirect("/dashboard/garden");
   const [{ data: garden }, onboardingRes] = await Promise.all([
     supabase
       .from("gardens" as any)
       .select("id, name, logo_url, image_url, address, phone, email, owner_name, public_description, approval_flow_status, admin_correction_note")
-      .eq("id", targetGardenId)
+      .eq("id", selectedGardenId)
       .maybeSingle(),
     supabase
       .from("kindergarten_onboarding_records" as any)
       .select("*")
-      .eq("garden_id", targetGardenId)
+      .eq("garden_id", selectedGardenId)
       .maybeSingle()
   ]);
   const onboarding = (onboardingRes.data ?? {

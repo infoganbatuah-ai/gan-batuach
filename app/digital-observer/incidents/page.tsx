@@ -3,7 +3,7 @@ import { CheckCircle2, Clock3, ListTree, Radar, Scale, ShieldAlert } from "lucid
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { IncidentFeedbackPanel } from "@/components/digital-observer/incident-feedback-panel";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
-import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { formatObserverDate, loadObserverRuntime, observerModeForSite, selectObserverSite, type ObserverRow } from "@/lib/domain/digital-observer/runtime";
 import { createClient } from "@/lib/supabase/server";
 
@@ -104,7 +104,7 @@ export default async function DigitalObserverIncidentsPage({ searchParams }: Pag
   const params = await searchParams;
   const { profile, user } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/incidents");
   const runtime = await loadObserverRuntime(profile.id);
-  const observerAdmin = profile.role === "admin" || hasObserverAdminClaim(user.app_metadata);
+  const observerAdmin = await hasCurrentObserverAdmin(user.id);
   const sessionSupabase = await createClient();
   const supabase = observerAdmin ? createDigitalObserverAdminDataClient() : sessionSupabase;
   let site: ObserverRow | null = selectObserverSite(runtime.sites, runtime.cameras, params?.site);

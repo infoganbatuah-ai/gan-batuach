@@ -57,11 +57,12 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const selectedDate = dateKey(params.date, today);
   const [childrenRes, attendanceRes, classroomsRes] = await Promise.all([
-    supabase.from("children" as never).select("id,full_name,photo_url,status,child_classroom_assignments(classroom_id,is_current,classrooms(id,name))" as never).eq("garden_id", gardenId).order("full_name").limit(500),
-    supabase.from("attendance" as never).select("id,child_id,status,check_in_at,check_out_at,pickup_name,arrival_recorded_by,departure_recorded_by" as never).eq("garden_id", gardenId).eq("attendance_date", selectedDate).limit(500),
-    supabase.from("classrooms" as never).select("id,name,status" as never).eq("garden_id", gardenId).eq("status", "active").order("sort_order").order("name")
+    supabase.from("children" as never).select("id,full_name,photo_url,status,child_classroom_assignments(classroom_id,is_current,classrooms(id,name))" as never).eq("garden_id", gardenId).order("full_name").limit(501),
+    supabase.from("attendance" as never).select("id,child_id,status,check_in_at,check_out_at,pickup_name,arrival_recorded_by,departure_recorded_by" as never).eq("garden_id", gardenId).eq("attendance_date", selectedDate).limit(501),
+    supabase.from("classrooms" as never).select("id,name,status" as never).eq("garden_id", gardenId).eq("status", "active").order("sort_order").order("name").limit(101)
   ]);
-  const sourceErrors = [childrenRes.error, attendanceRes.error, classroomsRes.error, gardenRes.error].filter(Boolean);
+  const sourceUnavailable = Boolean(childrenRes.error || attendanceRes.error || classroomsRes.error || gardenRes.error || !gardenRes.data
+    || (childrenRes.data?.length ?? 0) > 500 || (attendanceRes.data?.length ?? 0) > 500 || (classroomsRes.data?.length ?? 0) > 100);
   const attendanceByChild = new Map(((attendanceRes.data ?? []) as unknown as Array<Record<string, unknown>>).map((item) => [String(item.child_id), item]));
   const rows: Row[] = ((childrenRes.data ?? []) as unknown as Array<Record<string, unknown>>).map((child) => {
     const assignments = (child.child_classroom_assignments ?? []) as Array<Record<string, unknown>>;
@@ -97,6 +98,17 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
   const profile = access.session.profile;
   const gardenName = cleanSyntheticLabel(String((gardenRes.data as Record<string, unknown> | null)?.name ?? ""), "הגן הפעיל");
 
+  if (sourceUnavailable) return (
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות" appHome>
+      <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות" subtitle={gardenName} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="children">
+        <div className="ux06-operations">
+          <header className="ux06-page-header"><div><span><ShieldCheck size={18} /> תפעול יומי מאובטח</span><h2>נוכחות</h2></div></header>
+          <div className="ux06-local-error" role="alert"><b>נתוני הנוכחות אינם זמינים במלואם כרגע.</b><span>הגעה, היעדרות וערכי סיכום לא יוצגו כאילו אומתו. נסו לרענן מאוחר יותר.</span></div>
+        </div>
+      </TeacherAppFrame>
+    </DashboardShell>
+  );
+
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות" appHome>
       <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות" subtitle={gardenName} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="children">
@@ -105,8 +117,6 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
             <div><span><ShieldCheck size={18} /> תפעול יומי מאובטח</span><h2>נוכחות</h2><p>{new Date(`${selectedDate}T12:00:00`).toLocaleDateString("he-IL", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</p></div>
             <nav aria-label="פעולות נוכחות ואיסוף"><Link className="button secondary" href="/dashboard/garden/pickup">איסוף ושחרור</Link><Link className="button primary" href="/dashboard/garden/reports?section=attendance">דוח נוכחות</Link></nav>
           </header>
-
-          {sourceErrors.length ? <div className="ux06-local-error"><b>חלק מנתוני הנוכחות אינם זמינים כרגע.</b><span>לא מוצגים ערכי אפס במקום מידע שנכשל.</span></div> : null}
 
           <section className="ux06-metrics" aria-label="סיכום נוכחות">
             {metrics.map(({ state, label, value, icon: Icon }) => <Link className={params.status === state || (!params.status && state === "all") ? `active ${state}` : state} href={state === "all" ? `?date=${selectedDate}` : `?date=${selectedDate}&status=${state}`} key={state}><Icon size={22} /><b>{value}</b><span>{label}</span></Link>)}

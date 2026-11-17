@@ -1,0 +1,66 @@
+{
+  "status": "REFERENCE_ONLY_PENDING_FRESH_ACTUAL_CAPTURE",
+  "sourceDevelopmentSha": "0f923277fe1391323f3bacb469ef6b8aa6965600",
+  "units": "pixels in the extracted source-reference crop; approximate visual bounds",
+  "warning": "Reference collage panels have different aspect ratios from the required 1440x1024 actual viewport. Compare normalized major-region geometry and structural relationships; do not treat a raw pixel delta as proof of pass or failure.",
+  "screens": {
+    "owner-dashboard": {
+      "reference": "GB_UX_REF_OWNER_CORE.png",
+      "sourceCrop": [10, 0, 1220, 672],
+      "sidebar": [0, 0, 146, 672],
+      "header": [146, 0, 1074, 56],
+      "hero": [146, 56, 1074, 149],
+      "kpi": [150, 205, 1060, 96],
+      "primaryContent": [150, 302, 1060, 274],
+      "quickActions": [150, 582, 1060, 84],
+      "actualDesktop": null,
+      "actualMobile": null
+    },
+    "parent-assigned": {
+      "reference": "GB_UX_REF_PARENT_FULL_PLATFORM.png",
+      "sourceCrop": [12, 402, 565, 345],
+      "sidebar": [0, 23, 97, 315],
+      "header": [98, 23, 467, 43],
+      "childSelector": [105, 67, 225, 43],
+      "primaryContent": [105, 113, 452, 127],
+      "quickActions": [105, 249, 452, 80],
+      "actualDesktop": null,
+      "actualMobile": null
+    },
+    "parent-multi-child": {
+      "reference": "GB_UX_REF_PARENT_FULL_PLATFORM.png",
+      "sourceCrop": [12, 402, 565, 345],
+      "referencePanelLimitation": "The approved collage shows two child cards within the Parent desktop dashboard but does not label a separate multi-child primary screen.",
+      "sidebar": [0, 23, 97, 315],
+      "childSelector": [105, 67, 225, 43],
+      "primaryContent": [105, 113, 452, 127],
+      "quickActions": [105, 249, 452, 80],
+      "actualDesktop": null,
+      "actualMobile": null
+    },
+    "platform-admin": {
+      "reference": "GB_UX_REF_PLATFORM_ADMIN_FULL_PLATFORM.png",
+      "sourceCrop": [8, 72, 1520, 528],
+      "sidebar": [0, 0, 145, 521],
+      "mainHeader": [154, 8, 1042, 48],
+      "kpi": [163, 59, 1027, 84],
+      "upperChartsAndHealth": [163, 148, 1027, 219],
+      "recentActivityRail": [1200, 8, 318, 374],
+      "lowerTables": [163, 382, 1355, 140],
+      "actualDesktop": null,
+      "actualMobile": null
+    },
+    "settings-account-permissions": {
+      "reference": "GB_UX_REF_SETTINGS_ACCOUNT_PERMISSIONS_FULL_PLATFORM.png",
+      "sourceCrop": [10, 74, 1515, 548],
+      "sidebar": [0, 0, 145, 548],
+      "utilityHeader": [145, 0, 1370, 53],
+      "settingsNavigation": [151, 60, 244, 488],
+      "profileAccount": [403, 60, 369, 488],
+      "securityPreferences": [780, 60, 347, 488],
+      "gardenSubscription": [1135, 60, 375, 488],
+      "actualDesktop": null,
+      "actualMobile": null
+    }
+  }
+}

@@ -1,0 +1,341 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "productionAccess": false,
+  "sourceSha": "e85eda2a62c5d988ac5790d843a14fce9bcb766b",
+  "capturedAt": "2026-10-25T21:29:26.364Z",
+  "viewports": [
+    {
+      "label": "desktop",
+      "width": 1440,
+      "height": 1024
+    },
+    {
+      "label": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "captures": [
+    {
+      "id": "auth-registration",
+      "route": "/app/login",
+      "role": "Public / invited user",
+      "reference": "GB_UX_REF_AUTH_MASTER.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/auth-registration-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "7e261f41c0f04dc9b07d1d8e31a1ac62312549402af9f34e6a7f6e777ad1a459"
+    },
+    {
+      "id": "auth-registration",
+      "route": "/app/login",
+      "role": "Public / invited user",
+      "reference": "GB_UX_REF_AUTH_MASTER.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/auth-registration-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "1606e290d16bea5232e7d854b3a350bc0359455a156254557870bdff86edcc46"
+    },
+    {
+      "id": "owner-onboarding",
+      "route": "/onboarding/kindergarten?new=1",
+      "role": "Owner / Manager",
+      "reference": "GB_UX_REF_OWNER_ONBOARDING.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/owner-onboarding-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "5d4b6361881a1320e671c8bfadbb6f8432538bf3f7ab510852d973e5de28aafc"
+    },
+    {
+      "id": "owner-onboarding",
+      "route": "/onboarding/kindergarten?new=1",
+      "role": "Owner / Manager",
+      "reference": "GB_UX_REF_OWNER_ONBOARDING.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/owner-onboarding-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "ef503ebe27aeb51429fc8836a00949fbf6f866fa1d50147ea63b6131b84cdc73"
+    },
+    {
+      "id": "children-classrooms",
+      "route": "/dashboard/garden/children",
+      "role": "Owner / Manager",
+      "reference": "GB_UX_REF_CHILDREN_CLASSROOMS_PROFILE_ENROLLMENT.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/children-classrooms-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "9246138f1016c5240e11e8a2dcc7896427fdea951f42aa51174c1a0ce7164748"
+    },
+    {
+      "id": "children-classrooms",
+      "route": "/dashboard/garden/children",
+      "role": "Owner / Manager",
+      "reference": "GB_UX_REF_CHILDREN_CLASSROOMS_PROFILE_ENROLLMENT.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/children-classrooms-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "f671d29253286e2d00c9ac38c9c4582fda7e4db56329a3d5ba372b6123ee66b7"
+    },
+    {
+      "id": "parent-unassigned",
+      "route": "/dashboard/parent",
+      "role": "Unassigned Parent",
+      "reference": "GB_UX_REF_PARENT_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/parent-unassigned-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "056201244145583e6ecd77bd394248a69861fe096bf54311ca56ee06d5aed4b3"
+    },
+    {
+      "id": "parent-unassigned",
+      "route": "/dashboard/parent",
+      "role": "Unassigned Parent",
+      "reference": "GB_UX_REF_PARENT_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/parent-unassigned-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "1e4645f8c13dbf83905299a1b6d1c0c26dcaedfdf67d1d72df05203138d6fe27"
+    },
+    {
+      "id": "attendance-pickup",
+      "route": "/dashboard/garden/attendance",
+      "role": "Owner / Staff / Parent",
+      "reference": "GB_UX_REF_ATTENDANCE_PICKUP_OPERATIONS.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/attendance-pickup-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "5c79ad10db7ea1ab1c3815c1d77a864a0bb1172f9681c422cd290e42134b5c2f"
+    },
+    {
+      "id": "attendance-pickup",
+      "route": "/dashboard/garden/attendance",
+      "role": "Owner / Staff / Parent",
+      "reference": "GB_UX_REF_ATTENDANCE_PICKUP_OPERATIONS.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/attendance-pickup-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "7d6d75111b87c6c765c49c7995b8eae3202510c02bcfb0e60eab5d0c54cf4816"
+    },
+    {
+      "id": "staff-full-platform",
+      "route": "/dashboard/staff",
+      "role": "Staff / Owner",
+      "reference": "GB_UX_REF_STAFF_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/staff-full-platform-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "a15272bacbf1acca805113ef10ab6a365a5463788f8ddda02a3b7005a88c0b53"
+    },
+    {
+      "id": "staff-full-platform",
+      "route": "/dashboard/staff",
+      "role": "Staff / Owner",
+      "reference": "GB_UX_REF_STAFF_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/staff-full-platform-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "0eea5d688ea5ac9b9082bd39ad85e3de868425534d7a732e120618f12b4f947c"
+    },
+    {
+      "id": "candidate-recruitment",
+      "route": "/dashboard/staff/job-market",
+      "role": "Candidate / Owner",
+      "reference": "GB_UX_REF_STAFF_CANDIDATE_RECRUITMENT.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/candidate-recruitment-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "c1076f6b1b21b2f8b05ffc022d4ab65f186b70ed2e6fab7c4828a1e5ae87ed12"
+    },
+    {
+      "id": "candidate-recruitment",
+      "route": "/dashboard/staff/job-market",
+      "role": "Candidate / Owner",
+      "reference": "GB_UX_REF_STAFF_CANDIDATE_RECRUITMENT.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/candidate-recruitment-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "996f668ebf7dacbad14361d28bdcf259eeddf5467eeaa9d36ef389530cdfaedd"
+    },
+    {
+      "id": "inspector",
+      "route": "/dashboard/inspector",
+      "role": "Inspector / Owner",
+      "reference": "GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/inspector-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "a2ce7da9b200bec491890a6650b45b1ec8d1a4f201ea4016e9ae644af8a1c3ba"
+    },
+    {
+      "id": "inspector",
+      "route": "/dashboard/inspector",
+      "role": "Inspector / Owner",
+      "reference": "GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/inspector-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "87d85cec6ff368212029b3698edb3e8c658d3563be1ab8fb15a38db241219b78"
+    },
+    {
+      "id": "finance",
+      "route": "/dashboard/garden/finance",
+      "role": "Owner / Parent / Admin",
+      "reference": "GB_UX_REF_FINANCE_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/finance-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "730b20a3b67736cdc49a239657141291791c24f1c3bb835862649910bb01b5b5"
+    },
+    {
+      "id": "finance",
+      "route": "/dashboard/garden/finance",
+      "role": "Owner / Parent / Admin",
+      "reference": "GB_UX_REF_FINANCE_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/finance-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "72b6ed01ebf0a8cb0be5b9f5dd0befa58b662c1f41e580bfc86f9308da04ba1c"
+    },
+    {
+      "id": "messaging-notifications",
+      "route": "/dashboard/garden/messages",
+      "role": "Owner / Parent / Staff / Inspector",
+      "reference": "GB_UX_REF_FULL_PRODUCT_VISUAL_REGRESSION.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/messaging-notifications-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "a9ef94eba16f75946dfb18344eb17e25f38ffb2f2387738a42fc4ac99acef25e"
+    },
+    {
+      "id": "messaging-notifications",
+      "route": "/dashboard/garden/messages",
+      "role": "Owner / Parent / Staff / Inspector",
+      "reference": "GB_UX_REF_FULL_PRODUCT_VISUAL_REGRESSION.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/messaging-notifications-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "859e35c1ffc592c108cf01dc054c131960c592ed0a253954c0c505a245f841c9"
+    },
+    {
+      "id": "documents",
+      "route": "/dashboard/garden/documents",
+      "role": "Owner / Parent / Staff / Inspector / Admin",
+      "reference": "GB_UX_REF_DOCUMENTS_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/documents-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "59c1763518e9c7c74f3cfc1afce417148b668235de104fb7e3111244af0773d1"
+    },
+    {
+      "id": "documents",
+      "route": "/dashboard/garden/documents",
+      "role": "Owner / Parent / Staff / Inspector / Admin",
+      "reference": "GB_UX_REF_DOCUMENTS_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/documents-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "eedd43a9bcf82088adff17d15317df285d85117a062d68e24bd3ec6903e5454d"
+    },
+    {
+      "id": "tasks-complaints-corrective-actions",
+      "route": "/dashboard/garden/tasks",
+      "role": "Owner / Staff / Parent / Inspector / Admin",
+      "reference": "GB_UX_REF_TASKS_COMPLAINTS_CORRECTIVE_ACTIONS.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/tasks-complaints-corrective-actions-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "02c0eb78cef063299ee34da119b8c741c1b150dda9896f720d98424e4ef6ab92"
+    },
+    {
+      "id": "tasks-complaints-corrective-actions",
+      "route": "/dashboard/garden/tasks",
+      "role": "Owner / Staff / Parent / Inspector / Admin",
+      "reference": "GB_UX_REF_TASKS_COMPLAINTS_CORRECTIVE_ACTIONS.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/tasks-complaints-corrective-actions-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "bcddc469c9861bdb7de414197a68b9c7609cc1e600fa43768a06b8092adb2cf1"
+    },
+    {
+      "id": "inspections",
+      "route": "/dashboard/inspector",
+      "role": "Inspector / Owner",
+      "reference": "GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/inspections-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "d5c7750da529b5ca6cd139b36ab4d911b6321c0c4803ea7ae4235779c2095dbb"
+    },
+    {
+      "id": "inspections",
+      "route": "/dashboard/inspector",
+      "role": "Inspector / Owner",
+      "reference": "GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/inspections-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "87d85cec6ff368212029b3698edb3e8c658d3563be1ab8fb15a38db241219b78"
+    },
+    {
+      "id": "reports-analytics",
+      "route": "/dashboard/garden/reports",
+      "role": "Owner / Staff / Inspector / Admin",
+      "reference": "GB_UX_REF_REPORTS_ANALYTICS_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/reports-analytics-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "99ea5b27b874289eeb9e47650282079056ba1552dba5547c1e93abb09f618c47"
+    },
+    {
+      "id": "reports-analytics",
+      "route": "/dashboard/garden/reports",
+      "role": "Owner / Staff / Inspector / Admin",
+      "reference": "GB_UX_REF_REPORTS_ANALYTICS_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/reports-analytics-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "ace48ec2f0d7c42cb582e801a2e52e34742ec38d603a7f5afd636634105f640d"
+    },
+    {
+      "id": "safety-cameras",
+      "route": "/dashboard/garden/cameras",
+      "role": "Owner / Parent / Staff / Inspector",
+      "reference": "GB_UX_REF_SAFETY_CAMERAS_FULL_PLATFORM.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/safety-cameras-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "31298e9e86f50761af5868a64dd194d8c6ca1d43ab941e98d3a73f0832e5bd7e"
+    },
+    {
+      "id": "safety-cameras",
+      "route": "/dashboard/garden/cameras",
+      "role": "Owner / Parent / Staff / Inspector",
+      "reference": "GB_UX_REF_SAFETY_CAMERAS_FULL_PLATFORM.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/safety-cameras-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "52acd79786b82dfbec88f5cddc1560e6992bd75624661c823b44c96fb1158a61"
+    },
+    {
+      "id": "global-states-rtl-accessibility",
+      "route": "/ux19-system-states?view=loading",
+      "role": "All roles",
+      "reference": "GB_UX_REF_GLOBAL_STATES_RTL_ACCESSIBILITY_RESPONSIVE.png",
+      "viewport": "1440x1024",
+      "file": "qa-evidence/v5-domain-regression/screenshots/global-states-rtl-accessibility-desktop.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "9d4d8ea9e319f11076c80cc8200163b2b7f989088a177fde46167b0d9cf2ca07"
+    },
+    {
+      "id": "global-states-rtl-accessibility",
+      "route": "/ux19-system-states?view=loading",
+      "role": "All roles",
+      "reference": "GB_UX_REF_GLOBAL_STATES_RTL_ACCESSIBILITY_RESPONSIVE.png",
+      "viewport": "390x844",
+      "file": "qa-evidence/v5-domain-regression/screenshots/global-states-rtl-accessibility-mobile.webp",
+      "status": "REFERENCE_MATCH_CANDIDATE",
+      "sha256": "5fbbf7c8356b7bb9ce2f6b2268336852286509583c72a8a238452cb534ce4982"
+    }
+  ],
+  "status": "PASS"
+}

@@ -16,10 +16,15 @@ async function uploadAllowed(db: Awaited<ReturnType<typeof createClient>>, profi
   if (ownerType === "garden") return manage.data === true;
   if (!ownerId || !uuid.test(ownerId)) return false;
   if (ownerType === "child") {
-    const { data: child } = await db.from("children").select("id,garden_id").eq("id", ownerId).maybeSingle();
+    const { data: child } = await db.from("children").select("id,garden_id,permanent_child_file_id").eq("id", ownerId).maybeSingle();
     if (!child || child.garden_id !== gardenId) return false;
     const parent = await db.rpc("can_parent_access_child", { target_child_id: ownerId });
-    return manage.data === true || (!parent.error && parent.data === true);
+    if (manage.data === true || (!parent.error && parent.data === true)) return true;
+    if (!child.permanent_child_file_id) return false;
+    const guardian = await db.rpc("can_guardian_access_child" as never, {
+      target_child_file_id: child.permanent_child_file_id, required_scope: "profile"
+    } as never);
+    return !guardian.error && guardian.data === true;
   }
   if (ownerType === "staff") {
     const { data: staff } = await db.from("staff").select("id,garden_id,profile_id").eq("id", ownerId).maybeSingle();

@@ -93,16 +93,16 @@ export default async function DigitalObserverRulesPage() {
   const targetDays = Number(site?.learning_target_days || 30);
   const progress = learningProgress(site?.learning_started_at, targetDays);
   const readiness = getDigitalObserverServiceReadiness();
-  const sourceReady = cameras.some((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
+  const sourceReady = cameras.some((camera) => camera.source_mode !== "demo" && ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
-  const localGatewayActive = sourceReady && (localLearningActive || cameras.some(cameraReportsLocalEventInsights));
+  const localGatewayActive = sourceReady && (localLearningActive || cameras.some((camera) => camera.source_mode !== "demo" && cameraReportsLocalEventInsights(camera)));
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todaySignals = signals.filter((signal) => new Date(signal.created_at).getTime() >= todayStart.getTime());
   const dailySummary = todaySignals.length
     ? `היום נקלטו ${todaySignals.length} עדכונים מ-${new Set(todaySignals.map((signal) => signal.camera_id ?? signal.metadata?.camera_source_id).filter(Boolean)).size || 1} מצלמות. ${todaySignals.filter((signal) => ["medium", "high", "urgent", "critical"].includes(String(signal.severity))).length ? "יש אירועים שמומלץ לבדוק במרכז ההתראות." : "לא נקלט אירוע ברמת דחיפות גבוהה."}`
-    : "לא נקלט היום אירוע עם ראיה תקינה. התצפיתן ממשיך ללמוד מדדי פעילות מהמצלמות המחוברות.";
+    : sourceReady ? "לא נקלט היום אירוע עם ראיה תקינה. התצפיתן ממשיך ללמוד מדדי פעילות מהמצלמות המחוברות." : "לא נקלט היום אירוע עם ראיה תקינה. אין מקור מצלמה אמיתי מחובר שממנו נאספים מדדי פעילות.";
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
     : localGatewayActive
@@ -110,7 +110,7 @@ export default async function DigitalObserverRulesPage() {
       : sourceReady && readiness.ai.configured
       ? "מוכן ללמידת Shadow מבוקרת"
       : demoOnly
-        ? "לומד מתרחישי הדמיה בלבד"
+        ? "תרחישי הדמיה בלבד"
         : "ממתין ל-Gateway ולספק AI";
 
   return (
@@ -175,12 +175,13 @@ export default async function DigitalObserverRulesPage() {
           </details>
 
           <section className="do-observer-camera-insights">
-            <div className="do-section-head"><div><h2>מה התצפיתן רואה בכל מצלמה</h2><p>סיכום טקסטואלי לפי מקור, אירועים ומדדי למידה שנקלטו בפועל.</p></div><span className={localLearningActive ? "do-badge good" : "do-badge warn"}>{localLearningActive ? "למידה פעילה" : "אוסף נתונים"}</span></div>
+            <div className="do-section-head"><div><h2>מה התצפיתן רואה בכל מצלמה</h2><p>סיכום טקסטואלי לפי מקור, אירועים ומדדי למידה שנקלטו בפועל.</p></div><span className={localLearningActive ? "do-badge good" : "do-badge warn"}>{localLearningActive ? "למידה פעילה" : sourceReady ? "אוסף נתונים" : "ממתין לנתונים"}</span></div>
             <div className="do-observer-camera-insight-grid">{cameras.map((camera) => {
               const cameraSignals = signals.filter((signal) => observerSignalMatchesCamera(signal, camera.id));
               const latest = cameraSignals[0];
-              const connected = ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status));
-              return <article key={camera.id}><Camera /><span><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || "החלל עדיין לא קיבל שם"}</small><p>{latest ? `העדכון האחרון: ${observerEventLabel(latest.metadata?.event_type ?? latest.signal_type)} (${formatObserverDate(latest.created_at)}).` : connected ? "המקור מחובר ונאספים ממנו מדדי פעילות; עדיין אין אירוע עם ראיה להצגה." : "המקור אינו פעיל כרגע, ולכן לא נאספות ממנו תובנות."}</p></span><b className={connected ? "do-badge good" : "do-badge warn"}>{connected ? "פעילה" : "לא זמינה"}</b></article>;
+              const demo = camera.source_mode === "demo";
+              const connected = !demo && ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status));
+              return <article key={camera.id}><Camera /><span><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || "החלל עדיין לא קיבל שם"}</small><p>{latest ? `העדכון האחרון: ${observerEventLabel(latest.metadata?.event_type ?? latest.signal_type)} (${formatObserverDate(latest.created_at)}).` : demo ? "מקור הדמיה בלבד; לא נאספים ממנו מדדי פעילות ממצלמה אמיתית." : connected ? "המקור מחובר ונאספים ממנו מדדי פעילות; עדיין אין אירוע עם ראיה להצגה." : "המקור אינו פעיל כרגע, ולכן לא נאספות ממנו תובנות."}</p></span><b className={connected ? "do-badge good" : "do-badge warn"}>{demo ? "הדמיה" : connected ? "פעילה" : "לא זמינה"}</b></article>;
             })}</div>
           </section>
 

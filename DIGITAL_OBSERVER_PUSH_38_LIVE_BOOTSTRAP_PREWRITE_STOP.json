@@ -1,0 +1,74 @@
+{
+  "task": "PUSH_38_LIVE_BOOTSTRAP_PREWRITE_GATE",
+  "observed_at_utc": "2026-09-20T00:22:12Z",
+  "branch": "codex/push-38t-qualification",
+  "starting_commit": "e05a772c4f261a95261a3a0e1b404e1e1fac96bb",
+  "decision": "STOP_BEFORE_FIRST_LIVE_RUNTIME_WRITE",
+  "baseline_dry_run": {
+    "method": "check-push38l-live-dry-run.mjs",
+    "live_runtime_writes": 0,
+    "connector_legacy_artifact_sha256": "ee82c20a77acb7fd8caf692682569ad53581e9c057b11724845c6d947c5a982a",
+    "connector_exact_match": true,
+    "gateway_legacy_artifact_sha256": "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
+    "gateway_exact_match": true,
+    "connector_transition_release": "qa-connector-legacy-transition-v2-6e7988808b05",
+    "connector_transition_artifact_sha256": "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
+    "connector_transition_strict_macos_signature": true,
+    "service_layout_compatible": true,
+    "managed_layout_conflicts": 0
+  },
+  "current_home_read_only": {
+    "gateway_health_response": "healthy",
+    "dvr_stream_count": 10,
+    "dvr_progressing_relays": 10,
+    "dvr_stalled_relays": 0,
+    "connector_health_response": "healthy",
+    "tapo_stream_count": 1,
+    "tapo_progressing_relays": 0,
+    "tapo_stalled_relays": 1,
+    "connector_first_probe": "HTTP_TIMEOUT_5_SECONDS",
+    "connector_second_probe": "HTTP_200_WITH_STALLED_RELAY"
+  },
+  "trust_precheck": {
+    "protected_root_pin_present": false,
+    "protected_release_registry_present": false,
+    "installed_ota_agent_present": false,
+    "root_authorized_live_trust": "NOT_AVAILABLE",
+    "aws_signed_exact_device_manifests": "NOT_ISSUED",
+    "release_signer_of_existing_transition": "qa-p38f-ed25519-20260913",
+    "release_signer_of_existing_baselines": "qa-p38f-ed25519-20260913",
+    "finding": "Live OTA installer requires protected root-pinned trust registry before installation; old QA-signed artifacts alone cannot satisfy that prerequisite."
+  },
+  "control_plane": {
+    "home_qa_exact_device_delivery": "NOT_PROVEN_LIVE",
+    "previous_live_authorization_result": "404",
+    "dedicated_qa_database": "NETWORK_ISOLATED_OFFLINE",
+    "safe_to_publish_or_activate_runtime": false
+  },
+  "media_gate": {
+    "cloudflare_public_tunnel_video_allowed_without_eligible_service": false,
+    "provider_policy": "https://developers.cloudflare.com/fundamentals/reference/policies-compliances/delivering-videos-with-cloudflare/",
+    "approved_bounded_remote_hls_data_plane": "NOT_ESTABLISHED",
+    "new_paid_video_service_activated": false
+  },
+  "live_changes": {
+    "connector_transition": false,
+    "gateway_bootstrap": false,
+    "ota_activation": false,
+    "trust_installation": false,
+    "camera_or_source_reconfiguration": false,
+    "production_deployment": false,
+    "main_merge": false,
+    "canary_started": false,
+    "pre_soak_started": false,
+    "v8_started": false
+  },
+  "next_safe_actions": [
+    "Create and verify an AWS-root-signed public trust registry that authorizes only the exact required QA release keys, then install the protected root pin and registry with native owner macOS authorization.",
+    "Bring up and verify the exact-device HOME_QA authorization/data-plane path before permitting the first runtime handoff; do not rely on the prior 404 endpoint.",
+    "Re-run all pre-write baseline, recovery-material, identity/source snapshot and Home health checks immediately before transition.",
+    "Use only a provider-compliant, authenticated, cost-bounded HTTPS HLS media data plane for phone qualification."
+  ],
+  "push38": "NOT_DONE",
+  "push39": "NOT_STARTED"
+}

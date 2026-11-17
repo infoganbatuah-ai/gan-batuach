@@ -1,0 +1,15 @@
+{
+  "appId": "com.digitalobserver.app.qa",
+  "appName": "תצפיתן דיגיטלי",
+  "webDir": "public",
+  "bundledWebRuntime": false,
+  "server": {
+    "iosScheme": "capacitor"
+  },
+  "packageClassList": [
+    "AppPlugin",
+    "DevicePlugin",
+    "CAPNetworkPlugin",
+    "PreferencesPlugin"
+  ]
+}

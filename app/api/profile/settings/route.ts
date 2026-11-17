@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -39,7 +39,8 @@ const roleLabels: Record<string, string> = {
 
 export async function GET() {
   try {
-    const { user, profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות מחדש.", 401);
     const supabase = await createClient();
     const managementContext = ["manager", "owner"].includes(profile.role)
       ? await getManagementGardenContext()
@@ -66,7 +67,8 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות מחדש.", 401);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const profileClient = isAdminClientConfigured() ? createAdminClient() : supabase;

@@ -4,6 +4,8 @@ import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
+const parentCategories = ["important", "safety", "attendance", "message", "document", "payment", "pickup"] as const;
+
 const schema = z.object({
   receive_sms: z.boolean().optional(),
   receive_whatsapp: z.boolean().optional(),
@@ -22,9 +24,10 @@ const schema = z.object({
   push_category_preferences: z.record(z.string(), z.boolean()).optional()
 }).refine((value) => (value.quiet_hours_start == null) === (value.quiet_hours_end == null), {
   message: "Quiet hours require both start and end"
+}).refine((value) => !value.push_category_preferences ||
+  Object.keys(value.push_category_preferences).every((category) => (parentCategories as readonly string[]).includes(category)), {
+  message: "Unsupported push category preference"
 });
-
-const parentCategories = ["important", "safety", "attendance", "message", "document", "payment", "pickup"] as const;
 
 function defaultParentCategoryChannels() {
   return {
@@ -49,7 +52,11 @@ export async function GET() {
       return fail("לא ניתן לטעון העדפות תקשורת כרגע.", 500);
     }
     const pushCategoryRows = await supabase.from("push_category_preferences" as any).select("category, enabled, critical_only").eq("profile_id", profile.id).in("category", [...parentCategories]);
-    if (pushCategoryRows.error) console.error("[communication-preferences] push category load failed", { profile_id: profile.id, error: pushCategoryRows.error.message });
+    if (pushCategoryRows.error) {
+      console.error("[communication-preferences] push category load failed", { profile_id: profile.id, error: pushCategoryRows.error.message });
+      // A failed read cannot be represented as consent to every category.
+      return fail("לא ניתן לטעון העדפות התראות כרגע.", 500);
+    }
     const pushCategoryPreferences = Object.fromEntries(parentCategories.map((category) => {
       const row = (pushCategoryRows.data ?? []).find((item: any) => item.category === category);
       return [category, row?.enabled ?? true];
@@ -114,7 +121,6 @@ export async function PATCH(request: Request) {
     }
     if (payload.push_category_preferences) {
       const rows = Object.entries(payload.push_category_preferences)
-        .filter(([category]) => (parentCategories as readonly string[]).includes(category))
         .map(([category, enabled]) => ({
           profile_id: profile.id,
           category,

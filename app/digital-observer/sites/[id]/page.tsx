@@ -36,7 +36,7 @@ export default async function DigitalObserverSitePage({ params }: PageProps) {
   const schedule = runtime.schedules.find((item) => item.observer_site_id === site.id);
   const subscription = runtime.subscriptions.find((item) => item.observer_site_id === site.id);
   const packageItem = runtime.packages.find((item) => item.id === subscription?.package_id);
-  const connected = cameras.filter((item) => ["connected", "healthy", "online"].includes(String(item.status || item.health_status))).length;
+  const connected = cameras.filter((item) => item.source_mode !== "demo" && ["connected", "healthy", "online"].includes(String(item.status || item.health_status))).length;
 
   return (
     <ObserverAppShell
@@ -62,7 +62,7 @@ export default async function DigitalObserverSitePage({ params }: PageProps) {
 
         <section className="do-panel">
           <div className="do-section-head"><div><h2>מצלמות האתר</h2><p>תצוגה חיה תופעל רק דרך Gateway מאובטח. כרגע מוצג סטטוס המקור האמיתי.</p></div><Link className="do-link" href={`/digital-observer/cameras?site=${site.id}`}>ניהול מצלמות</Link></div>
-          {cameras.length ? <div className="do-camera-grid">{cameras.map((camera, index) => <Link href={`/digital-observer/cameras?site=${site.id}&camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name || "מצלמה"} mode={mode} scene={camera.preview_scene || sceneFor(index, mode)} status={camera.status || camera.health_status} /></Link>)}</div> : <div className="do-empty"><Camera /><strong>עדיין אין מקורות מצלמה</strong><span>הוסיפו מצלמה מדומה או מקור שממתין לחיבור Gateway, בלי להזין סודות בדפדפן.</span><Link className="do-button primary" href={`/digital-observer/cameras/add?site=${site.id}`}>הוספת מצלמה</Link></div>}
+          {cameras.length ? <div className="do-camera-grid">{cameras.map((camera, index) => <Link href={`/digital-observer/cameras?site=${site.id}&camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name || "מצלמה"} mode={mode} scene={camera.preview_scene || sceneFor(index, mode)} status={camera.status || camera.health_status} sourceMode={camera.source_mode} /></Link>)}</div> : <div className="do-empty"><Camera /><strong>עדיין אין מקורות מצלמה</strong><span>הוסיפו מצלמה מדומה או מקור שממתין לחיבור Gateway, בלי להזין סודות בדפדפן.</span><Link className="do-button primary" href={`/digital-observer/cameras/add?site=${site.id}`}>הוספת מצלמה</Link></div>}
         </section>
 
         <section className="do-dashboard-columns">

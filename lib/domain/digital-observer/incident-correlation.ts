@@ -106,6 +106,12 @@ export function sortIncidentTimeline(events: CanonicalIncidentTimelineItem[]) {
   return [...unique.values()].sort((left, right) => left.timestamp.localeCompare(right.timestamp));
 }
 
+const severityRank: Record<string, number> = { info: 0, low: 0, medium: 1, high: 2, critical: 3, urgent: 3 };
+
+function escalatedSeverity(current: string, incoming: string) {
+  return (severityRank[incoming] ?? -1) > (severityRank[current] ?? -1) ? incoming : current;
+}
+
 export function legalIncidentTransition(from: CanonicalIncidentStatus, to: CanonicalIncidentStatus) {
   if (from === to) return true;
   const allowed: Record<CanonicalIncidentStatus, CanonicalIncidentStatus[]> = {
@@ -157,6 +163,7 @@ export function correlateCanonicalEvents(events: CanonicalIncidentEvent[]) {
     }
     incident.timeline_summary = sortIncidentTimeline([...incident.timeline_summary, item]);
     incident.related_event_ids = [...new Set([...incident.related_event_ids, event.id])];
+    incident.severity = escalatedSeverity(incident.severity, event.severity);
     incident.last_activity_at = item.timestamp;
     incident.summary = deterministicIncidentSummary(incident.timeline_summary);
     if (incidentClosingEventTypes.has(item.event_type)) {

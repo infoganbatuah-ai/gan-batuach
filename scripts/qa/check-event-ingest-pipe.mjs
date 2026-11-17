@@ -34,10 +34,13 @@ let received = 0, forwarded = 0, yielded = false;
 const sink = new Writable({ highWaterMark: 1024, write(chunk, _, callback) { received += chunk.length; setImmediate(callback); } });
 const completion = finished(sink);
 setImmediate(() => { yielded = true; });
-await bounded(Promise.all([pipe(sourceOf(200, 1024), sink, bytes => { forwarded += bytes; }), completion]));
+const [pipeResult] = await bounded(Promise.all([
+  pipe(sourceOf(200, 1024), sink, bytes => { forwarded += bytes; }), completion
+]));
 assert.equal(received, 200 * 1024);
 assert.equal(forwarded, received);
 assert(yielded);
+assert.deepEqual(pipeResult, { sourceEnded: true });
 
 // A slow consumer pauses reads. Thus lastInputAt alone cannot distinguish a
 // quiet upstream from unread upstream bytes held back by the downstream pipe.
@@ -67,5 +70,5 @@ const errorCompletion = finished(errorSink);
 await assert.rejects(bounded(pipe(broken, errorSink)), /synthetic_source_failure/);
 await bounded(errorCompletion);
 console.log(JSON.stringify({ passed: true, function_sha256: createHash("sha256").update(functionSource).digest("hex"),
-  checks: ["byte_preservation", "event_loop_yield", "backpressure_pauses_reads", "source_error_propagation"],
+  checks: ["byte_preservation", "event_loop_yield", "backpressure_pauses_reads", "source_end_classification", "source_error_propagation"],
   live_source_examined: false, root_cause_proven: false }));

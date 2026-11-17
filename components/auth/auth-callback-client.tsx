@@ -5,17 +5,13 @@ import { CheckCircle2, LoaderCircle, ShieldAlert } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/browser";
 import { singleUseAuthCodeExchange } from "@/lib/domain/single-use-auth-code";
+import { needsExplicitObserverOptIn, safeAuthNextPath, verifiedCallbackProduct } from "@/lib/domain/auth-flow";
 
 const otpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
 const exchangeCodeOnce = singleUseAuthCodeExchange((code: string) => createClient().auth.exchangeCodeForSession(code));
 
 function safeNext(value: string | null, observer: boolean, recovery: boolean) {
-  const fallback = recovery
-    ? observer ? "/digital-observer/set-password" : "/reset-password"
-    : observer ? "/digital-observer/login?verified=1" : "/dashboard";
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return fallback;
-  if (observer && !value.startsWith("/digital-observer")) return fallback;
-  return value;
+  return safeAuthNextPath(value, observer ? "digital_observer" : "gan_batuach", recovery ? "recovery" : undefined);
 }
 
 function failurePath(observer: boolean, recovery: boolean) {
@@ -116,10 +112,18 @@ export function AuthCallbackClient({
 
       recovery = recovery || authEvent === "PASSWORD_RECOVERY";
 
-      observer = observer
-        || user.user_metadata?.product === "digital_observer"
-        || user.app_metadata?.digital_observer_admin === true;
+      // Product hints from query/cookies select only pre-auth failure UI. They
+      // cannot promote a verified Gan identity into Observer account creation.
+      observer = verifiedCallbackProduct(user) === "digital_observer";
       product = observer ? "digital_observer" : "gan_batuach";
+      if (!recovery && needsExplicitObserverOptIn(user, requestedProduct === "digital_observer")) {
+        authEvents.data.subscription.unsubscribe();
+        await supabase.auth.signOut();
+        document.cookie = "auth_callback_product=; Path=/; Max-Age=0; SameSite=Lax";
+        document.cookie = "auth_callback_flow=; Path=/; Max-Age=0; SameSite=Lax";
+        window.location.replace("/digital-observer/login?error=existing_account_sign_in");
+        return;
+      }
       const next = safeNext(nextValue, observer, recovery);
       document.cookie = "auth_callback_product=; Path=/; Max-Age=0; SameSite=Lax";
       document.cookie = "auth_callback_flow=; Path=/; Max-Age=0; SameSite=Lax";

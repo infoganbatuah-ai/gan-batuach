@@ -53,7 +53,8 @@ test("report-generated tasks are source-idempotent and Observer mock events are 
 
 test("Staff, Inspector, Manager and Parent task surfaces keep role boundaries", () => {
   assert.match(staff, /requireOperationalRole\(\["staff"\]\)/);
-  assert.match(staff, /\.eq\("garden_id", profile\.garden_id/);
+  assert.match(staff, /employment!\.garden_id/);
+  assert.match(staff, /\.eq\("garden_id", gardenId\)/);
   assert.match(staff, /\.eq\("assigned_to", profile\.id\)/);
   assert.match(inspector, /gardenIds\.includes\(task\.garden_id\)/);
   assert.match(unified, /\.from\("tasks"/);

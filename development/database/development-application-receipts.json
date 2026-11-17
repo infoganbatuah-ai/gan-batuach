@@ -1,143 +1,247 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-27T22:46:30.154Z",
-  "integrationCommit": "8ce4a818ab3c29d9b85db3bbce4db23c6321f8f9",
+  "observedAt": "2026-10-23T16:48:36.592Z",
+  "integrationCommit": "9e4277bfb63dc641d16879d25359eaa42c2c0d6a",
   "migrations": [
     {
       "version": "20260919170000",
       "filename": "supabase/migrations/20260919170000_classroom_scope_trigger_record_fields.sql",
       "source_digest": "3b25e47269022a960e1ba6ccca82b07be51c97f9eab8131d7212290da196be02",
-      "source_commit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
-      "applied_at": "2026-09-19T16:51:06.476648+00:00",
-      "schema_fingerprint": "b4146be33847a903f6f6f7d0d46024506481dfe8390c6badd96514e5952b6af8"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "295764a6d74b37573a4f93860e1db441fe47600ca5be35cf700beb96e66b556c",
+      "applied_at": "2026-09-28T00:57:53.892048+00:00"
     },
     {
       "version": "20260913210000",
       "filename": "supabase/migrations/20260913210000_management_canonical_messaging_threads.sql",
       "source_digest": "ddf9298ebdeda47aee58bfbb13a3312f60e78662b0be8d04f6c8a4ec2dfde5ab",
-      "source_commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
-      "applied_at": "2026-09-19T18:12:19.34552+00:00",
-      "schema_fingerprint": "99d8cbd724de61426e8e956f34c633de1320a9d25eda0044f1b68cfd28969ab6"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "71943787d5a612203b797c0bb834a8886891f08d346ab9dab49e4868ee18e228",
+      "applied_at": "2026-09-28T00:57:56.109585+00:00"
     },
     {
       "version": "20260913211000",
       "filename": "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql",
       "source_digest": "0999ea1f2c2643d77db104398e9ad66483ebb2604f470e6beb7406dfadd470bc",
-      "source_commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
-      "applied_at": "2026-09-19T18:12:26.213808+00:00",
-      "schema_fingerprint": "2532c5d4860069ff35f025ebcee930efa645fd6c4352d990ed038f6d0bee99bc"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "345c40a8645d0853eb654339f9d77e679c449afd168a034da8d44efab22d983c",
+      "applied_at": "2026-09-28T00:57:58.131583+00:00"
     },
     {
       "version": "20260913212000",
       "filename": "supabase/migrations/20260913212000_management_private_message_attachments.sql",
       "source_digest": "11c3ab542a9287e3ded1c37cbf7944aaf85d25b25ed40ac8fe10a292dadf098d",
-      "source_commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
-      "applied_at": "2026-09-19T18:12:32.192001+00:00",
-      "schema_fingerprint": "6fa15c1f0c45405e49fa313b0b7ce3f49962ac6b0e4f0f8cc2be98ba268284d9"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "df6c90ba13a9e0763143aa8c9a04b224f84ccd762bf695cb136dac011d576d09",
+      "applied_at": "2026-09-28T00:58:00.123203+00:00"
     },
     {
       "version": "20260919180000",
       "filename": "supabase/migrations/20260919180000_management_notification_pipeline.sql",
       "source_digest": "0950704c85102f8842337feee5d509586957c4c17907ef444c5c0b3ee5f6351a",
-      "source_commit": "04323b209a8c2694843d78e52e8906ad3540403c",
-      "applied_at": "2026-09-19T20:15:38.666705+00:00",
-      "schema_fingerprint": "48df6f0c972f23aa66c47af3783bbede87c3ceb5692501f0e8927e9dae1aaa60"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "6c4a5e994b789be602436a41bc567a396f4ffc75abebecca8f201ec2507b3b79",
+      "applied_at": "2026-09-28T00:58:02.327686+00:00"
     },
     {
       "version": "20260920110000",
       "filename": "supabase/migrations/20260920110000_management_email_first_verification.sql",
       "source_digest": "9071ef0384719b6c8e39e74235c411603127d870bd480e214dbab664c6f0a2ba",
-      "source_commit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
-      "applied_at": "2026-09-19T21:50:49.840368+00:00",
-      "schema_fingerprint": "4947e75053f908796e31cbee7fc3abdb7868c7b5e19b5d522baef469e81a1778"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "ba7ecdb74ef7b21673e926fcdecf9bc5f530f495017cff58a6eed8a3e21c54fd",
+      "applied_at": "2026-09-28T00:58:04.305413+00:00"
     },
     {
       "version": "20260920120000",
       "filename": "supabase/migrations/20260920120000_management_external_delivery.sql",
       "source_digest": "a36b0cdd98e5df9287566e2f26d1979e056e12ad0a51be18b13463539e0fdc3a",
-      "source_commit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
-      "applied_at": "2026-09-19T21:51:03.171544+00:00",
-      "schema_fingerprint": "784d9838e667f69dbd424dcf9e7217821e1eab438cdcf94851df6045b715fa8e"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "134a327b8c34ec118fec6d5039de85cabd27b8cb20364dcdad38e36c9340d4f3",
+      "applied_at": "2026-09-28T00:58:06.926326+00:00"
     },
     {
       "version": "20260920130000",
       "filename": "supabase/migrations/20260920130000_management_private_documents.sql",
       "source_digest": "e733a39d92bdfd9d95bf10a9bd2dc9b98500e38bcfdb20640579d25d0d705725",
-      "source_commit": "950f64483f2bc475da0329a7955532cfb2cf4429",
-      "applied_at": "2026-09-20T00:02:48.007701+00:00",
-      "schema_fingerprint": "80831b96f07af3e5f5e34e8b5497f776d05ce2af83ac26a11e0b9a8f5344359f"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "a36db7fbb4631c75f1f431f7b567b9ce84869dd078058a32973378622fcda03f",
+      "applied_at": "2026-09-28T00:58:09.109142+00:00"
     },
     {
       "version": "20260920140000",
       "filename": "supabase/migrations/20260920140000_management_child_attendance_pickup.sql",
       "source_digest": "f2b2faa58529493724bfc2054423cb006bef175862b77c9eca4d47d998a2dc4b",
-      "source_commit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
-      "applied_at": "2026-09-20T01:59:26.144251+00:00",
-      "schema_fingerprint": "8122836e01001d39663c7298b3ccf2e58c69b4dbad9f592787a4b40534e7eaff"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "bbb895d63f8027fb1ceb06ef244cf78bd879e9f9c6e863a05eba91b1fc80ece9",
+      "applied_at": "2026-09-28T00:58:11.128763+00:00"
     },
     {
       "version": "20260920150000",
       "filename": "supabase/migrations/20260920150000_management_staff_time_ledger.sql",
       "source_digest": "a83ec1cba11be3c5aedb3a74ae5f02f9f8c0f5ffb0e65945d40075bcba797731",
-      "source_commit": "89dc2d98f4d6f88d57b4ab49487edaab15481cc9",
-      "applied_at": "2026-09-20T04:08:09.323901+00:00",
-      "schema_fingerprint": "8f019d4c92264c205eda39e9ff2fe60e2e83655be43cb943114aeb6961b018ed"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "9d9232684241b70f56b91217889a918704dc4cd32de65e75868c12c2dde830c2",
+      "applied_at": "2026-09-28T00:58:13.234876+00:00"
     },
     {
       "version": "20260920160000",
       "filename": "supabase/migrations/20260920160000_management_tuition_audit_role_fix.sql",
       "source_digest": "a073194e6d2b440c1b0182b1595aa669b988897c79fefb0dbfb360cbbc2d7bb8",
-      "source_commit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
-      "applied_at": "2026-09-20T07:17:48.247747+00:00",
-      "schema_fingerprint": "c13f9902ec6ddfce8523262754c722c8a5a265716e68edd830632898387dea42"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "577b21ed4b725b625ce83e0b74a09c96017391090a42da81ff3f345c1dbae674",
+      "applied_at": "2026-09-28T00:58:15.779505+00:00"
     },
     {
       "version": "20260920170000",
       "filename": "supabase/migrations/20260920170000_retire_generated_plaintext_credentials.sql",
       "source_digest": "3ec638213ee2eaca52a2f93016f9ad2a225e33d851a73c1fa345086e3ef3c38b",
-      "source_commit": "e7ba4b227c0eaeac61da08a68f417488c66b7fdc",
-      "applied_at": "2026-09-20T15:46:37.131742+00:00",
-      "schema_fingerprint": "820ceaa3c1d0ab198a8b58a6a4b633518f36d1a597083b407b9e4770a53ed075"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "8f90dbdcfe8a81cab5139999092dd5686de07701ba6970bd88072f58dcc91373",
+      "applied_at": "2026-09-28T00:58:17.938492+00:00"
     },
     {
       "version": "20260921150000",
       "filename": "supabase/migrations/20260921150000_management_staff_candidate_private_documents.sql",
       "source_digest": "e9e6defbe6319ea0b36d61266d0a9bfdad820f7ce2280ccb8402b423fd556adb",
-      "source_commit": "513dc53e2277aa810a12614870a331fb6d16bb00",
-      "applied_at": "2026-09-20T23:58:56.917211+00:00",
-      "schema_fingerprint": "7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "88f7c3b1e0e1ac5323ae891b7cfc9a351c28d95f974dba33045286b5bf04d2c6",
+      "applied_at": "2026-09-28T00:58:20.062611+00:00"
     },
     {
       "version": "20260922100000",
       "filename": "supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql",
       "source_digest": "9e499a15934de38aacce653ef434cecd99647892c696caff90b76ec1d5257338",
-      "source_commit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
-      "applied_at": "2026-09-22T01:18:38.563865+00:00",
-      "schema_fingerprint": "2d7f47853c26b8e6c22471cfc7b8929faf546d2746e7fd65031ce253ce92d5f8"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "8a8638863fc51916bf79a62ea0f604d2ec091f95a17dc27c98ae069a4f428b84",
+      "applied_at": "2026-09-28T00:58:22.193726+00:00"
     },
     {
       "version": "20260922110000",
       "filename": "supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql",
       "source_digest": "65f86104dc20d00953ae2b0ac390e9ed88037ef541f4234aba03e2c24a79ac18",
-      "source_commit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
-      "applied_at": "2026-09-22T01:18:42.592919+00:00",
-      "schema_fingerprint": "673fc0d82df2c0a160390e99654b48bf0e3abc28b19201d6734765aca26956b2"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "234547677d76b4760d785514d66f80463af75e52233feb94332e115206d505e4",
+      "applied_at": "2026-09-28T00:58:24.507763+00:00"
     },
     {
       "version": "20260922120000",
       "filename": "supabase/migrations/20260922120000_management_parent_notification_category_fix.sql",
       "source_digest": "e60d3ca2e1d0e781e07b9b553dcf9570be492a56d505ef2b7b152145e88feb74",
-      "source_commit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
-      "applied_at": "2026-09-22T02:32:54.951193+00:00",
-      "schema_fingerprint": "bb28c9f7966332e54e491a72507cde2d17160864301466088f797dbd87bea9c0"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "bb28c9f7966332e54e491a72507cde2d17160864301466088f797dbd87bea9c0",
+      "applied_at": "2026-09-28T00:58:27.052+00:00"
     },
     {
       "version": "20260928010000",
       "filename": "supabase/migrations/20260928010000_management_staff_candidate_manager_review.sql",
       "source_digest": "58c13ddbe5d3675c1343e13513d8e90bc33fc80d06de7180999c90f579e8a712",
-      "source_commit": "8ce4a818ab3c29d9b85db3bbce4db23c6321f8f9",
-      "applied_at": "2026-09-27T22:44:25.024757+00:00",
-      "schema_fingerprint": "2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6"
+      "source_commit": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+      "schema_fingerprint": "2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6",
+      "applied_at": "2026-09-28T00:58:29.538223+00:00"
+    },
+    {
+      "version": "20260919171000",
+      "filename": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
+      "source_digest": "dd3ad57b23e2b9ea5cadfa7c504bed0b1e10383f049a27fd2db5a661b04a59c3",
+      "source_commit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
+      "schema_fingerprint": "0d68f4093cbeb61105d5e1505c6ae872cca2c6f9b5eeee4b3ecaaf06c7757df0",
+      "applied_at": "2026-10-18T01:49:21.765879+00:00"
+    },
+    {
+      "version": "20260919172000",
+      "filename": "supabase/migrations/20260919172000_edge_private_release_delivery_audit.sql",
+      "source_digest": "c2ae8f8f94c7ecaa82ff0e1479d1ac67d9b0b9342de5ac18227514279cfedc42",
+      "source_commit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
+      "schema_fingerprint": "7a1f819078b4103a6daef77418fb0d11f2f7c95ed11e6bc5e1831c8eadbd8003",
+      "applied_at": "2026-10-18T01:49:23.023867+00:00"
+    },
+    {
+      "version": "20260919190000",
+      "filename": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
+      "source_digest": "f2c4e050c92b308d116016ac6fb3639adc00951f691424cd664da3109bf58ac6",
+      "source_commit": "d4b91ff1adf2b56a66b1bda5ce40d400662a020a",
+      "schema_fingerprint": "7ac70609659e1f0227f990aa3f5e52d3796932c791d0d9ab235f990dcdb0c080",
+      "applied_at": "2026-10-18T01:49:24.659352+00:00"
+    },
+    {
+      "version": "20261018010000",
+      "filename": "supabase/migrations/20261018010000_digital_observer_push39_orchestration.sql",
+      "source_digest": "dea3352cdc584d87fbbf1b0c33c389ea5103202fcbedc26ec41f66bd3b5df0b5",
+      "source_commit": "369968977a3c5fa4c874e7db997501ec7c3af7bb",
+      "schema_fingerprint": "e52f336bc12017ef5cfbec36ad22e6ad952799a3eb97cd0d5787b592978569cd",
+      "applied_at": "2026-10-18T20:05:22.770433+00:00"
+    },
+    {
+      "version": "20261018204500",
+      "filename": "supabase/migrations/20261018204500_digital_observer_push39_delivery_read_grant.sql",
+      "source_digest": "1adce4d72edfc68c305bfe47aa1dcb3ffad33f6c774a70d5725ee6cfc99369b8",
+      "source_commit": "5e62fe4bf56047eaddc00cd8f7f6099b6e8a45e6",
+      "schema_fingerprint": "9c8b5f3613c7ed13abde011c3ec768d1b433a6d3e639f8097d124919bcd392dd",
+      "applied_at": "2026-10-18T20:32:36.153866+00:00"
+    },
+    {
+      "version": "20261019010000",
+      "filename": "supabase/migrations/20261019010000_digital_observer_push40_commercial_billing.sql",
+      "source_digest": "01ff312ab12125815133374fa9a053c9826770c6161a7fc68ded4399de8513bd",
+      "source_commit": "3108ab242ddd0660dd85674f778eb6c6258bfe13",
+      "schema_fingerprint": "497ac101ed20491700a91517432384b75867f076fe071816986d6784b983b2ed",
+      "applied_at": "2026-10-18T21:50:20.392211+00:00"
+    },
+    {
+      "version": "20261019020000",
+      "filename": "supabase/migrations/20261019020000_digital_observer_push41_enterprise_identity.sql",
+      "source_digest": "bd0369b5567db55e57ddbe08a3d116ba592a3c9bcce028bf79af4d1d2b2c79da",
+      "source_commit": "fd4adf6a13bedf75917e124a4025042c37749463",
+      "schema_fingerprint": "4f22e2dad6f405a0b02f4de19ec2e26799945fd0cf94c437700ca5a26d990d73",
+      "applied_at": "2026-10-18T23:49:11.410164+00:00"
+    },
+    {
+      "version": "20261019030000",
+      "filename": "supabase/migrations/20261019030000_digital_observer_push42_external_api.sql",
+      "source_digest": "09090ea72ca9565fc06bf27f7993f8c55b5226ba179461f5f97e465a7940a935",
+      "source_commit": "1782df60ca25866866aef78fede49b48fcd26781",
+      "schema_fingerprint": "bd4259906a1c8368d05d0bf8a16b6a5b5539e40bd00781c9a5340884cd115797",
+      "applied_at": "2026-10-19T00:50:52.875136+00:00"
+    },
+    {
+      "version": "20261019040000",
+      "filename": "supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql",
+      "source_digest": "7b06e3eb9be3235ddfd8d2a30c126ecba300b9bd76e1ea46e3840b8b0ef252ad",
+      "source_commit": "987c39d46fce227fae95496da86509215cb00dbf",
+      "schema_fingerprint": "82f2cd428c720f04717eaa56b3766d71c253c7bed487216993115d9323b334d6",
+      "applied_at": "2026-10-19T10:04:29.084519+00:00"
+    },
+    {
+      "version": "20261019041000",
+      "filename": "supabase/migrations/20261019041000_digital_observer_push43_delegated_usage.sql",
+      "source_digest": "88b531ffb780b06b51a835dc7120f7b09fa03e7d92a4a094b59b8dc6e7cd97a7",
+      "source_commit": "4253c557d54b82b64c219683f977c46bfb378195",
+      "schema_fingerprint": "19ba40fd278a0528412b1c30d3ea09a4e4a19b48e7f48e9cdef57b0270d74ea8",
+      "applied_at": "2026-10-19T10:37:05.764184+00:00"
+    },
+    {
+      "version": "20261019042000",
+      "filename": "supabase/migrations/20261019042000_digital_observer_push43_embed_origin_constraint.sql",
+      "source_digest": "d337c04b8f4ba5453e2d3ce7a5d76343907844ad8f7240535066f97d41212fc6",
+      "source_commit": "fd86e065c2678e6a1e2ee4ea52808ba424699203",
+      "schema_fingerprint": "1e434a850acd28387ac2387bf556a298cfdc7b0b6891e58521b379fca14069e1",
+      "applied_at": "2026-10-19T10:53:02.658741+00:00"
+    },
+    {
+      "version": "20261019050000",
+      "filename": "supabase/migrations/20261019050000_digital_observer_push45_privacy_compliance.sql",
+      "source_digest": "5aa9e754c82e5e588393028d390cc71524a21b690832979ef6a5e89947c16b62",
+      "source_commit": "64e1b36b7e846258a11e948a54e5222f208247fc",
+      "schema_fingerprint": "84bb65985b33b6ad73b3a76f6649477a8e482b474ccf75f16842d19c240afdae",
+      "applied_at": "2026-10-19T19:15:48.96083+00:00"
+    },
+    {
+      "version": "20261023161928",
+      "filename": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
+      "source_digest": "0bf048622b6ba39c0412bfbd4bf410a3b2955b8fba292621f32592acaa309249",
+      "source_commit": "9e4277bfb63dc641d16879d25359eaa42c2c0d6a",
+      "schema_fingerprint": "a48a244eccb8e6f4ebce8f538797975d9fc04b0b05494b381ee811080a53f7b6",
+      "applied_at": "2026-10-23T16:47:11.77187+00:00"
     }
   ],
   "productionAccess": false

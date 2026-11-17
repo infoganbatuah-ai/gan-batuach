@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 type Survey = { id: string; title?: string | null };
 type Event = { id: string; title?: string | null };
@@ -16,7 +17,8 @@ async function post(payload: Record<string, unknown>) {
   return body.data;
 }
 
-export function ParentTrustCenterActions({ surveys, events }: { surveys: Survey[]; events: Event[] }) {
+export function ParentTrustCenterActions({ gardenId, surveys, events }: { gardenId: string; surveys: Survey[]; events: Event[] }) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState("");
 
@@ -27,6 +29,7 @@ export function ParentTrustCenterActions({ surveys, events }: { surveys: Survey[
       await post(payload);
       form.reset();
       setMessage(success);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "הפעולה נכשלה");
     } finally {
@@ -43,6 +46,7 @@ export function ParentTrustCenterActions({ surveys, events }: { surveys: Survey[
         const data = new FormData(form);
         void submit(form, {
           action: "feedback",
+          garden_id: gardenId,
           feedback_type: data.get("feedback_type"),
           title: data.get("title"),
           body: data.get("body")
@@ -63,6 +67,7 @@ export function ParentTrustCenterActions({ surveys, events }: { surveys: Survey[
         const data = new FormData(form);
         void submit(form, {
           action: "request",
+          garden_id: gardenId,
           request_type: data.get("request_type"),
           title: data.get("title"),
           body: data.get("body")
@@ -83,6 +88,7 @@ export function ParentTrustCenterActions({ surveys, events }: { surveys: Survey[
         const data = new FormData(form);
         void submit(form, {
           action: "survey_response",
+          garden_id: gardenId,
           survey_id: data.get("survey_id"),
           response_data: {
             satisfaction: data.get("satisfaction"),
@@ -105,6 +111,7 @@ export function ParentTrustCenterActions({ surveys, events }: { surveys: Survey[
         const data = new FormData(form);
         void submit(form, {
           action: "participation",
+          garden_id: gardenId,
           calendar_event_id: data.get("calendar_event_id") || undefined,
           participation_type: data.get("participation_type"),
           body: data.get("body")

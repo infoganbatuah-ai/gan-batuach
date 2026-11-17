@@ -1,6 +1,7 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { needsExplicitObserverOptIn, verifiedCallbackProduct } from "@/lib/domain/auth-flow";
 
 const allowedOtpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
 
@@ -39,9 +40,24 @@ export async function GET(request: NextRequest) {
   }
   if (error || !data.user) return authFailure(request, recovery, observerRequest);
 
-  const confirmedObserver = observerRequest
-    || data.user.user_metadata?.product === "digital_observer"
-    || data.user.app_metadata?.digital_observer_admin === true;
+  const pendingEmail = request.cookies.get("do_pending_email")?.value?.trim().toLowerCase();
+  // The pending-registration cookie is browser-controlled context, not proof
+  // that a Gan identity opted into the Observer product. Existing identities
+  // must use the explicit Observer verification/login flow for that transition.
+  const confirmedObserver = verifiedCallbackProduct(data.user) === "digital_observer";
+
+  // A matching pending cookie may guide the user back to the explicit sign-in
+  // flow, but cannot grant or prepare an Observer account by itself.
+  if (!recovery && needsExplicitObserverOptIn(data.user, Boolean(pendingEmail && pendingEmail === data.user.email?.toLowerCase()))) {
+    await supabase.auth.signOut();
+    const response = NextResponse.redirect(new URL("/digital-observer/login?error=existing_account_sign_in", request.url));
+    response.cookies.delete("do_pending_email");
+    response.cookies.delete("do_pending_name");
+    response.cookies.delete("do_pending_account_type");
+    response.cookies.delete("auth_callback_product");
+    response.cookies.delete("auth_callback_flow");
+    return response;
+  }
 
   if (recovery) {
     const response = NextResponse.redirect(new URL(confirmedObserver ? "/digital-observer/set-password" : "/reset-password", request.url));
@@ -50,14 +66,12 @@ export async function GET(request: NextRequest) {
     return response;
   }
 
-  const pendingEmail = request.cookies.get("do_pending_email")?.value?.trim().toLowerCase();
   const pendingName = request.cookies.get("do_pending_name")?.value ?? null;
   const pendingAccountTypeValue = request.cookies.get("do_pending_account_type")?.value;
   const pendingAccountType = pendingAccountTypeValue === "business" || pendingAccountTypeValue === "home"
     ? pendingAccountTypeValue
     : null;
-  const isObserver = confirmedObserver
-    || (Boolean(pendingEmail) && pendingEmail === data.user.email?.toLowerCase());
+  const isObserver = confirmedObserver;
   if (isObserver) {
     const account = await supabase.rpc("ensure_digital_observer_account" as any, {
       requested_name: pendingName ?? data.user.user_metadata?.full_name ?? null,

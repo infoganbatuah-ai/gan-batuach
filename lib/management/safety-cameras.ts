@@ -11,6 +11,7 @@ export type SafetyCamera = {
   statusLabel: string;
   lastCheck: string | null;
   monitoring: boolean;
+  monitoringLabel: string;
   recordingEnabled: boolean;
   permission: "permitted_context" | "evidence_only" | "denied";
   permissionLabel: string;
@@ -79,10 +80,15 @@ function permissionFor(role: SafetyRole, camera: Record<string, unknown>) {
  */
 export const MANAGEMENT_LIVE_PRODUCTION_VERIFIED = false;
 
+/** The Gan Management ↔ Digital Observer contract has no verified active-monitoring attestation yet. */
+export const MANAGEMENT_MONITORING_CONTRACT_VERIFIED = false;
+
 export function toSafetyCamera(camera: Record<string, unknown>, role: SafetyRole): SafetyCamera {
   const truthState = cameraTruthState(camera);
   const permission = permissionFor(role, camera);
   const liveState = permission.permission === "denied" ? "permission_denied" : "production_verification_required";
+  const monitoringCandidate = camera.observer_enabled === true && truthState === "online";
+  const monitoring = MANAGEMENT_MONITORING_CONTRACT_VERIFIED && monitoringCandidate;
   const lastCheck = [camera.last_health_check_at, camera.last_test_at, camera.last_seen]
     .find((value): value is string => typeof value === "string" && Boolean(value)) ?? null;
   const name = typeof camera.name === "string" && camera.name.trim() ? camera.name.trim() : "מצלמת גן";
@@ -95,7 +101,8 @@ export function toSafetyCamera(camera: Record<string, unknown>, role: SafetyRole
     truthState,
     statusLabel: stateLabel[truthState],
     lastCheck,
-    monitoring: camera.observer_enabled === true && truthState === "online",
+    monitoring,
+    monitoringLabel: monitoring ? "פעיל לפי חוזה מאומת" : monitoringCandidate ? "ממתין לאימות חוזה" : "לא פעיל",
     recordingEnabled: camera.recording_enabled === true,
     permission: permission.permission,
     permissionLabel: permission.label,

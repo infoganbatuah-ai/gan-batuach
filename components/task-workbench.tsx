@@ -35,6 +35,8 @@ type TaskRow = {
   garden_id?: string | null;
   related_entity_type?: string | null;
   related_entity_id?: string | null;
+  source_entity_type?: string | null;
+  source_entity_id?: string | null;
   assignee_name?: string | null;
   creator_name?: string | null;
 };
@@ -262,7 +264,7 @@ export function TaskWorkbench({
               <div><span><UserRoundCheck size={18} /> אחראי</span><strong>{selected.assignee_name || assignees.find((person) => person.id === selected.assigned_to)?.name || "לא שויך"}</strong></div>
               <div><span><CalendarDays size={18} /> תאריך יעד</span><strong>{formatDate(selected.due_at, true)}</strong></div>
               <div><span><Clock3 size={18} /> נוצרה</span><strong>{formatDate(selected.created_at, true)}</strong></div>
-              <div><span><ShieldCheck size={18} /> הקשר</span><strong>{selected.related_entity_type ? "פריט מקושר ומוגן" : "משימת גן"}</strong></div>
+              <div><span><ShieldCheck size={18} /> הקשר</span><strong>{selected.source_entity_type || selected.related_entity_type ? "פריט מקושר ומוגן" : "משימת גן"}</strong></div>
             </div>
 
             <section className="work-timeline" aria-labelledby={`task-history-${selected.id}`}>

@@ -1,6 +1,6 @@
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { DIGITAL_OBSERVER_INCIDENT_VERSION } from "@/lib/domain/digital-observer/canonical-domain";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     const siteId = new URL(request.url).searchParams.get("observer_site_id");
     const incidentId = new URL(request.url).searchParams.get("incident_id");
     if (!siteId) return fail("חסר מזהה אתר.", 422);
-    const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
+    const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const site = observerAdmin
       ? (await dataClient.from("observer_sites" as never).select("id,name,site_type,garden_id").eq("id", siteId)

@@ -1,10 +1,10 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { Bell, CalendarDays, Camera, FileText, Home, Menu, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import { RoleAppShell } from "@/components/role-app-shell";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { ParentChildPhotoFallback } from "@/components/parent-child-photo-fallback";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -33,6 +33,7 @@ export function ParentAppFrame({
       title="דשבורד הורים"
       subtitle="מעקב חכם אחר הילד והגן"
       profile={{ full_name: displayName, profile_image_url: avatarUrl }}
+      actions={contentClassName.includes("parent-dashboard-home") ? <Link className="parent-primary-mobile-menu" href="/dashboard/parent/settings" aria-label="הגדרות הורה"><Menu size={22} aria-hidden="true" /></Link> : undefined}
       className="parent-runtime-shell"
     >
       <div className={`parent-app-main dashboard-runtime-content ${contentClassName}`.trim()}>{children}</div>
@@ -68,7 +69,7 @@ export function ParentChildCard({
   const content = (
     <>
       <div className="parent-child-photo">
-        {image ? <img src={image} alt="" /> : <Image className="parent-child-illustration" src="/assets/gan-batuach-child-avatar.webp" alt="" width={240} height={240} />}
+        <ParentChildPhotoFallback key={`${name}:${image ?? ""}`} src={image} name={name} />
       </div>
       <div>
         <h2>{name}</h2>
@@ -101,12 +102,7 @@ export function ParentChildContextCard({
 }) {
   return <Link className={`parent-child-context-card${active ? " is-active" : ""}`} href={href} aria-current={active ? "page" : undefined}>
     <span className="parent-child-context-avatar">
-      {image ? (
-        <>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={image} alt="" />
-        </>
-      ) : <Image src="/assets/gan-batuach-child-avatar.webp" alt="" width={96} height={96} />}
+      <ParentChildPhotoFallback key={`${name}:${image ?? ""}`} src={image} name={name} compact />
     </span>
     <span className="parent-child-context-copy"><b>{name}</b><small>{garden}</small></span>
     <span className="parent-child-context-state"><i aria-hidden="true" />{status}</span>
@@ -141,11 +137,12 @@ export function ParentSection({ title, subtitle, action, children, className = "
   );
 }
 
-export function ParentActionTile({ title, href, icon: Icon, tone = "purple" }: { title: string; href: string; icon: IconType; tone?: Tone }) {
+export function ParentActionTile({ title, href, icon: Icon, tone = "purple", detail }: { title: string; href: string; icon: IconType; tone?: Tone; detail?: ReactNode }) {
   return (
     <Link className={`parent-action-tile ${tone}`} href={href}>
       <Icon size={30} />
       <span>{title}</span>
+      {detail ? <small className="parent-action-detail">{detail}</small> : null}
     </Link>
   );
 }
