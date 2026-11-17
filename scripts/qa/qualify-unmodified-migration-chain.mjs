@@ -28,6 +28,10 @@ as $$
     )::jsonb
 $$;`;
 const stockAuthJwtSha256 = "da8cd1a869ff38ccad99a1da949f246e389865191f3412661a58f98565bce028";
+const legalSeedFile = "20260612016600_external_legal_privacy_regulatory_review_pack.sql";
+const legalSeedSha256 = "f258acab64283fa24496ca33feae1d4f6c610b2b917f84c180679c357d1c4828";
+const legalSeedSource = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'requested', 'needs_review', 'needs_review', 'medium', 'under_review'";
+const legalSeedCorrection = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'needs_review', 'requested', 'needs_review', 'medium', 'under_review'";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -51,6 +55,7 @@ let networkCreated = false;
 let passed = 0;
 let testOnlyTypoNormalization = false;
 let testOnlyStockAuthJwt = false;
+let testOnlyLegalSeedNormalization = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -107,6 +112,14 @@ try {
         testSource = source.replace(typoSource, typoCorrection);
         testOnlyTypoNormalization = true;
       }
+      if (file === legalSeedFile && process.env.PUSH44_FILE132_LEGAL_SEED_NORMALIZE === "YES") {
+        // The historical row transposes two pending-review statuses. Test only:
+        // no legal status is promoted, and the canonical source stays untouched.
+        if (createHash("sha256").update(source).digest("hex") !== legalSeedSha256 ||
+            source.split(legalSeedSource).length !== 2) throw new Error("FILE132_SOURCE_DRIFT");
+        testSource = testSource.replace(legalSeedSource, legalSeedCorrection);
+        testOnlyLegalSeedNormalization = true;
+      }
       if (file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES") {
         // PostgreSQL 17 cannot use a newly added enum value until commit.
         // Keep the historical file byte-for-byte; commit only its guarded
@@ -145,13 +158,14 @@ try {
           : file === typoFile && testOnlyTypoNormalization ? "one_test_only_normalized_file" : "one_unmodified_file",
         testOnlyTypoNormalization,
         testOnlyStockAuthJwt,
+        testOnlyLegalSeedNormalization,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
       process.exitCode = 1;
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyLegalSeedNormalization }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
