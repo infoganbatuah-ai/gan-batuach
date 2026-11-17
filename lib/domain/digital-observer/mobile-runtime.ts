@@ -51,7 +51,7 @@ export function nativeAppAcceptsMobileLink(rawUrl: string, appId: string, platfo
   try { url = new URL(rawUrl); } catch { return false; }
   const expected = platform === "ios" && appId === "com.digitalobserver.app.qa" ? "observerqaapp:" :
     platform === "android" && appId === "com.digitalobserver.app.qa" ? "observerqaandroid:" :
-    ["ios", "android"].includes(platform) && ["com.ganbatuach.app", "com.ganbatuach.app.qa"].includes(appId) ? "digitalobserver:" : null;
+    ["ios", "android"].includes(platform) && appId === "com.ganbatuach.app" ? "digitalobserver:" : null;
   if (!expected || url.username || url.password || url.port || url.hash) return false;
   // The Observer Android QA intent filter admits only the six resource hosts
   // and the separate native return authority. A resource link carries exactly

@@ -51,6 +51,16 @@ test("pending link expires and malformed or external links are never stored", ()
   assert.equal(pending.takePendingMobileLink(storage, 301_000), null);
 });
 
+test("account switch clears one-use pending resource and cold-start marker", () => {
+  const storage = store();
+  assert.equal(pending.rememberPendingMobileLink(storage, link, 1_000), true);
+  assert.equal(pending.firstLaunchOfMobileLink(storage, link, 1_000), true);
+  pending.clearPendingMobileLink(storage);
+  assert.equal(pending.takePendingMobileLink(storage, 2_000), null);
+  assert.equal(pending.firstLaunchOfMobileLink(storage, link, 2_000), true,
+    "new account may receive its own fresh launch of the same URL");
+});
+
 test("initial launch URL is suppressed across login reload, but can be retried after expiry", () => {
   const storage = store();
   assert.equal(pending.firstLaunchOfMobileLink(storage, link, 1_000), true);
@@ -69,7 +79,7 @@ test("native runtime queues only a 401 link and replays after authenticated boot
   assert.match(runtime, /firstLaunchOfMobileLink\(window\.sessionStorage, launch\.url, Date\.now\(\), window\.location\.origin\)/);
 });
 
-async function authorizeLink({ session = true, siteAllowed = true, resourceAllowed = true, rawUrl = link } = {}) {
+async function authorizeLink({ session = true, account = "qa-owner", siteAllowed = true, resourceAllowed = true, rawUrl = link } = {}) {
   const exports = {};
   const calls = [];
   const supabase = { from: (table) => {
@@ -86,8 +96,8 @@ async function authorizeLink({ session = true, siteAllowed = true, resourceAllow
       handleRouteError: (error) => { throw error; }
     },
     "@/lib/domain/digital-observer/access": {
-      getDigitalObserverApiUser: async () => session ? { supabase, profile: { id: "qa-owner" } } : null,
-      getObserverSiteAccess: async (_client, _profile, siteId) => siteAllowed && siteId === site ? { id: site } : null
+      getDigitalObserverApiUser: async () => session ? { supabase, profile: { id: account } } : null,
+      getObserverSiteAccess: async (_client, profile, siteId) => siteAllowed && profile.id === "qa-owner" && siteId === site ? { id: site } : null
     },
     "@/lib/domain/digital-observer/mobile-runtime": mobile
   };
@@ -103,6 +113,7 @@ async function authorizeLink({ session = true, siteAllowed = true, resourceAllow
 
 test("replayed link cannot bypass logged-out or cross-Site authorization", async () => {
   assert.equal((await authorizeLink({ session: false })).status, 401);
+  assert.equal((await authorizeLink({ account: "other-account" })).status, 403);
   assert.equal((await authorizeLink({ siteAllowed: false })).status, 403);
   assert.equal((await authorizeLink({ resourceAllowed: false })).status, 404);
   const allowed = await authorizeLink();

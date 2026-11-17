@@ -48,11 +48,12 @@ test("each native package accepts only its registered custom scheme", () => {
   assert.equal(accepts("observerqaapp", "com.digitalobserver.app.qa", "ios"), true);
   assert.equal(accepts("observerqaandroid", "com.digitalobserver.app.qa", "android"), true);
   assert.equal(accepts("digitalobserver", "com.ganbatuach.app", "android"), true);
-  assert.equal(accepts("digitalobserver", "com.ganbatuach.app.qa", "ios"), true);
+  assert.equal(accepts("digitalobserver", "com.ganbatuach.app.qa", "ios"), false);
   for (const [scheme, appId, platform] of [
     ["digitalobserver", "com.digitalobserver.app.qa", "ios"],
     ["digitalobserver", "com.digitalobserver.app.qa", "android"],
     ["observerqaapp", "com.ganbatuach.app.qa", "ios"],
+    ["digitalobserver", "com.ganbatuach.app.qa", "android"],
     ["observerqaandroid", "com.ganbatuach.app", "android"],
     ["observerqaandroid", "com.digitalobserver.app.qa", "ios"],
     ["observerqaapp", "com.digitalobserver.app.qa", "android"],

@@ -1,4 +1,9 @@
 export type NativePushRequest = { requestId: string; siteId: string };
+export type OwnedNativePushRequest = NativePushRequest & { ownerId: string };
+
+export function pushRequestBelongsToOwner(request: OwnedNativePushRequest | null, ownerId: string | null) {
+  return !!request && !!ownerId && request.ownerId === ownerId;
+}
 
 export function parseNativePushRequest(detail: unknown, allowedSiteIds: readonly string[]): NativePushRequest | null {
   if (!detail || typeof detail !== "object") return null;

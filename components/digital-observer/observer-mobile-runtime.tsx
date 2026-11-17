@@ -9,8 +9,8 @@ import { PushNotifications, type PushNotificationSchema } from "@capacitor/push-
 import { useEffect, useState } from "react";
 import { mobileNotificationPreview, mobileRuntimeRequiresSession, nativeAppAcceptsMobileLink, sanitizeOfflineQueue, type MobileOfflineOperation } from "@/lib/domain/digital-observer/mobile-runtime";
 import { openMobilePlaybackPublisher } from "@/lib/domain/digital-observer/mobile-playback-lifecycle";
-import { nativePushResult, parseNativePushRequest, type NativePushRequest } from "@/lib/domain/digital-observer/native-push-request";
-import { firstLaunchOfMobileLink, rememberPendingMobileLink, takePendingMobileLink } from "@/lib/domain/digital-observer/pending-mobile-link";
+import { nativePushResult, parseNativePushRequest, pushRequestBelongsToOwner, type OwnedNativePushRequest } from "@/lib/domain/digital-observer/native-push-request";
+import { clearPendingMobileLink, firstLaunchOfMobileLink, rememberPendingMobileLink, takePendingMobileLink } from "@/lib/domain/digital-observer/pending-mobile-link";
 import { observerNativePushAvailable } from "@/lib/domain/digital-observer/native-push-availability";
 
 const deviceReferenceKey = "digital_observer_native_device_reference_v1";
@@ -101,8 +101,10 @@ export function ObserverMobileRuntime() {
     let disposed = false;
     const playbackPublisher = openMobilePlaybackPublisher();
     let sites: RuntimeSite[] = [];
-    let pendingPushRequest: NativePushRequest | null = null;
+    let pendingPushRequest: OwnedNativePushRequest | null = null;
     let pendingPushDeadline = 0;
+    let registrationOwnerId: string | null = null;
+    let activeProfileId: string | null = null;
     let checking = false;
     let checkingVersion = 0;
     let recheckRequested = false;
@@ -115,7 +117,7 @@ export function ObserverMobileRuntime() {
     let pushEnabled = false;
     const removers: Array<() => Promise<void>> = [];
 
-    const registerDevice = async (siteId: string, pushToken?: string) => {
+    const registerDevice = async (siteId: string, pushToken?: string, expectedProfileId?: string) => {
       const [info, appInfo] = await Promise.all([Device.getInfo(), App.getInfo()]);
       const reference = await deviceReference();
       if (pushToken) {
@@ -127,6 +129,7 @@ export function ObserverMobileRuntime() {
             platform: Capacitor.getPlatform(),
             device_token: pushToken,
             device_id: reference,
+            expected_profile_id: expectedProfileId,
             app_version: appInfo.version,
             metadata: { source: "digital_observer_native", observer_site_id: siteId }
           })
@@ -171,12 +174,20 @@ export function ObserverMobileRuntime() {
         if (!profileId) throw new Error("RUNTIME_UNAVAILABLE");
         const previousOwner = await Preferences.get({ key: pushOwnerKey });
         if (previousOwner.value !== profileId) {
+          // A pending resource from account A must not open under account B,
+          // even if B independently has access to the same Site. Preserve only
+          // an unbound cold-start link before the first known owner signs in.
+          if (previousOwner.value && window.sessionStorage) clearPendingMobileLink(window.sessionStorage);
+          pendingPushRequest = null;
+          pendingPushDeadline = 0;
+          registrationOwnerId = null;
           // Native Preferences outlive a web sign-out. Legacy unbound state and
           // another account's pending Push intent must never replay on login.
           await Preferences.remove({ key: pushSiteKey });
           await Preferences.remove({ key: offlineQueueKey });
           await Preferences.set({ key: pushOwnerKey, value: profileId });
         }
+        activeProfileId = profileId;
         sites = payload.data?.sites ?? [];
         const savedSite = await Preferences.get({ key: pushSiteKey });
         if (savedSite.value && sites.some((site) => site.id === savedSite.value)) {
@@ -186,7 +197,10 @@ export function ObserverMobileRuntime() {
         await writeQueue(pending.filter((item) => item.kind !== "runtime_revalidate"));
         if (pushEnabled && pending.some((item) => item.kind === "push_registration")) {
           const permission = await PushNotifications.checkPermissions();
-          if (permission.receive === "granted") await PushNotifications.register();
+          if (permission.receive === "granted") {
+            registrationOwnerId = profileId;
+            await PushNotifications.register();
+          }
         }
         const pendingLink = window.sessionStorage ? takePendingMobileLink(window.sessionStorage, Date.now(), window.location.origin) : null;
         if (pendingLink) {
@@ -204,6 +218,10 @@ export function ObserverMobileRuntime() {
         setStale(true);
         if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
           && mobileRuntimeRequiresSession(window.location.pathname)) {
+          activeProfileId = null;
+          pendingPushRequest = null;
+          pendingPushDeadline = 0;
+          registrationOwnerId = null;
           sites = [];
           const login = new URL("/digital-observer/login", window.location.origin);
           login.searchParams.set("next", window.location.pathname + window.location.search);
@@ -220,9 +238,14 @@ export function ObserverMobileRuntime() {
     };
 
     const handlePushRegistration = async (token: { value: string }) => {
-      const request = Date.now() < pendingPushDeadline ? pendingPushRequest : null;
+      const ownerId = activeProfileId;
+      if (!ownerId || registrationOwnerId !== ownerId) return;
+      registrationOwnerId = null;
+      const request = Date.now() < pendingPushDeadline && pushRequestBelongsToOwner(pendingPushRequest, ownerId)
+        ? pendingPushRequest : null;
       if (!request) pendingPushRequest = null;
       const savedSite = await Preferences.get({ key: pushSiteKey });
+      if (activeProfileId !== ownerId) return;
       const siteId = request?.siteId || savedSite.value || "";
       if (!siteId || !sites.some((site) => site.id === siteId)) {
         if (request && pendingPushRequest === request) {
@@ -232,7 +255,7 @@ export function ObserverMobileRuntime() {
         return;
       }
       try {
-        await registerDevice(siteId, token.value);
+        await registerDevice(siteId, token.value, ownerId);
         await Preferences.set({ key: pushSiteKey, value: siteId });
         await writeQueue((await readQueue()).filter((item) => item.kind !== "push_registration"));
         if (request && pendingPushRequest === request) {
@@ -251,7 +274,7 @@ export function ObserverMobileRuntime() {
     const enablePush = async (event: Event) => {
       const detail = (event as CustomEvent<unknown>).detail;
       const request = parseNativePushRequest(detail, sites.map((site) => site.id));
-      if (!request) return;
+      if (!request || !activeProfileId) return;
       if (Date.now() >= pendingPushDeadline) pendingPushRequest = null;
       if (pendingPushRequest) {
         emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_in_progress"));
@@ -261,15 +284,18 @@ export function ObserverMobileRuntime() {
         emit("digital-observer:native-push-result", nativePushResult(request, false, "push_unavailable_in_qa"));
         return;
       }
-      pendingPushRequest = request;
+      const ownedRequest = { ...request, ownerId: activeProfileId };
+      pendingPushRequest = ownedRequest;
       pendingPushDeadline = Date.now() + 30_000;
+      registrationOwnerId = ownedRequest.ownerId;
       try {
         let permission = await PushNotifications.checkPermissions();
         if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
           permission = await PushNotifications.requestPermissions();
         }
         if (permission.receive !== "granted") {
-          if (pendingPushRequest === request) {
+          registrationOwnerId = null;
+          if (pendingPushRequest === ownedRequest) {
             pendingPushRequest = null;
             emit("digital-observer:native-push-result", nativePushResult(request, false, "permission_denied"));
           }
@@ -277,7 +303,8 @@ export function ObserverMobileRuntime() {
         }
         await PushNotifications.register();
       } catch {
-        if (pendingPushRequest === request) {
+        registrationOwnerId = null;
+        if (pendingPushRequest === ownedRequest) {
           pendingPushRequest = null;
           emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_failed"));
         }
@@ -350,6 +377,7 @@ export function ObserverMobileRuntime() {
         const registrationError = await PushNotifications.addListener("registrationError", () => {
           const request = pendingPushRequest;
           pendingPushRequest = null;
+          registrationOwnerId = null;
           if (request) emit("digital-observer:native-push-result", nativePushResult(request, false, "provider_error"));
         });
         const received = await PushNotifications.addListener("pushNotificationReceived", (notification: PushNotificationSchema) => {

@@ -35,6 +35,11 @@ export function takePendingMobileLink(storage: StorageLike, now = Date.now(), al
   } catch { return null; }
 }
 
+export function clearPendingMobileLink(storage: StorageLike) {
+  try { storage.removeItem(pendingKey); storage.removeItem(launchSeenKey); }
+  catch { /* Unavailable session storage must not keep a link in runtime state. */ }
+}
+
 export function firstLaunchOfMobileLink(storage: StorageLike, rawUrl: string, now = Date.now(), allowedHttpsOrigin?: string) {
   try {
     const url = canonicalMobileLink(rawUrl, allowedHttpsOrigin);

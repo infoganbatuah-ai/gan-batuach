@@ -9,6 +9,7 @@ const schema = z.object({
   platform: z.enum(["web", "android", "ios"]),
   device_token: z.string().min(8),
   device_id: z.string().optional(),
+  expected_profile_id: z.string().uuid().optional(),
   app_version: z.string().optional(),
   metadata: z.record(z.string(), z.unknown()).optional()
 });
@@ -25,6 +26,10 @@ export async function POST(request: Request) {
     const cookieSession = bearerSession ? null : await requireUser();
     const profile = bearerSession?.profile ?? cookieSession!.profile;
     const payload = schema.parse(await request.json());
+    // A native callback may race a web account switch. This is a session
+    // consistency check, not proof of the app bundle or device identity.
+    if (payload.expected_profile_id && payload.expected_profile_id !== profile.id)
+      return fail("נדרש אימות מחדש.", 403);
     const supabase = bearerSession?.supabase ?? await createClient();
     const result = await registerPushDevice(supabase as Parameters<typeof registerPushDevice>[0], {
       profileId: profile.id,

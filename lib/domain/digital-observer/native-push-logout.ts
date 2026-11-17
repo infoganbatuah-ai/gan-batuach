@@ -9,3 +9,11 @@ export async function currentNativePushDeviceId(): Promise<string | null> {
   if (!device.value) throw new Error("PUSH_DEVICE_ID_MISSING");
   return device.value;
 }
+
+export async function currentNativePushOwnerId(): Promise<string | null> {
+  const { Capacitor } = await import("@capacitor/core");
+  if (!Capacitor.isNativePlatform()) return null;
+  const { Preferences } = await import("@capacitor/preferences");
+  const owner = await Preferences.get({ key: "digital_observer_native_push_owner_v1" });
+  return owner.value || null;
+}
