@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // when the request was prepared for A. This is not app attestation.
     if (body.data.expected_profile_id && body.data.expected_profile_id !== user.id)
       return NextResponse.json({ error: "SESSION_CHANGED" }, { status: 403 });
-    const revoked = await unregisterPushDevice(supabase as unknown as Parameters<typeof unregisterPushDevice>[0], user.id, null, body.data.observer_push_device_id);
+    const revoked = await unregisterPushDevice(supabase as unknown as Parameters<typeof unregisterPushDevice>[0], user.id, null, body.data.observer_push_device_id, "digital_observer_native");
     if (!revoked.ok) return NextResponse.json({ error: "PUSH_REVOCATION_FAILED" }, { status: 503 });
   }
   const { error: signOutError } = await supabase.auth.signOut();
