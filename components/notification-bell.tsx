@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BellRing, CheckCheck } from "lucide-react";
 import { safeGanNotificationDestination } from "@/lib/domain/gan-notification-destination";
+import { parseGanNotificationFeed } from "@/lib/domain/gan-notification-feed";
 
 type NotificationRow = {
   id: string;
@@ -34,18 +35,22 @@ export function NotificationBell({ role }: { role: string }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [unread, setUnread] = useState(0);
+  const [loadError, setLoadError] = useState(false);
   const centerHref = centerByRole[role] ?? "/dashboard";
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/notifications")
-      .then((response) => response.json())
-      .then((body) => {
+      .then(async (response) => ({ response, body: await response.json() }))
+      .then(({ response, body }) => {
         if (cancelled) return;
-        setRows(body.data?.rows ?? []);
-        setUnread(body.data?.unread ?? 0);
+        const feed = parseGanNotificationFeed(response.ok, body);
+        if (!feed) { setLoadError(true); return; }
+        setLoadError(false);
+        setRows(feed.rows as NotificationRow[]);
+        setUnread(feed.unread);
       })
-      .catch(() => undefined);
+      .catch(() => { if (!cancelled) setLoadError(true); });
     return () => {
       cancelled = true;
     };
@@ -71,8 +76,8 @@ export function NotificationBell({ role }: { role: string }) {
       </button>
       {open ? (
         <div className="notification-popover">
-          <div className="notification-popover-head"><strong>מה דורש תשומת לב?</strong><button type="button" onClick={markAllRead}><CheckCheck size={15} /> הכל נקרא</button></div>
-          {previewRows.length === 0 ? <div className="empty-mini">אין התראות פתוחות כרגע.</div> : previewRows.map((item) => (
+          <div className="notification-popover-head"><strong>מה דורש תשומת לב?</strong><button type="button" disabled={loadError} onClick={markAllRead}><CheckCheck size={15} /> הכל נקרא</button></div>
+          {loadError ? <div className="empty-mini" role="alert">לא ניתן לטעון התראות כרגע.</div> : previewRows.length === 0 ? <div className="empty-mini">אין התראות פתוחות כרגע.</div> : previewRows.map((item) => (
             <Link className="notification-preview-row" href={actionHref(item)} key={item.id}>
               <span className={item.read_at ? "dot good" : "dot warn"} />
               <div><strong>{item.title}</strong><small>{item.message ?? item.body ?? "עדכון חדש במערכת"}</small></div>
