@@ -116,7 +116,8 @@ export async function PATCH(request: Request) {
     // Enable only after the reviewed 275th Development migration is applied.
     // A failed RPC must never fall back to the legacy two-request write path.
     if (typeof process !== "undefined" && process.env.PUSH44_ATOMIC_PREFERENCES_RPC === "enabled") {
-      const { push_category_preferences, expected_profile_id: _expectedProfileId, ...preferencePatch } = payload;
+      const { push_category_preferences, ...preferencePatch } = payload;
+      delete preferencePatch.expected_profile_id;
       const { data, error } = await supabase.rpc("save_communication_preferences_atomic", {
         p_patch: preferencePatch,
         p_categories: push_category_preferences ?? null
