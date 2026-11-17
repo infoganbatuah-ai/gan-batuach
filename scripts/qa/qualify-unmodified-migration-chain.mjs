@@ -32,6 +32,10 @@ const legalSeedFile = "20260612016600_external_legal_privacy_regulatory_review_p
 const legalSeedSha256 = "f258acab64283fa24496ca33feae1d4f6c610b2b917f84c180679c357d1c4828";
 const legalSeedSource = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'requested', 'needs_review', 'needs_review', 'medium', 'under_review'";
 const legalSeedCorrection = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'needs_review', 'requested', 'needs_review', 'medium', 'under_review'";
+const unsafeBackfillFile = "20260827000100_digital_observer_event_media_evidence.sql";
+const unsafeBackfillSha256 = "088f367d6c00cbfd5d35d3d7a57147dc6ee2cd179cf485a5e6eddbfed0d46eeb";
+const unsafeBackfillStart = "\nupdate public.observer_intelligence_signals s\n";
+const unsafeBackfillEnd = "\n\ngrant select (";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -59,6 +63,7 @@ let testOnlyTypoNormalization = false;
 let testOnlyStockAuthJwt = false;
 let testOnlyLegalSeedNormalization = false;
 let testOnlyStockAuthSchema = false;
+let testOnlyUnsafeBackfillSkipped = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -143,6 +148,21 @@ try {
         testSource = testSource.replace(legalSeedSource, legalSeedCorrection);
         testOnlyLegalSeedNormalization = true;
       }
+      if (file === unsafeBackfillFile && process.env.PUSH44_FILE170_SKIP_UNSAFE_BACKFILL === "YES") {
+        // The historical UPDATE would attach the first active camera to system
+        // events without a verified source identity. Never execute that backfill.
+        if (createHash("sha256").update(source).digest("hex") !== unsafeBackfillSha256 ||
+            source.split(unsafeBackfillStart).length !== 2 ||
+            source.split(unsafeBackfillEnd).length !== 2) throw new Error("FILE170_SOURCE_DRIFT");
+        const start = source.indexOf(unsafeBackfillStart);
+        const end = source.indexOf(unsafeBackfillEnd, start);
+        const excluded = source.slice(start, end);
+        if (!excluded.includes("cs.observer_site_id = s.observer_site_id") ||
+            !excluded.trimEnd().endsWith("and not (coalesce(s.metadata, '{}'::jsonb) ? 'camera_source_id');"))
+          throw new Error("FILE170_UNSAFE_BACKFILL_SHAPE_DRIFT");
+        testSource = source.slice(0, start) + "\n-- TEST ONLY: unsafe first-active-camera backfill excluded; not deployable." + source.slice(end);
+        testOnlyUnsafeBackfillSkipped = true;
+      }
       if (file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES") {
         // PostgreSQL 17 cannot use a newly added enum value until commit.
         // Keep the historical file byte-for-byte; commit only its guarded
@@ -183,13 +203,15 @@ try {
         testOnlyStockAuthJwt,
         testOnlyStockAuthSchema,
         testOnlyLegalSeedNormalization,
+        testOnlyUnsafeBackfillSkipped,
+        deployable: false,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
       process.exitCode = 1;
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, deployable: false }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
