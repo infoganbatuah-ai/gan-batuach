@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Opt-in, disposable schema-chain diagnosis. Never uses the existing database.
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -72,6 +72,7 @@ let testOnlyStockAuthSchema = false;
 let testOnlyUnsafeBackfillSkipped = false;
 let testOnlyGuardActivationSkipped = false;
 let testOnlyChannelOneActivationSkipped = false;
+let file170FailClosedProof = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -140,6 +141,24 @@ try {
     const source = readFileSync(join("supabase/migrations", file), "utf8");
     let testSource = source;
     try {
+      let syntheticSignalId = null;
+      if (file === unsafeBackfillFile && process.env.PUSH44_FILE170_FAIL_CLOSED_PROOF === "YES") {
+        if (process.env.PUSH44_FILE170_SKIP_UNSAFE_BACKFILL === "YES")
+          throw new Error("FILE170_PROOF_CANNOT_SKIP_SOURCE");
+        const syntheticSiteId = randomUUID();
+        const syntheticCameraId = randomUUID();
+        syntheticSignalId = randomUUID();
+        // A connected synthetic camera on the same site must not become an
+        // unverified system event's source. No media object or live route exists.
+        docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"],
+          `insert into public.observer_sites(id,name,site_type,monitoring_enabled) values ('${syntheticSiteId}','Disposable fail-closed site','home',false);
+           insert into public.digital_observer_camera_sources(id,observer_site_id,display_name,source_mode,status,health_status)
+             values ('${syntheticCameraId}','${syntheticSiteId}','Disposable camera','readiness','connected','healthy');
+           insert into public.observer_intelligence_signals(id,signal_type,source_type,observer_site_id,metadata)
+             values ('${syntheticSignalId}','pattern','system','${syntheticSiteId}',
+               '{"event_type":"home_learning_started","test_only":"file170_fail_closed"}'::jsonb);`);
+      }
       if (file === typoFile && process.env.PUSH44_FILE13_TYPO_NORMALIZE === "YES") {
         // Historical source and baseline hash stay immutable. This is only a
         // disposable test fixture; it is not a clean-chain/deployable repair.
@@ -228,6 +247,18 @@ try {
         docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
           "-U", "supabase_admin", "-d", "postgres"], testSource, 90_000);
       }
+      if (syntheticSignalId) {
+        const proof = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"],
+          `select not (metadata ? 'camera_source_id') and not (metadata ? 'evidence_repair'),
+             not exists(select 1 from public.digital_observer_event_clips where signal_id='${syntheticSignalId}'),
+             (select public is false from storage.buckets where id='digital-observer-event-media'),
+             not exists(select 1 from pg_policies where schemaname='storage' and tablename='objects'
+               and (coalesce(qual,'') || coalesce(with_check,'')) like '%digital-observer-event-media%')
+           from public.observer_intelligence_signals where id='${syntheticSignalId}';`);
+        if (proof !== "t|t|t|t") throw new Error(`FILE170_FAIL_CLOSED_PROOF_FAILED_${proof}`);
+        file170FailClosedProof = true;
+      }
       passed++;
     } catch (error) {
       const diagnostic = String(error.stderr ?? "").split("\n")
@@ -244,6 +275,7 @@ try {
         testOnlyUnsafeBackfillSkipped,
         testOnlyGuardActivationSkipped,
         testOnlyChannelOneActivationSkipped,
+        file170FailClosedProof,
         deployable: false,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
@@ -251,7 +283,7 @@ try {
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, deployable: false }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, file170FailClosedProof, deployable: false }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
