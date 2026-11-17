@@ -57,6 +57,17 @@ test("failed revocation and absent session fail closed without sign-out", async 
   assert.deepEqual(unauthenticated.calls, ["auth"]);
 });
 
+test("late logout for account A cannot revoke or sign out account B", async () => {
+  const accountA = "00000000-0000-4000-8000-0000000000aa";
+  const accountB = "00000000-0000-4000-8000-0000000000bb";
+  const h = route({ userId: accountB });
+  const response = await h.post({ observer_push_device_id: deviceId, expected_profile_id: accountA });
+  assert.equal(response.status, 403);
+  assert.deepEqual(h.calls, ["auth"]);
+  const own = await h.post({ observer_push_device_id: deviceId, expected_profile_id: accountB });
+  assert.equal(own.status, 200);
+});
+
 test("malformed and cross-device requests cannot trigger revocation", async () => {
   const h = route();
   assert.equal((await h.post({ observer_push_device_id: "not-a-uuid" })).status, 400);
@@ -153,11 +164,14 @@ test("client only supplies native current-device id and does not navigate on fai
   const component = readFileSync(new URL("../../components/logout-button.tsx", import.meta.url), "utf8");
   const helper = readFileSync(new URL("../../lib/domain/digital-observer/native-push-logout.ts", import.meta.url), "utf8");
   assert.match(component, /redirectTo === "\/digital-observer\/login" \? await currentNativePushDeviceId\(\)/);
+  assert.match(component, /currentNativePushOwnerId\(\)/);
+  assert.match(component, /expected_profile_id: expectedOwnerId/);
   assert.match(component, /if \(!response\.ok\) \{/);
   assert.match(component, /throw new Error\("LOGOUT_FAILED"\)/);
   assert.match(helper, /if \(!Capacitor\.isNativePlatform\(\)\) return null/);
   assert.match(helper, /if \(!site\.value\) return null/);
   assert.match(helper, /if \(!device\.value\) throw/);
+  assert.match(helper, /digital_observer_native_push_owner_v1/);
 });
 
 test("actual logout button keeps the session on an offline request failure", async () => {
@@ -173,7 +187,8 @@ test("actual logout button keeps the session on an offline request failure", asy
     "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
     "lucide-react": { LogOut: () => null },
     "next/navigation": { useRouter: () => ({ replace: () => calls.push("replace"), refresh: () => calls.push("refresh") }) },
-    "@/lib/domain/digital-observer/native-push-logout": { currentNativePushDeviceId: async () => deviceId }
+    "@/lib/domain/digital-observer/native-push-logout": { currentNativePushDeviceId: async () => deviceId,
+      currentNativePushOwnerId: async () => null }
   };
   vm.runInNewContext(componentJs, {
     exports,
@@ -206,7 +221,7 @@ test("Observer QA explains failed push revocation and remains signed in", async 
       replace: () => calls.push("replace"), refresh: () => calls.push("refresh")
     }) },
     "@/lib/domain/digital-observer/native-push-logout": {
-      currentNativePushDeviceId: async () => deviceId
+      currentNativePushDeviceId: async () => deviceId, currentNativePushOwnerId: async () => null
     }
   };
   vm.runInNewContext(componentJs, {

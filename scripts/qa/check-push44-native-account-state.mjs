@@ -16,6 +16,8 @@ const tick = async () => { for (let i = 0; i < 100; i++) await Promise.resolve()
 
 function runtime(initial) {
   const values = new Map(initial);
+  const sessionValues = new Map([["digital_observer_pending_link_v1", "account-a-pending-resource"],
+    ["digital_observer_launch_link_seen_v1", "account-a-launch-marker"]]);
   const calls = [];
   const preferences = {
     get: async ({ key }) => ({ value: values.get(key) ?? null }),
@@ -32,6 +34,8 @@ function runtime(initial) {
       addListener: async () => ({ remove: async () => {} }) }
   };
   const window = { location: { pathname: "/digital-observer/dashboard", search: "", origin: "https://qa.invalid", replace: () => {} },
+    sessionStorage: { getItem: (key) => sessionValues.get(key) ?? null,
+      removeItem: (key) => sessionValues.delete(key), setItem: (key, value) => sessionValues.set(key, value) },
     addEventListener: () => {}, removeEventListener: () => {}, dispatchEvent: () => {} };
   const modules = {
     react: { useState: (value) => [typeof value === "function" ? value() : value, () => {}], useEffect: (fn) => { fn(); } },
@@ -41,7 +45,8 @@ function runtime(initial) {
     "@/lib/domain/digital-observer/native-push-request": { parseNativePushRequest: () => null, nativePushResult: () => ({}) },
     "@/lib/domain/digital-observer/native-push-availability": { observerNativePushAvailable: ({ appId, pluginAvailable }) => !!pluginAvailable && appId === "com.ganbatuach.app" },
     "@/lib/domain/digital-observer/pending-mobile-link": { firstLaunchOfMobileLink: () => false,
-      rememberPendingMobileLink: () => null, takePendingMobileLink: () => null }
+      rememberPendingMobileLink: () => null, takePendingMobileLink: () => null,
+      clearPendingMobileLink: (storage) => { calls.push(["clear-pending"]); storage.removeItem("digital_observer_pending_link_v1"); storage.removeItem("digital_observer_launch_link_seen_v1"); } }
   };
   const exports = {};
   vm.runInNewContext(js, { exports, window, URL, AbortController, setTimeout, clearTimeout, Date, crypto,
@@ -58,7 +63,7 @@ function runtime(initial) {
     }
   }, { timeout: 5000 });
   exports.ObserverMobileRuntime();
-  return { values, calls };
+  return { values, sessionValues, calls };
 }
 
 test("another account never replays an earlier account's Push intent or Site", async () => {
@@ -70,6 +75,9 @@ test("another account never replays an earlier account's Push intent or Site", a
   assert.equal(h.values.has(siteKey), false);
   assert.equal(h.values.get(queueKey), "[]");
   assert.equal(h.values.get(ownerKey), "user-b");
+  assert.equal(h.sessionValues.has("digital_observer_pending_link_v1"), false);
+  assert.equal(h.sessionValues.has("digital_observer_launch_link_seen_v1"), false);
+  assert.equal(h.calls.filter(([kind]) => kind === "clear-pending").length, 1);
 });
 
 test("legacy unbound Push intent fails closed on first authenticated bootstrap", async () => {
@@ -79,4 +87,7 @@ test("legacy unbound Push intent fails closed on first authenticated bootstrap",
   assert.equal(h.calls.filter(([kind]) => kind === "push-register").length, 0);
   assert.equal(h.values.has(siteKey), false);
   assert.equal(h.values.get(queueKey), "[]");
+  assert.equal(h.sessionValues.has("digital_observer_pending_link_v1"), true,
+    "unbound cold-start link must survive first login");
+  assert.equal(h.calls.filter(([kind]) => kind === "clear-pending").length, 0);
 });

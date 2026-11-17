@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { unregisterPushDevice } from "@/lib/domain/push-service";
 import { z } from "zod";
 
-const logoutBody = z.object({ observer_push_device_id: z.string().uuid().optional() }).strict();
+const logoutBody = z.object({ observer_push_device_id: z.string().uuid().optional(),
+  expected_profile_id: z.string().uuid().optional() }).strict();
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
@@ -19,6 +20,10 @@ export async function POST(request: Request) {
   if (body.data.observer_push_device_id) {
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return NextResponse.json({ error: "SESSION_REQUIRED" }, { status: 401 });
+    // Native logout may race an account switch. Never revoke or sign out B
+    // when the request was prepared for A. This is not app attestation.
+    if (body.data.expected_profile_id && body.data.expected_profile_id !== user.id)
+      return NextResponse.json({ error: "SESSION_CHANGED" }, { status: 403 });
     const revoked = await unregisterPushDevice(supabase as unknown as Parameters<typeof unregisterPushDevice>[0], user.id, null, body.data.observer_push_device_id);
     if (!revoked.ok) return NextResponse.json({ error: "PUSH_REVOCATION_FAILED" }, { status: 503 });
   }

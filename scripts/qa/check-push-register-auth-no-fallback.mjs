@@ -41,9 +41,9 @@ function route({ observer = null, cookie = { profile: { id: "cookie-user", role:
     throw new Error(`unexpected import: ${name}`);
   };
   runInNewContext(compiled, { exports, require });
-  const post = (authorization) => exports.POST(new Request("http://localhost/api/push/register", {
+  const post = (authorization, body = payload) => exports.POST(new Request("http://localhost/api/push/register", {
     method: "POST", headers: authorization === null ? {} : { authorization },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(body)
   }));
   return { calls, db, post };
 }
@@ -77,4 +77,15 @@ test("cookie-only registration retains its existing account path", async () => {
   const response = await h.post(null);
   assert.equal(response.status, 200);
   assert.deepEqual(h.calls, ["cookie-auth", "cookie-db", ["register", h.db, "cookie-user"]]);
+});
+
+test("late native callback cannot register account A token under account B session", async () => {
+  const accountA = "00000000-0000-4000-8000-0000000000aa";
+  const accountB = "00000000-0000-4000-8000-0000000000bb";
+  const h = route({ cookie: { profile: { id: accountB, role: "parent" } } });
+  const response = await h.post(null, { ...payload, expected_profile_id: accountA });
+  assert.equal(response.status, 403);
+  assert.deepEqual(h.calls, ["cookie-auth"]);
+  const own = await h.post(null, { ...payload, expected_profile_id: accountB });
+  assert.equal(own.status, 200);
 });

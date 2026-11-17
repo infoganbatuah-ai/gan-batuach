@@ -3,7 +3,7 @@
 import { LogOut } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { currentNativePushDeviceId } from "@/lib/domain/digital-observer/native-push-logout";
+import { currentNativePushDeviceId, currentNativePushOwnerId } from "@/lib/domain/digital-observer/native-push-logout";
 
 export function LogoutButton({
   compact = false,
@@ -23,9 +23,12 @@ export function LogoutButton({
     setError("");
     try {
       const deviceId = redirectTo === "/digital-observer/login" ? await currentNativePushDeviceId() : null;
+      const expectedOwnerId = deviceId ? await currentNativePushOwnerId() : null;
       const response = await fetch("/api/auth/logout", {
         method: "POST",
-        ...(deviceId ? { headers: { "content-type": "application/json" }, body: JSON.stringify({ observer_push_device_id: deviceId }) } : {})
+        ...(deviceId ? { headers: { "content-type": "application/json" }, body: JSON.stringify({
+          observer_push_device_id: deviceId, ...(expectedOwnerId ? { expected_profile_id: expectedOwnerId } : {})
+        }) } : {})
       });
       if (!response.ok) {
         const result = deviceId && response.status === 503
