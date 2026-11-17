@@ -36,6 +36,10 @@ const unsafeBackfillFile = "20260827000100_digital_observer_event_media_evidence
 const unsafeBackfillSha256 = "088f367d6c00cbfd5d35d3d7a57147dc6ee2cd179cf485a5e6eddbfed0d46eeb";
 const unsafeBackfillStart = "\nupdate public.observer_intelligence_signals s\n";
 const unsafeBackfillEnd = "\n\ngrant select (";
+const guardActivationFile = "20260902033000_activate_scoped_digital_guard_camera_automation.sql";
+const guardActivationSha256 = "8578292d4c399e1c16dcdce6155c10b1391b2c698014d3d1766295a8feb31ffe";
+const guardActivationStart = "\ncreate or replace function public.sync_authorized_siren_policy_to_crossing_line()";
+const guardActivationEnd = "\n-- Replace the autonomous enqueue RPC";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -64,6 +68,7 @@ let testOnlyStockAuthJwt = false;
 let testOnlyLegalSeedNormalization = false;
 let testOnlyStockAuthSchema = false;
 let testOnlyUnsafeBackfillSkipped = false;
+let testOnlyGuardActivationSkipped = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -163,6 +168,24 @@ try {
         testSource = source.slice(0, start) + "\n-- TEST ONLY: unsafe first-active-camera backfill excluded; not deployable." + source.slice(end);
         testOnlyUnsafeBackfillSkipped = true;
       }
+      if (file === guardActivationFile && process.env.PUSH44_FILE178_SKIP_ACTIVATION === "YES") {
+        // Exclude the Home-specific trigger, source edits, policy inserts and
+        // authorization audit. Keep generic validators and RPC definition only
+        // in the disposable DB; never seed cameras or call the RPC.
+        if (createHash("sha256").update(source).digest("hex") !== guardActivationSha256 ||
+            source.split(guardActivationStart).length !== 2 ||
+            source.split(guardActivationEnd).length !== 2) throw new Error("FILE178_SOURCE_DRIFT");
+        const start = source.indexOf(guardActivationStart);
+        const end = source.indexOf(guardActivationEnd, start);
+        const excluded = source.slice(start, end);
+        if (!excluded.includes("raise exception 'Authorized camera scope is incomplete or unhealthy'") ||
+            !excluded.includes("insert into public.digital_observer_camera_automation_policies") ||
+            !excluded.includes("digital_guard_physical_automation_authorized_v1") ||
+            !excluded.includes("create trigger sync_authorized_siren_policy_to_crossing_line"))
+          throw new Error("FILE178_ACTIVATION_SHAPE_DRIFT");
+        testSource = source.slice(0, start) + "\n-- TEST ONLY: Home Guard activation excluded; not deployable.\n" + source.slice(end);
+        testOnlyGuardActivationSkipped = true;
+      }
       if (file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES") {
         // PostgreSQL 17 cannot use a newly added enum value until commit.
         // Keep the historical file byte-for-byte; commit only its guarded
@@ -204,6 +227,7 @@ try {
         testOnlyStockAuthSchema,
         testOnlyLegalSeedNormalization,
         testOnlyUnsafeBackfillSkipped,
+        testOnlyGuardActivationSkipped,
         deployable: false,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
@@ -211,7 +235,7 @@ try {
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, deployable: false }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, deployable: false }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
