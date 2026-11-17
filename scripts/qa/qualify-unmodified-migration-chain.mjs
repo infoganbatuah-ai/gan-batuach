@@ -29,9 +29,6 @@ as $$
 $$;`;
 const stockAuthJwtSha256 = "da8cd1a869ff38ccad99a1da949f246e389865191f3412661a58f98565bce028";
 const legalSeedFile = "20260612016600_external_legal_privacy_regulatory_review_pack.sql";
-const legalSeedSha256 = "f258acab64283fa24496ca33feae1d4f6c610b2b917f84c180679c357d1c4828";
-const legalSeedSource = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'requested', 'needs_review', 'needs_review', 'medium', 'under_review'";
-const legalSeedCorrection = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'needs_review', 'requested', 'needs_review', 'medium', 'under_review'";
 const unsafeBackfillFile = "20260827000100_digital_observer_event_media_evidence.sql";
 const unsafeBackfillSha256 = "088f367d6c00cbfd5d35d3d7a57147dc6ee2cd179cf485a5e6eddbfed0d46eeb";
 const unsafeBackfillStart = "\nupdate public.observer_intelligence_signals s\n";
@@ -67,7 +64,7 @@ let networkCreated = false;
 let passed = 0;
 let testOnlyTypoNormalization = false;
 let testOnlyStockAuthJwt = false;
-let testOnlyLegalSeedNormalization = false;
+let legalSeedPendingProof = false;
 let testOnlyStockAuthSchema = false;
 let testOnlyUnsafeBackfillSkipped = false;
 let testOnlyGuardActivationSkipped = false;
@@ -167,14 +164,6 @@ try {
         testSource = source.replace(typoSource, typoCorrection);
         testOnlyTypoNormalization = true;
       }
-      if (file === legalSeedFile && process.env.PUSH44_FILE132_LEGAL_SEED_NORMALIZE === "YES") {
-        // The historical row transposes two pending-review statuses. Test only:
-        // no legal status is promoted, and the canonical source stays untouched.
-        if (createHash("sha256").update(source).digest("hex") !== legalSeedSha256 ||
-            source.split(legalSeedSource).length !== 2) throw new Error("FILE132_SOURCE_DRIFT");
-        testSource = testSource.replace(legalSeedSource, legalSeedCorrection);
-        testOnlyLegalSeedNormalization = true;
-      }
       if (file === unsafeBackfillFile && process.env.PUSH44_FILE170_SKIP_UNSAFE_BACKFILL === "YES") {
         // The historical UPDATE would attach the first active camera to system
         // events without a verified source identity. Never execute that backfill.
@@ -259,6 +248,18 @@ try {
         if (proof !== "t|t|t|t") throw new Error(`FILE170_FAIL_CLOSED_PROOF_FAILED_${proof}`);
         file170FailClosedProof = true;
       }
+      if (file === legalSeedFile && process.env.PUSH44_FILE132_PENDING_PROOF === "YES") {
+        const proof = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"],
+          `select privacy_review_status='needs_review', dpa_status='requested',
+             security_review_status='needs_review', contract_status='under_review'
+           from public.subprocessor_register where provider_key='vercel';
+           select pg_get_constraintdef(oid) like '%requested%' and pg_get_constraintdef(oid) like '%signed%'
+           from pg_constraint where conname='subprocessor_dpa_status_check'
+             and conrelid='public.subprocessor_register'::regclass;`);
+        if (proof !== "t|t|t|t\nt") throw new Error(`FILE132_PENDING_PROOF_FAILED_${proof}`);
+        legalSeedPendingProof = true;
+      }
       passed++;
     } catch (error) {
       const diagnostic = String(error.stderr ?? "").split("\n")
@@ -271,7 +272,7 @@ try {
         testOnlyTypoNormalization,
         testOnlyStockAuthJwt,
         testOnlyStockAuthSchema,
-        testOnlyLegalSeedNormalization,
+        legalSeedPendingProof,
         testOnlyUnsafeBackfillSkipped,
         testOnlyGuardActivationSkipped,
         testOnlyChannelOneActivationSkipped,
@@ -283,7 +284,7 @@ try {
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, file170FailClosedProof, deployable: false }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, legalSeedPendingProof, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, file170FailClosedProof, deployable: false }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
