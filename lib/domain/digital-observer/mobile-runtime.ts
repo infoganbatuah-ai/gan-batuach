@@ -53,6 +53,11 @@ export function nativeAppAcceptsMobileLink(rawUrl: string, appId: string, platfo
     platform === "android" && appId === "com.digitalobserver.app.qa" ? "observerqaandroid:" :
     ["ios", "android"].includes(platform) && ["com.ganbatuach.app", "com.ganbatuach.app.qa"].includes(appId) ? "digitalobserver:" : null;
   if (!expected || url.username || url.password || url.port || url.hash) return false;
+  // The Observer Android QA intent filter admits only the six resource hosts
+  // and the separate native return authority. A resource link carries exactly
+  // one site selector; never forward unknown query fields (including tokens).
+  if (platform === "android" && appId === "com.digitalobserver.app.qa" &&
+      (url.searchParams.size !== 1 || !url.searchParams.has("site"))) return false;
   if (url.protocol === "https:") {
     // A shared origin is not an installation identity. Only the distinct
     // Observer QA app may consume Observer HTTPS resource links.
