@@ -38,6 +38,19 @@ export function statusTone(status?: string | null): "good" | "warn" | "bad" | "d
 }
 
 export function calculateObserverPilotReadiness(counts: ObserverPilotCounts) {
+  const values = Object.values(counts);
+  const consistent = values.every((value) => Number.isSafeInteger(value) && value >= 0)
+    && counts.reviewed <= counts.detections
+    && counts.pendingReview <= counts.detections
+    && counts.falsePositive + counts.falseNegative + counts.uncertain <= counts.reviewed
+    && counts.stableCameras <= counts.cameras;
+  // Dashboard queries use different bounded windows. A review count from
+  // outside the detection sample cannot be used as evidence of readiness.
+  if (!consistent) return {
+    readiness: 0, calibration: 0, reviewedRatio: 0, falsePositiveRate: 0,
+    falseNegativeRate: 0, cameraStability: 0, productionBlocked: true,
+    blockerReason: "נתוני הפיילוט אינם עקביים; נדרש מדגם מאומת"
+  };
   const reviewedRatio = counts.detections ? counts.reviewed / counts.detections : 0;
   const falsePositiveRate = counts.reviewed ? counts.falsePositive / counts.reviewed : 0;
   const falseNegativeRate = counts.reviewed ? counts.falseNegative / counts.reviewed : 0;
@@ -69,5 +82,24 @@ export function calculateObserverPilotReadiness(counts: ObserverPilotCounts) {
           : falseNegativeRate > 0.1
             ? "שיעור false negative דורש כיול"
             : null
+  };
+}
+
+export function pilotDisplayScores(current: { readiness: number; calibration: number }, historical: {
+  readiness_score?: unknown; calibration_score?: unknown
+} | null | undefined) {
+  const historicalScore = (value: unknown) => {
+    if (typeof value !== "number" && typeof value !== "string") return null;
+    if (typeof value === "string" && !value.trim()) return null;
+    const score = Number(value);
+    return Number.isFinite(score) && score >= 0 && score <= 100 ? score : null;
+  };
+  // A stored snapshot may describe a different Site, window or model. It is
+  // historical context, never an input to the current readiness decision.
+  return {
+    readiness: current.readiness,
+    calibration: current.calibration,
+    historicalReadiness: historicalScore(historical?.readiness_score),
+    historicalCalibration: historicalScore(historical?.calibration_score)
   };
 }

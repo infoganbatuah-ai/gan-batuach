@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { Activity, BrainCircuit, Camera, ClipboardCheck, Gauge, ShieldCheck, SlidersHorizontal, TriangleAlert } from "lucide-react";
+import { BrainCircuit, Camera, ClipboardCheck, Gauge, ShieldCheck, TriangleAlert } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { calculateObserverPilotReadiness, observerPilotSafetyRules, pct, scoreTone, statusTone } from "@/lib/domain/observer-pilot";
+import { calculateObserverPilotReadiness, observerPilotSafetyRules, pct, pilotDisplayScores, scoreTone, statusTone } from "@/lib/domain/observer-pilot";
 
 type Row = Record<string, any>;
 
@@ -71,8 +71,9 @@ export default async function AdminObserverPilotPage() {
     stableCameras
   });
   const latestQuality = quality.rows[0];
-  const readinessScore = Math.max(computed.readiness, Number(latestQuality?.readiness_score ?? 0));
-  const calibrationScore = Math.max(computed.calibration, Number(latestQuality?.calibration_score ?? 0));
+  const displayScores = pilotDisplayScores(computed, latestQuality);
+  const readinessScore = displayScores.readiness;
+  const calibrationScore = displayScores.calibration;
   const queryError = [pilotRuns.error, cameras.error, skeletonEvents.error, aiEvents.error, reviews.error, calibration.error, quality.error, adapters.error, frameJobs.error, datasets.error, safetyRules.error].filter(Boolean).join(" · ") || null;
 
   return (
@@ -95,6 +96,8 @@ export default async function AdminObserverPilotPage() {
         <div className="premium-metric-grid">
           <RoleMetricCard label="Pilot readiness" value={`${readinessScore}/100`} hint={computed.blockerReason ?? "מדד פיילוט"} tone={scoreTone(readinessScore)} />
           <RoleMetricCard label="Calibration" value={`${calibrationScore}/100`} hint="בשלות כיול" tone={scoreTone(calibrationScore)} />
+          <RoleMetricCard label="Historical snapshot" value={displayScores.historicalReadiness === null ? "—" : `${displayScores.historicalReadiness}/100`}
+            hint="לידיעה בלבד; אינו מחליף את מדגם הפיילוט הנוכחי" tone="default" />
           <RoleMetricCard label="Pilot cameras" value={cameras.rows.length} hint={`${stableCameras} יציבות`} tone={stableCameras ? "good" : "warn"} />
           <RoleMetricCard label="Detection volume" value={allEvents.length} hint="AI + Skeleton shadow" tone={allEvents.length ? "good" : "warn"} />
           <RoleMetricCard label="Review queue" value={pendingReview.length} hint="בדיקת אדם חובה" tone={pendingReview.length ? "warn" : "good"} />
