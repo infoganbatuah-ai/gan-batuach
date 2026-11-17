@@ -10,6 +10,10 @@ const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
 const enumBoundaryFile = "20260523003000_owner_role_and_onboarding.sql";
 const enumBoundarySha256 = "4fb904f0b22a755f3bcd9b5bd2fc9ba9481503628d8b83e418061e2255f1b965";
 const enumBoundaryMarker = "\n\nalter table public.gardens add column";
+const typoFile = "20260523012000_qa_action_persistence.sql";
+const typoSha256 = "b54cb8b1e145afc90ccd7748815b9f1f3c3c12674374532176fabc68a6b701c7";
+const typoSource = "alter typeש public.camera_status add value if not exists 'pending_gateway';";
+const typoCorrection = "alter type public.camera_status add value if not exists 'pending_gateway';";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -31,6 +35,7 @@ const network = `${container}-net`;
 let attempted = false;
 let networkCreated = false;
 let passed = 0;
+let testOnlyTypoNormalization = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -66,7 +71,16 @@ try {
   for (const [index, file] of files.entries()) {
     if (Date.now() > deadline) throw new Error(`TIME_BOUND_AFTER_${passed}_FILES`);
     const source = readFileSync(join("supabase/migrations", file), "utf8");
+    let testSource = source;
     try {
+      if (file === typoFile && process.env.PUSH44_FILE13_TYPO_NORMALIZE === "YES") {
+        // Historical source and baseline hash stay immutable. This is only a
+        // disposable test fixture; it is not a clean-chain/deployable repair.
+        if (createHash("sha256").update(source).digest("hex") !== typoSha256 ||
+            source.split(typoSource).length !== 2) throw new Error("FILE13_SOURCE_DRIFT");
+        testSource = source.replace(typoSource, typoCorrection);
+        testOnlyTypoNormalization = true;
+      }
       if (file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES") {
         // PostgreSQL 17 cannot use a newly added enum value until commit.
         // Keep the historical file byte-for-byte; commit only its guarded
@@ -92,7 +106,7 @@ try {
         if (qualified !== "t|t") throw new Error("ENUM_BOUNDARY_REMAINDER_INCOMPLETE");
       } else {
         docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
-          "-U", "supabase_admin", "-d", "postgres"], source, 90_000);
+          "-U", "supabase_admin", "-d", "postgres"], testSource, 90_000);
       }
       passed++;
     } catch (error) {
@@ -101,13 +115,16 @@ try {
         .slice(0, 4).join(" | ").slice(0, 800);
       console.log(JSON.stringify({ status: "FIRST_FAILURE", number: index + 1, file, priorPassed: passed,
         transaction: file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES"
-          ? "two_transactions_for_exact_enum_commit" : "one_unmodified_file",
+          ? "two_transactions_for_exact_enum_commit"
+          : file === typoFile && testOnlyTypoNormalization ? "one_test_only_normalized_file" : "one_unmodified_file",
+        testOnlyTypoNormalization,
+        exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
       process.exitCode = 1;
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
