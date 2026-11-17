@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import type { Database } from "@/lib/supabase/types";
 import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/current-admin-authority";
+export { safeObserverReturnPath } from "@/lib/domain/digital-observer/safe-return-path";
 
 type ObserverSupabaseClient = SupabaseClient<Database>;
 
@@ -64,13 +65,6 @@ export async function getObserverSiteAccess(
     if (allowed === true) return site;
   }
   return null;
-}
-
-export function safeObserverReturnPath(value?: string | null) {
-  if (!value || !value.startsWith("/digital-observer") || value.startsWith("//")) {
-    return "/digital-observer/dashboard";
-  }
-  return value;
 }
 
 export async function requireDigitalObserverUser(loginPath = "/digital-observer/login") {
