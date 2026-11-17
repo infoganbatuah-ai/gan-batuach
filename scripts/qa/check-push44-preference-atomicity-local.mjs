@@ -92,6 +92,32 @@ test("caller cannot choose another profile and unsupported category is rejected"
   } finally { await f.db.close(); }
 });
 
+test("inactive authenticated profile is rejected before either table changes", async () => {
+  const f = await fixture();
+  try {
+    await f.db.query("update public.profiles set active = false where id = $1", [userA]);
+    await assert.rejects(f.call({ receive_push: false }, { important: false }), /active profile required/);
+    assert.deepEqual(await f.state(), { preferences: [], categories: [] });
+  } finally { await f.db.close(); }
+});
+
+test("historical half-populated quiet hours reject unrelated updates until explicitly repaired", async () => {
+  const f = await fixture();
+  try {
+    await f.db.query("insert into public.communication_preferences(profile_id, quiet_hours_start) values ($1, '22:00')", [userA]);
+    const before = await f.db.query("select receive_push, quiet_hours_start::text, quiet_hours_end::text from public.communication_preferences where profile_id = $1", [userA]);
+    await assert.rejects(f.call({ receive_push: false }, { important: false }), /preference update denied/);
+    assert.deepEqual((await f.db.query("select receive_push, quiet_hours_start::text, quiet_hours_end::text from public.communication_preferences where profile_id = $1", [userA])).rows, before.rows);
+    assert.deepEqual((await f.state()).categories, []);
+    await f.call({ receive_push: false, quiet_hours_end: "06:00" }, { important: false });
+    const repaired = await f.db.query("select receive_push, quiet_hours_start::text, quiet_hours_end::text from public.communication_preferences where profile_id = $1", [userA]);
+    assert.equal(repaired.rows[0].receive_push, false);
+    assert.equal(repaired.rows[0].quiet_hours_start, before.rows[0].quiet_hours_start);
+    assert.equal(repaired.rows[0].quiet_hours_end, "06:00:00");
+    assert.deepEqual((await f.state()).categories, [{ profile_id: userA, category: "important", enabled: false }]);
+  } finally { await f.db.close(); }
+});
+
 test("authenticated invoker is limited to its own rows; anon cannot execute", async () => {
   const f = await fixture();
   try {

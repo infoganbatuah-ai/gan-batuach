@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS }
 }).outputText;
 
-function route({ authenticated = true, atomic = false, rpcError = false, profileMismatch = false } = {}) {
+function route({ authenticated = true, atomic = false, rpcError = false, profileMismatch = false, existingPreferences } = {}) {
   const writes = [];
   const rpcCalls = [];
   const exports = {};
@@ -25,7 +25,7 @@ function route({ authenticated = true, atomic = false, rpcError = false, profile
       const query = {
         select: () => query,
         eq: () => query,
-        maybeSingle: async () => ({ data: { profile_id: profile.id, receive_push: false }, error: null }),
+        maybeSingle: async () => ({ data: existingPreferences ?? { profile_id: profile.id, receive_push: false }, error: null }),
         upsert: (values) => { writes.push([table, values]); return query; },
         single: async () => ({ data: { profile_id: profile.id }, error: null })
       };
@@ -50,7 +50,7 @@ function route({ authenticated = true, atomic = false, rpcError = false, profile
     throw new Error(`unexpected import: ${name}`);
   };
   runInNewContext(compiled, { exports, require, console: { error() {} }, Date,
-    process: { env: { PUSH44_ATOMIC_PREFERENCES_RPC: atomic ? "enabled" : "disabled" } } });
+    process: { env: atomic === null ? {} : { PUSH44_ATOMIC_PREFERENCES_RPC: atomic ? "enabled" : "disabled" } } });
   const patch = (body) => exports.PATCH(new Request("http://localhost/api/profile/communication-preferences", {
     method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(body)
   }));
@@ -75,6 +75,15 @@ test("supported category persists the authenticated profile's exact setting", as
   assert.equal(h.writes[1][1][0].profile_id, "parent-1");
   assert.equal(h.writes[1][1][0].category, "safety");
   assert.equal(h.writes[1][1][0].enabled, false);
+});
+
+test("absent atomic flag preserves the legacy route and its historical half-populated quiet hours", async () => {
+  const h = route({ atomic: null, existingPreferences: { profile_id: "parent-1", receive_push: true, quiet_hours_start: "22:00", quiet_hours_end: null } });
+  assert.equal((await h.patch({ receive_push: false })).status, 200);
+  assert.deepEqual(h.rpcCalls, []);
+  assert.equal(h.writes.length, 1);
+  assert.equal(h.writes[0][1].quiet_hours_start, "22:00");
+  assert.equal(h.writes[0][1].quiet_hours_end, null);
 });
 
 test("unauthenticated request cannot write preferences", async () => {
