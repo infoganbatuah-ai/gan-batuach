@@ -64,6 +64,7 @@ export type PrivacyGateInput = {
   policyActive: boolean;
   decisionState: LegalDecisionState | null | undefined;
   approvalScopeMatches: boolean;
+  approvalEffectiveAt: string | null;
   approvalExpiresAt?: string | null;
   humanReviewRequired?: boolean;
   humanReviewerId?: string | null;
@@ -80,6 +81,7 @@ export type PrivacyGateDecision = {
     | "PROHIBITED"
     | "APPROVAL_SCOPE_MISMATCH"
     | "APPROVAL_INVALID"
+    | "APPROVAL_NOT_YET_EFFECTIVE"
     | "APPROVAL_EXPIRED"
     | "HUMAN_REVIEW_REQUIRED";
   consentAloneIsSufficient: false;
@@ -106,6 +108,10 @@ export function evaluatePrivacyGate(input: PrivacyGateInput, now = new Date()): 
   if (input.context === "KINDERGARTEN" && childRestricted.has(input.capability)) return deny("PROHIBITED");
   if (input.decisionState !== "EXTERNALLY_APPROVED") return deny("EXTERNAL_APPROVAL_REQUIRED");
   if (!input.approvalScopeMatches) return deny("APPROVAL_SCOPE_MISMATCH");
+  if (!input.approvalEffectiveAt) return deny("APPROVAL_INVALID");
+  const effectiveAt = Date.parse(input.approvalEffectiveAt);
+  if (!Number.isFinite(effectiveAt)) return deny("APPROVAL_INVALID");
+  if (effectiveAt > now.getTime()) return deny("APPROVAL_NOT_YET_EFFECTIVE");
   if (input.approvalExpiresAt) {
     const expiresAt = Date.parse(input.approvalExpiresAt);
     if (!Number.isFinite(expiresAt)) return deny("APPROVAL_INVALID");

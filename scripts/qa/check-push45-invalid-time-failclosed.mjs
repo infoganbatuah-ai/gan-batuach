@@ -5,7 +5,7 @@ import { evaluatePrivacyGate, evaluateRetentionDisposition, isLegalHoldActive } 
 const now = new Date("2026-11-17T12:00:00.000Z");
 const approval = { capability: "FACE_RECOGNITION", context: "HOME", purpose: "test",
   tenantId: "tenant", siteId: "site", policyActive: true, decisionState: "EXTERNALLY_APPROVED",
-  approvalScopeMatches: true, humanReviewRequired: true, humanReviewerId: "reviewer" };
+  approvalScopeMatches: true, approvalEffectiveAt: "2026-11-16T00:00:00Z", humanReviewRequired: true, humanReviewerId: "reviewer" };
 const retention = { dataClass: "DIGITAL_OBSERVER_EVIDENCE", activeLegalHold: false,
   externalSystemOwnsData: false, externalDeletionConfirmed: false, policyDecision: "EXTERNALLY_APPROVED" };
 

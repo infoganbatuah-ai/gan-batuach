@@ -170,6 +170,7 @@ export async function evaluateStoredPrivacyApproval(db: DbClient, input: {
     policyActive: profile?.active === true,
     decisionState: profile?.legal_decision_state ?? null,
     approvalScopeMatches: approval?.approval_status === "approved" && approval?.revoked_at == null && approval?.stated_purpose === input.purpose,
+    approvalEffectiveAt: approval?.effective_at ?? null,
     approvalExpiresAt: approval?.expires_at ?? null,
     humanReviewRequired: true,
     humanReviewerId: input.humanReviewerId
