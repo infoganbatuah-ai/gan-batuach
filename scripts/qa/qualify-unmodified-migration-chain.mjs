@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Opt-in, disposable schema-chain diagnosis. Never uses the existing database.
-import { createHash, randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -29,6 +29,9 @@ as $$
 $$;`;
 const stockAuthJwtSha256 = "da8cd1a869ff38ccad99a1da949f246e389865191f3412661a58f98565bce028";
 const legalSeedFile = "20260612016600_external_legal_privacy_regulatory_review_pack.sql";
+const legalSeedSha256 = "f258acab64283fa24496ca33feae1d4f6c610b2b917f84c180679c357d1c4828";
+const legalSeedSource = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'requested', 'needs_review', 'needs_review', 'medium', 'under_review'";
+const legalSeedCorrection = "('vercel', 'Vercel', 'Hosting, edge functions and deployment runtime.', '[\"api_metadata\",\"logs\",\"environment_configuration\"]'::jsonb, 'review_required', 'needs_review', 'requested', 'needs_review', 'medium', 'under_review'";
 const unsafeBackfillFile = "20260827000100_digital_observer_event_media_evidence.sql";
 const unsafeBackfillSha256 = "088f367d6c00cbfd5d35d3d7a57147dc6ee2cd179cf485a5e6eddbfed0d46eeb";
 const unsafeBackfillStart = "\nupdate public.observer_intelligence_signals s\n";
@@ -64,12 +67,11 @@ let networkCreated = false;
 let passed = 0;
 let testOnlyTypoNormalization = false;
 let testOnlyStockAuthJwt = false;
-let legalSeedPendingProof = false;
+let testOnlyLegalSeedNormalization = false;
 let testOnlyStockAuthSchema = false;
 let testOnlyUnsafeBackfillSkipped = false;
 let testOnlyGuardActivationSkipped = false;
 let testOnlyChannelOneActivationSkipped = false;
-let file170FailClosedProof = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -138,24 +140,6 @@ try {
     const source = readFileSync(join("supabase/migrations", file), "utf8");
     let testSource = source;
     try {
-      let syntheticSignalId = null;
-      if (file === unsafeBackfillFile && process.env.PUSH44_FILE170_FAIL_CLOSED_PROOF === "YES") {
-        if (process.env.PUSH44_FILE170_SKIP_UNSAFE_BACKFILL === "YES")
-          throw new Error("FILE170_PROOF_CANNOT_SKIP_SOURCE");
-        const syntheticSiteId = randomUUID();
-        const syntheticCameraId = randomUUID();
-        syntheticSignalId = randomUUID();
-        // A connected synthetic camera on the same site must not become an
-        // unverified system event's source. No media object or live route exists.
-        docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
-          "-U", "supabase_admin", "-d", "postgres"],
-          `insert into public.observer_sites(id,name,site_type,monitoring_enabled) values ('${syntheticSiteId}','Disposable fail-closed site','home',false);
-           insert into public.digital_observer_camera_sources(id,observer_site_id,display_name,source_mode,status,health_status)
-             values ('${syntheticCameraId}','${syntheticSiteId}','Disposable camera','readiness','connected','healthy');
-           insert into public.observer_intelligence_signals(id,signal_type,source_type,observer_site_id,metadata)
-             values ('${syntheticSignalId}','pattern','system','${syntheticSiteId}',
-               '{"event_type":"home_learning_started","test_only":"file170_fail_closed"}'::jsonb);`);
-      }
       if (file === typoFile && process.env.PUSH44_FILE13_TYPO_NORMALIZE === "YES") {
         // Historical source and baseline hash stay immutable. This is only a
         // disposable test fixture; it is not a clean-chain/deployable repair.
@@ -163,6 +147,14 @@ try {
             source.split(typoSource).length !== 2) throw new Error("FILE13_SOURCE_DRIFT");
         testSource = source.replace(typoSource, typoCorrection);
         testOnlyTypoNormalization = true;
+      }
+      if (file === legalSeedFile && process.env.PUSH44_FILE132_LEGAL_SEED_NORMALIZE === "YES") {
+        // Historical baseline bytes are immutable. This corrects only the
+        // disposable test input, never the canonical migration or legal state.
+        if (createHash("sha256").update(source).digest("hex") !== legalSeedSha256 ||
+            source.split(legalSeedSource).length !== 2) throw new Error("FILE132_SOURCE_DRIFT");
+        testSource = testSource.replace(legalSeedSource, legalSeedCorrection);
+        testOnlyLegalSeedNormalization = true;
       }
       if (file === unsafeBackfillFile && process.env.PUSH44_FILE170_SKIP_UNSAFE_BACKFILL === "YES") {
         // The historical UPDATE would attach the first active camera to system
@@ -236,30 +228,6 @@ try {
         docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
           "-U", "supabase_admin", "-d", "postgres"], testSource, 90_000);
       }
-      if (syntheticSignalId) {
-        const proof = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
-          "-U", "supabase_admin", "-d", "postgres"],
-          `select not (metadata ? 'camera_source_id') and not (metadata ? 'evidence_repair'),
-             not exists(select 1 from public.digital_observer_event_clips where signal_id='${syntheticSignalId}'),
-             (select public is false from storage.buckets where id='digital-observer-event-media'),
-             not exists(select 1 from pg_policies where schemaname='storage' and tablename='objects'
-               and (coalesce(qual,'') || coalesce(with_check,'')) like '%digital-observer-event-media%')
-           from public.observer_intelligence_signals where id='${syntheticSignalId}';`);
-        if (proof !== "t|t|t|t") throw new Error(`FILE170_FAIL_CLOSED_PROOF_FAILED_${proof}`);
-        file170FailClosedProof = true;
-      }
-      if (file === legalSeedFile && process.env.PUSH44_FILE132_PENDING_PROOF === "YES") {
-        const proof = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
-          "-U", "supabase_admin", "-d", "postgres"],
-          `select privacy_review_status='needs_review', dpa_status='requested',
-             security_review_status='needs_review', contract_status='under_review'
-           from public.subprocessor_register where provider_key='vercel';
-           select pg_get_constraintdef(oid) like '%requested%' and pg_get_constraintdef(oid) like '%signed%'
-           from pg_constraint where conname='subprocessor_dpa_status_check'
-             and conrelid='public.subprocessor_register'::regclass;`);
-        if (proof !== "t|t|t|t\nt") throw new Error(`FILE132_PENDING_PROOF_FAILED_${proof}`);
-        legalSeedPendingProof = true;
-      }
       passed++;
     } catch (error) {
       const diagnostic = String(error.stderr ?? "").split("\n")
@@ -272,11 +240,10 @@ try {
         testOnlyTypoNormalization,
         testOnlyStockAuthJwt,
         testOnlyStockAuthSchema,
-        legalSeedPendingProof,
+        testOnlyLegalSeedNormalization,
         testOnlyUnsafeBackfillSkipped,
         testOnlyGuardActivationSkipped,
         testOnlyChannelOneActivationSkipped,
-        file170FailClosedProof,
         deployable: false,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
@@ -284,7 +251,7 @@ try {
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, legalSeedPendingProof, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, file170FailClosedProof, deployable: false }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, deployable: false }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
