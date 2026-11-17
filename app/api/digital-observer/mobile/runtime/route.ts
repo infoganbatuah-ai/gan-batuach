@@ -67,7 +67,9 @@ export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const payload = linkSchema.parse(await request.json());
+    let body: unknown;
+    try { body = await request.json(); } catch { return fail("מבנה הבקשה אינו תקין.", 400); }
+    const payload = linkSchema.parse(body);
     let link;
     try {
       link = parseMobileLink(payload.url, configuredOrigins(request));

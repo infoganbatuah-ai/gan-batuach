@@ -50,7 +50,7 @@ for (const path of [
     body: `{"observer_site_id":${marker}}`
   });
   const response = await route.POST(malformed);
-  assert.equal(response.status, 500);
+  assert.equal(response.status, 400);
   assert.doesNotMatch(JSON.stringify(response.body), new RegExp(marker));
   assert.doesNotMatch(JSON.stringify(messages), new RegExp(marker));
   const badShape = await route.POST(new Request("https://local.invalid/qa", {
@@ -64,5 +64,6 @@ for (const path of [
   assert.equal(denied.status, 401);
   assert.match(source, /getDigitalObserverApiUser\(request\)[\s\S]*request\.json\(\)/);
   assert.match(source, /return handleSafeRouteError\(error\)/);
+  assert.match(source, /try \{ body = await request\.json\(\); \} catch \{ return fail\("מבנה הבקשה אינו תקין\.\", 400\); \}/);
   if (path.includes("push-test")) assert.match(source, /error\.message\.startsWith\("DELIVERY_"\)\) return fail\(error\.message, 409\)/);
 });

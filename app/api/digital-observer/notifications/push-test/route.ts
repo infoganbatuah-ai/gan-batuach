@@ -14,7 +14,9 @@ export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const payload = schema.parse(await request.json());
+    let body: unknown;
+    try { body = await request.json(); } catch { return fail("מבנה הבקשה אינו תקין.", 400); }
+    const payload = schema.parse(body);
     const site = await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לבדוק Push באתר הזה.", 403);
     if (!isAdminClientConfigured()) return fail("חסרה תצורת שרת מאובטחת לבדיקת חוזה Push.", 503);
