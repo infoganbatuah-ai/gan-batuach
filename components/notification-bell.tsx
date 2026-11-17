@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BellRing, CheckCheck } from "lucide-react";
 import { safeGanNotificationDestination } from "@/lib/domain/gan-notification-destination";
+import { requestGanMarkAllRead } from "@/lib/domain/gan-notification-read-all";
 
 type NotificationRow = {
   id: string;
@@ -54,10 +55,7 @@ export function NotificationBell({ role }: { role: string }) {
   const previewRows = useMemo(() => rows.slice(0, 5), [rows]);
 
   async function markAllRead() {
-    const ids = rows.map((row) => row.id);
-    if (!ids.length) return;
-    const response = await fetch("/api/notifications/mark-read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
-    if (response.ok) {
+    if (await requestGanMarkAllRead(fetch)) {
       setRows((current) => current.map((row) => ({ ...row, status: "read", read_at: new Date().toISOString() })));
       setUnread(0);
     }
