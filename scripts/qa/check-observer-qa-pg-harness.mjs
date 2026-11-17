@@ -17,13 +17,16 @@ test("qualification defaults off and self-check never launches Docker", () => {
   assert.match(selfCheck, /PASS: offline harness contract self-check; database NOT RUN/);
 });
 
-test("harness targets cached gbi image with no network, explicit role checks and own-container cleanup", () => {
-  assert.match(source, /const context = "colima-gbi"/);
-  assert.match(source, /const image = "postgres:17\.11-alpine"/);
+test("harness targets cached Kingston image with no network, explicit role checks and own-container cleanup", () => {
+  assert.match(source, /const dockerHost = "unix:\/\/\/Volumes\/DIGITAL_OBSERVER\/Development\/gan-batuach\/colima\/gbi\/docker\.sock"/);
+  assert.match(source, /const image = "public\.ecr\.aws\/supabase\/postgres:17\.6\.1\.167"/);
+  assert.doesNotMatch(source, /--context|\.colima\/gbi\/docker\.sock/);
   assert.match(source, /docker\(\["image", "inspect", image/);
   assert.match(source, /"--network", "none"/);
   assert.match(source, /"--tmpfs", "\/var\/lib\/postgresql\/data/);
-  assert.match(source, /create role anon login; create role authenticated login; create role service_role login bypassrls/);
+  assert.match(source, /if not exists \(select 1 from pg_roles where rolname = 'anon'\) then create role anon login/);
+  assert.match(source, /POSTGRES_USER=supabase_admin/);
+  assert.match(source, /psql\(container, "select 1;"\)/);
   assert.match(source, /has_function_privilege\('anon'/);
   assert.match(source, /has_table_privilege\('authenticated'/);
   assert.match(source, /set role \$\{role\}; select \$\{functionCall\}/);
