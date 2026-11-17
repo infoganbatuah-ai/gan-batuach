@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleRouteError, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import {
   authorizedMobileDestination,
@@ -94,6 +94,8 @@ export async function POST(request: Request) {
       kind: link.kind
     });
   } catch (error) {
-    return handleRouteError(error);
+    // Malformed JSON can put fragments of its body in a SyntaxError message.
+    // Never echo or log that message for a native link containing query data.
+    return handleSafeRouteError(error);
   }
 }
