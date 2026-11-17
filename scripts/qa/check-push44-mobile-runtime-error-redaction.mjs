@@ -33,6 +33,7 @@ test("malformed native-link JSON cannot echo or log its body through the POST er
   assert.equal(response.status, 500);
   assert.doesNotMatch(JSON.stringify(response.body), new RegExp(marker));
   assert.doesNotMatch(JSON.stringify(messages), new RegExp(marker));
+  assert.match(route, /export async function POST[\s\S]*try \{ body = await request\.json\(\); \} catch \{ return fail\("מבנה הבקשה אינו תקין\.\", 400\); \}/);
   assert.match(route, /export async function POST[\s\S]*return handleSafeRouteError\(error\)/);
   assert.match(route, /link = parseMobileLink\(payload\.url, configuredOrigins\(request\)\)/);
   assert.match(route, /destination: authorizedMobileDestination\(link\)/);
