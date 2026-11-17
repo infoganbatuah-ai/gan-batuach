@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+// Opt-in, disposable schema-chain diagnosis. Never uses the existing database.
+import { randomBytes } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+
+const socket = "unix:///Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima/gbi/docker.sock";
+const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
+const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
+if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
+if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
+  console.log("NOT RUN: opt in with PUSH44_UNMODIFIED_CHAIN=YES");
+  process.exit(0);
+}
+
+function docker(args, input, timeout = 60_000, environment = {}) {
+  return execFileSync("docker", ["--host", socket, ...args], {
+    input, encoding: "utf8", timeout, stdio: ["pipe", "pipe", "pipe"],
+    env: { ...process.env, ...environment }
+  }).trim();
+}
+
+docker(["image", "inspect", image, "--format", "{{.Id}}"]); // Cached only; no pull.
+docker(["image", "inspect", "public.ecr.aws/supabase/storage-api:v1.72.1", "--format", "{{.Id}}"]).trim();
+const container = `push44-chain-${randomBytes(6).toString("hex")}`;
+const network = `${container}-net`;
+let attempted = false;
+let networkCreated = false;
+let passed = 0;
+try {
+  docker(["network", "create", "--internal", network]);
+  networkCreated = true;
+  attempted = true;
+  docker(["run", "--rm", "-d", "--name", container, "--network", network, "--network-alias", "pg",
+    "--memory", "2g", "--cpus", "1", "--pids-limit", "128",
+    "--tmpfs", "/var/lib/postgresql/data:rw,nosuid,size=1g",
+    "-e", "POSTGRES_HOST_AUTH_METHOD=trust", "-e", "POSTGRES_USER=supabase_admin",
+    image, "postgres", "-D", "/var/lib/postgresql/data", "-c", "listen_addresses=*"]);
+  let ready = false;
+  for (let attempt = 0; attempt < 120; attempt++) {
+    try {
+      if (docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+        "-U", "supabase_admin", "-d", "postgres"], "select 1;") === "1") {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        if (docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"], "select 1;") === "1") { ready = true; break; }
+      }
+    } catch { await new Promise((resolve) => setTimeout(resolve, 500)); }
+  }
+  if (!ready) throw new Error("DISPOSABLE_POSTGRES_NOT_READY");
+
+  // Use the cached, version-matched Storage API's own migration runner.
+  // The internal Docker network is unique to this test and has no host ports.
+  const disposableJwtSecret = randomBytes(32).toString("hex");
+  docker(["run", "--rm", "--network", network, "--memory", "512m", "--cpus", "1",
+    "--pids-limit", "128", "-e", "DATABASE_URL=postgres://supabase_admin@pg:5432/postgres",
+    "-e", "PGRST_JWT_SECRET",
+    "--entrypoint", "node", "public.ecr.aws/supabase/storage-api:v1.72.1",
+    "dist/scripts/migrate-call.js"], undefined, 120_000, { PGRST_JWT_SECRET: disposableJwtSecret });
+
+  const deadline = Date.now() + 10 * 60_000;
+  for (const [index, file] of files.entries()) {
+    if (Date.now() > deadline) throw new Error(`TIME_BOUND_AFTER_${passed}_FILES`);
+    const source = readFileSync(join("supabase/migrations", file), "utf8");
+    try {
+      docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
+        "-U", "supabase_admin", "-d", "postgres"], source, 90_000);
+      passed++;
+    } catch (error) {
+      const diagnostic = String(error.stderr ?? "").split("\n")
+        .filter((line) => /^(?:ERROR|DETAIL|HINT|CONTEXT):/i.test(line.trim()))
+        .slice(0, 4).join(" | ").slice(0, 800);
+      console.log(JSON.stringify({ status: "FIRST_FAILURE", number: index + 1, file, priorPassed: passed,
+        transaction: "one_unmodified_file", error: diagnostic || `psql_exit_${error.status ?? "unknown"}` }));
+      process.exitCode = 1;
+      break;
+    }
+  }
+  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed }));
+} finally {
+  if (attempted) {
+    try { docker(["rm", "-f", container]); }
+    catch {
+      try { docker(["inspect", container]); throw new Error("DISPOSABLE_CLEANUP_FAILED"); }
+      catch (error) { if (error?.message === "DISPOSABLE_CLEANUP_FAILED") throw error; }
+    }
+  }
+  if (networkCreated) {
+    try { docker(["network", "rm", network]); }
+    catch { throw new Error("DISPOSABLE_NETWORK_CLEANUP_FAILED"); }
+  }
+}
