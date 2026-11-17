@@ -81,6 +81,18 @@ test("cross-app and malformed deep links are rejected before token selection", (
   }
 });
 
+test("credential-like query keys cannot be placed in either product's Push destination", () => {
+  const gan = { category: "camera_alert", deepLinkType: "camera", actionUrl: "/dashboard/garden/cameras" };
+  const observer = { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" };
+  for (const secretQuery of ["token=secret", "access_token=secret", "refresh_token=secret",
+    "code=secret", "authorization=secret", "jwt=secret", "api_key=secret",
+    "password=secret", "secret=secret", "to%6ben=secret", "token%5Bvalue%5D=secret"]) {
+    assert.equal(contract.pushDestinationMatchesAudience("gan_management", { ...gan, actionUrl: `${gan.actionUrl}?${secretQuery}` }), false, secretQuery);
+    assert.equal(contract.pushDestinationMatchesAudience("digital_observer", { ...observer, actionUrl: `${observer.actionUrl}?${secretQuery}` }), false, secretQuery);
+  }
+  assert.deepEqual(select("gan_management", { ...gan, actionUrl: `${gan.actionUrl}?site=authorized` }), ["gan"]);
+});
+
 test("cross-profile and missing evidence cannot borrow another app binding", () => {
   const destination = { category: "observer_alert", deepLinkType: "observer_event", actionUrl: "/digital-observer/alerts" };
   assert.deepEqual(select("digital_observer", destination, [{ ...observerToken, profileId: "other-profile" }], [observerBinding]), []);
