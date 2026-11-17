@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Opt-in schema-only qualification. Source Development DB is read-only;
 // all SQL writes target a random, disposable database on an internal network.
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
@@ -29,6 +29,11 @@ function docker(args, input, timeout = 60_000, environment = {}) {
 function sql(query) {
   return docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
     "-U", "supabase_admin", "-d", "postgres"], query, 90_000);
+}
+function schemaFingerprint() {
+  const schema = docker(["exec", container, "pg_dump", "--schema-only", "--no-owner",
+    "--schema=public", "-U", "supabase_admin", "-d", "postgres"], undefined, 120_000);
+  return createHash("sha256").update(schema).digest("hex");
 }
 
 try {
@@ -87,8 +92,11 @@ try {
   sql(authHelpers);
   stage = "schema_restore";
   sql(schema);
+  const beforeFingerprint = schemaFingerprint();
   stage = "migration_275";
   sql(migration);
+  const afterFingerprint = schemaFingerprint();
+  if (beforeFingerprint === afterFingerprint) throw new Error("MIGRATION_SCHEMA_FINGERPRINT_UNCHANGED");
   stage = "catalog_verification";
   const result = sql(`select
     to_regprocedure('public.save_communication_preferences_atomic(jsonb,jsonb)') is not null,
@@ -132,7 +140,25 @@ try {
     select (select count(*) from public.communication_preferences where profile_id='${syntheticId}'),
       (select count(*) from public.push_category_preferences where profile_id='${syntheticId}'); rollback;`);
   if (failed !== "0|0") throw new Error(`ATOMIC_ROLLBACK_MISMATCH_${failed}`);
-  console.log("PASS: original 227 baseline + 47 applied = 274, RPC absent; schema-only disposable restore plus exact migration 275, invoker ACL/RLS and synthetic two-write atomicity/rollback; no original/real-row or Data API mutation");
+  stage = "synthetic_idempotency_and_isolation";
+  const otherId = "00000000-0000-4000-8000-000000000045";
+  const repeat = sql(`begin; ${setup}
+    insert into auth.users(id,email,aud,role,raw_user_meta_data,raw_app_meta_data)
+      values ('${otherId}','p44-other@example.invalid','authenticated','authenticated','{}'::jsonb,'{}'::jsonb);
+    insert into public.profiles(id,role,full_name) values ('${otherId}','parent','Other Disposable QA');
+    set local role authenticated;
+    set local request.jwt.claim.sub = '${syntheticId}';
+    select receive_email from public.save_communication_preferences_atomic(
+      '{"receive_email":false}'::jsonb, '{"message":false}'::jsonb);
+    select receive_email from public.save_communication_preferences_atomic(
+      '{"receive_email":false}'::jsonb, '{"message":false}'::jsonb);
+    reset role;
+    select (select count(*) from public.communication_preferences where profile_id='${syntheticId}'),
+      (select count(*) from public.push_category_preferences where profile_id='${syntheticId}' and category='message'),
+      (select count(*) from public.communication_preferences where profile_id='${otherId}'),
+      (select count(*) from public.push_category_preferences where profile_id='${otherId}'); rollback;`);
+  if (repeat !== "f\nf\n1|1|0|0") throw new Error(`IDEMPOTENCY_OR_ISOLATION_MISMATCH_${repeat}`);
+  console.log(`PASS: source 227+47=274; schema-only disposable 274→275; public schema fingerprints ${beforeFingerprint} → ${afterFingerprint}; invoker ACL/RLS, two-write rollback, repeat idempotency and other-user isolation on synthetic rows; source untouched. LIMITATION: no real Auth/profile row restore or PostgreSQL concurrent-writer proof.`);
 } catch (error) {
   const diagnostic = String(error?.stderr ?? "").split("\n")
     .find((line) => /(?:ERROR|FATAL):/.test(line))?.slice(0, 240);
