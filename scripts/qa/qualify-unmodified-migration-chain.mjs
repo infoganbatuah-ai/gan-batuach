@@ -40,6 +40,8 @@ const guardActivationFile = "20260902033000_activate_scoped_digital_guard_camera
 const guardActivationSha256 = "8578292d4c399e1c16dcdce6155c10b1391b2c698014d3d1766295a8feb31ffe";
 const guardActivationStart = "\ncreate or replace function public.sync_authorized_siren_policy_to_crossing_line()";
 const guardActivationEnd = "\n-- Replace the autonomous enqueue RPC";
+const channelOneActivationFile = "20260902043000_activate_channel_1_guard_lighting.sql";
+const channelOneActivationSha256 = "470a86374089e6c6388c762e1a3e0c122d7234229a019e0db3b4c4ea646d3b29";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -69,6 +71,7 @@ let testOnlyLegalSeedNormalization = false;
 let testOnlyStockAuthSchema = false;
 let testOnlyUnsafeBackfillSkipped = false;
 let testOnlyGuardActivationSkipped = false;
+let testOnlyChannelOneActivationSkipped = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -186,6 +189,18 @@ try {
         testSource = source.slice(0, start) + "\n-- TEST ONLY: Home Guard activation excluded; not deployable.\n" + source.slice(end);
         testOnlyGuardActivationSkipped = true;
       }
+      if (file === channelOneActivationFile && process.env.PUSH44_FILE181_SKIP_ACTIVATION === "YES") {
+        // This entire historical migration enables Home channel-1 lighting.
+        // It has no general schema DDL; do not fabricate monitoring consent.
+        if (createHash("sha256").update(source).digest("hex") !== channelOneActivationSha256 ||
+            !source.includes("raise exception 'Observer site monitoring consent is unavailable'") ||
+            !source.includes("set enabled = true") ||
+            !source.includes("digital_guard_channel_1_lighting_activated_v1") ||
+            /\b(?:create|alter|drop)\s+(?:table|function|trigger|policy|index|view|type)\b/i.test(source) ||
+            !source.trimEnd().endsWith("commit;")) throw new Error("FILE181_ACTIVATION_SHAPE_DRIFT");
+        testSource = "begin; -- TEST ONLY: Home channel-1 activation skipped; not deployable.\ncommit;";
+        testOnlyChannelOneActivationSkipped = true;
+      }
       if (file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES") {
         // PostgreSQL 17 cannot use a newly added enum value until commit.
         // Keep the historical file byte-for-byte; commit only its guarded
@@ -228,6 +243,7 @@ try {
         testOnlyLegalSeedNormalization,
         testOnlyUnsafeBackfillSkipped,
         testOnlyGuardActivationSkipped,
+        testOnlyChannelOneActivationSkipped,
         deployable: false,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
@@ -235,7 +251,7 @@ try {
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, deployable: false }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "TEST_FIXTURE_PASS_NOT_DEPLOYABLE", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization, testOnlyUnsafeBackfillSkipped, testOnlyGuardActivationSkipped, testOnlyChannelOneActivationSkipped, deployable: false }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
