@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition, type FormEvent } from "react";
 import { BellRing, CheckCircle2, Clock3, Mail, MessageCircleOff, MessageSquareText, Send, ShieldCheck, Smartphone, XCircle } from "lucide-react";
 import { loadPersistedPreferences, saveAndReconcilePreferences } from "@/lib/management/preference-save-reconciliation";
+import { availableChannelPatch, externalCategoryChoices } from "@/lib/management/notification-preference-payload";
 
 export type NotificationPreferences = {
   receive_push?: boolean; receive_email?: boolean; receive_sms?: boolean; receive_whatsapp?: boolean;
@@ -93,8 +94,7 @@ function NotificationPreferencesForm({ preferences, pushCategoryPreferences, cap
   const [message, setMessage] = useState("");
   const availableChannels = useMemo(() => new Set((Object.keys(channelInfo) as ChannelKey[]).filter((channel) => ready(capability[channel]))), [capability]);
   const [categoryChannels, setCategoryChannels] = useState<Record<string, string[]>>(() => {
-    const initial = initialChannels(preferences);
-    return Object.fromEntries(Object.entries(initial).map(([key, values]) => [key, values.filter((value) => ready(capability[value as ChannelKey] ?? "not_configured"))]));
+    return initialChannels(preferences);
   });
   const [categoryEnabled, setCategoryEnabled] = useState<Record<string, boolean>>(() => Object.fromEntries(categories.map((category) => [category.key, pushCategoryPreferences?.[category.key] ?? true])));
   const [quietEnabled, setQuietEnabled] = useState(Boolean(preferences?.quiet_hours_start && preferences?.quiet_hours_end));
@@ -115,12 +115,9 @@ function NotificationPreferencesForm({ preferences, pushCategoryPreferences, cap
     const data = new FormData(event.currentTarget);
     // In-app delivery is canonical and always available, but the persisted channel
     // maps describe external delivery intents only.
-    const sanitized = Object.fromEntries(Object.entries(categoryChannels).map(([key, values]) => [key, values.filter((value) => value !== "in_app" && availableChannels.has(value as ChannelKey))]));
+    const sanitized = externalCategoryChoices(categoryChannels);
     const payload = {
-      receive_push: availableChannels.has("push") && data.get("receive_push") === "on",
-      receive_email: availableChannels.has("email") && data.get("receive_email") === "on",
-      receive_sms: availableChannels.has("sms") && data.get("receive_sms") === "on",
-      receive_whatsapp: availableChannels.has("whatsapp") && data.get("receive_whatsapp") === "on",
+      ...availableChannelPatch(data, availableChannels),
       critical_push_allowed: data.get("critical_push_allowed") === "on",
       emergency_messages_allowed: data.get("emergency_messages_allowed") === "on",
       parent_daily_digest_enabled: data.get("parent_daily_digest_enabled") === "on",
