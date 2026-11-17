@@ -7,8 +7,9 @@ guard CommandLine.arguments.count == 3 else {
 }
 let app = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let template = URL(fileURLWithPath: CommandLine.arguments[2])
-let offlinePage = URL(fileURLWithPath: "ios/qa-observer/index.html", relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true))
 let authenticated = ProcessInfo.processInfo.environment["OBSERVER_QA_AUTH_BUILD"] == "1"
+let statusPageName = authenticated ? "auth-unavailable.html" : "index.html"
+let statusPage = URL(fileURLWithPath: "ios/qa-observer/\(statusPageName)", relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true))
 let files = FileManager.default
 guard app.pathExtension == "app", files.fileExists(atPath: app.appendingPathComponent("Info.plist").path) else {
     fatalError("OBSERVER_QA_APP_REQUIRED")
@@ -68,14 +69,14 @@ if authenticated {
 } else {
     guard server["url"] == nil else { fatalError("OBSERVER_QA_OFFLINE_URL_FORBIDDEN") }
 }
-let offline = try Data(contentsOf: offlinePage)
-guard let page = String(data: offline, encoding: .utf8),
-      page.contains("בדיקת התקנה מקומית בלבד"),
+let status = try Data(contentsOf: statusPage)
+guard let page = String(data: status, encoding: .utf8),
+      page.contains(authenticated ? "חיבור QA טרם אומת" : "בדיקת התקנה מקומית בלבד"),
       !page.contains("http://"), !page.contains("https://"),
       !page.contains("fetch("), !page.contains("<script") else {
     fatalError("OBSERVER_QA_OFFLINE_PAGE_INVALID")
 }
-try offline.write(to: app.appendingPathComponent("public/index.html"), options: .atomic)
+try status.write(to: app.appendingPathComponent("public/index.html"), options: .atomic)
 for name in ["sw.js", "firebase-messaging-sw.js"] {
     let worker = app.appendingPathComponent("public/\(name)")
     if files.fileExists(atPath: worker.path) { try files.removeItem(at: worker) }

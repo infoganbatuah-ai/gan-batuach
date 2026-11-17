@@ -65,6 +65,13 @@ test("native build paths opt in without weakening offline or Gan variants", () =
   assert.match(ios, /environment\["OBSERVER_QA_AUTH_BUILD"\] == "1"/);
   assert.match(ios, /OBSERVER_QA_OFFLINE_URL_FORBIDDEN/);
   assert.match(ios, /OBSERVER_QA_AUTH_BUILD_BOUNDARY_INVALID/);
+  assert.match(ios, /authenticated \? "auth-unavailable\.html" : "index\.html"/);
+  assert.match(ios, /page\.contains\(authenticated \? "חיבור QA טרם אומת" : "בדיקת התקנה מקומית בלבד"\)/);
+  const offlinePage = readFileSync(new URL("ios/qa-observer/index.html", root), "utf8");
+  const authPage = readFileSync(new URL("ios/qa-observer/auth-unavailable.html", root), "utf8");
+  assert.match(offlinePage, /בדיקת התקנה מקומית בלבד/);
+  assert.match(authPage, /חיבור QA טרם אומת/);
+  assert.doesNotMatch(authPage, /בדיקת התקנה מקומית בלבד|אין חיבור ל־Production או לשרת חיצוני|https?:\/\/|fetch\(|<script/);
   assert.match(android, /CAPACITOR_OBSERVER_OFFLINE_URL_FORBIDDEN/);
   assert.match(android, /CAPACITOR_OBSERVER_AUTH_BOUNDARY_INVALID/);
   assert.match(android, /prepare-observer-qa-auth-config\.mjs/);
