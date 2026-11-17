@@ -112,9 +112,9 @@ async function main() {
     assert.equal(psql(container, consume()), "f");
     assert.equal(psql(container, put("1")), "f");
     const expiredState = "d".repeat(64);
-    const expiresSoon = psql(container, "select (extract(epoch from clock_timestamp())*1000)::bigint + 1500;");
+    const expiresSoon = psql(container, "select (extract(epoch from clock_timestamp())*1000)::bigint + 5000;");
     assert.equal(psql(container, `set role service_role; select public.observer_qa_callback_state_put_v1('${expiredState}','digital_observer','verify','${binding}',${expiresSoon});`), "t");
-    psql(container, "select pg_sleep(2);");
+    psql(container, "select pg_sleep(6);");
     assert.equal(psql(container, `set role service_role; select public.observer_qa_callback_state_consume_v1('${expiredState}','digital_observer','verify','${binding}');`), "f");
     console.log("PASS: isolated PostgreSQL direct role denial, ACL/RLS, duplicate, expired stored state, wrong flow/binding and concurrent one-use consume");
   } finally {
