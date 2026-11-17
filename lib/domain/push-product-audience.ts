@@ -38,6 +38,13 @@ function safeRelativePath(raw: string): string | null {
   if (!raw.startsWith("/") || raw.startsWith("//") || /[\\#\s]/.test(raw) || /%2f|%5c/i.test(raw)) return null;
   const path = raw.split("?")[0];
   try {
+    const query = raw.indexOf("?");
+    if (query !== -1) {
+      for (const parameter of raw.slice(query + 1).split("&")) {
+        const key = decodeURIComponent(parameter.split("=", 1)[0].replaceAll("+", " "));
+        if (/^(?:access_token|refresh_token|token|token_hash|code|authorization|jwt|api_key|password|secret)(?:\[.*\])?$/i.test(key)) return null;
+      }
+    }
     const decoded = decodeURIComponent(path);
     if (decoded.includes("\\") || decoded.includes("..") || decoded.includes("//")) return null;
     return decoded;
