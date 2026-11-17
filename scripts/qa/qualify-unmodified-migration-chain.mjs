@@ -48,6 +48,8 @@ function docker(args, input, timeout = 60_000, environment = {}) {
 
 docker(["image", "inspect", image, "--format", "{{.Id}}"]); // Cached only; no pull.
 docker(["image", "inspect", "public.ecr.aws/supabase/storage-api:v1.72.1", "--format", "{{.Id}}"]).trim();
+if (process.env.PUSH44_STOCK_AUTH_SCHEMA === "YES")
+  docker(["image", "inspect", "public.ecr.aws/supabase/gotrue:v2.196.0", "--format", "{{.Id}}"]).trim();
 const container = `push44-chain-${randomBytes(6).toString("hex")}`;
 const network = `${container}-net`;
 let attempted = false;
@@ -56,6 +58,7 @@ let passed = 0;
 let testOnlyTypoNormalization = false;
 let testOnlyStockAuthJwt = false;
 let testOnlyLegalSeedNormalization = false;
+let testOnlyStockAuthSchema = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -86,6 +89,26 @@ try {
     "-e", "PGRST_JWT_SECRET",
     "--entrypoint", "node", "public.ecr.aws/supabase/storage-api:v1.72.1",
     "dist/scripts/migrate-call.js"], undefined, 120_000, { PGRST_JWT_SECRET: disposableJwtSecret });
+
+  if (process.env.PUSH44_STOCK_AUTH_SCHEMA === "YES") {
+    if (process.env.PUSH44_STOCK_AUTH_JWT === "YES")
+      throw new Error("STOCK_AUTH_FIXTURES_MUTUALLY_EXCLUSIVE");
+    // The cached, version-matched GoTrue image owns its Auth schema migrations.
+    // Run only `migrate` against this random tmpfs database; no Auth API starts.
+    docker(["run", "--rm", "--network", network, "--memory", "512m", "--cpus", "1",
+      "--pids-limit", "128", "-e", "GOTRUE_DB_DRIVER=postgres",
+      "-e", "GOTRUE_DB_DATABASE_URL=postgres://supabase_admin@pg:5432/postgres",
+      "-e", "API_EXTERNAL_URL=http://127.0.0.1:9999",
+      "-e", "GOTRUE_SITE_URL=http://127.0.0.1:3000",
+      "-e", "GOTRUE_JWT_SECRET", "--entrypoint", "/usr/local/bin/auth",
+      "public.ecr.aws/supabase/gotrue:v2.196.0", "migrate"], undefined, 120_000,
+    { GOTRUE_JWT_SECRET: disposableJwtSecret });
+    const authReady = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+      "-U", "supabase_admin", "-d", "postgres"],
+      "select to_regprocedure('auth.jwt()') is not null, exists(select 1 from information_schema.columns where table_schema='auth' and table_name='users' and column_name='email_confirmed_at');");
+    if (authReady !== "t|t") throw new Error(`STOCK_AUTH_SCHEMA_INCOMPLETE_${authReady}`);
+    testOnlyStockAuthSchema = true;
+  }
 
   if (process.env.PUSH44_STOCK_AUTH_JWT === "YES") {
     if (createHash("sha256").update(stockAuthJwtSource).digest("hex") !== stockAuthJwtSha256)
@@ -158,6 +181,7 @@ try {
           : file === typoFile && testOnlyTypoNormalization ? "one_test_only_normalized_file" : "one_unmodified_file",
         testOnlyTypoNormalization,
         testOnlyStockAuthJwt,
+        testOnlyStockAuthSchema,
         testOnlyLegalSeedNormalization,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
@@ -165,7 +189,7 @@ try {
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyLegalSeedNormalization }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt, testOnlyStockAuthSchema, testOnlyLegalSeedNormalization }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
