@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { queueAuthorizedDelivery } from "@/lib/domain/digital-observer/notification-delivery-service";
 import { actionIntentDraft } from "@/lib/domain/digital-observer/notification-orchestration";
@@ -52,6 +52,6 @@ export async function POST(request: Request) {
       message: "בדיקת חוזה Push נרשמה ללא שליחה חיצונית. הפעלת ספק Production דורשת אישור בעלים נפרד." }, 201);
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("DELIVERY_")) return fail(error.message, 409);
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

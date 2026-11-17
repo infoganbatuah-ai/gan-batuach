@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 
 const schema = z.object({ observer_site_id: z.string().uuid(), channel: z.enum(["in_app", "push", "email", "sms", "whatsapp", "voice"]) });
@@ -27,6 +27,6 @@ export async function POST(request: Request) {
     if (error) return fail("לא ניתן לשמור בדיקת התראה מדומה.", 400);
     return ok({ delivery: data, external_message_sent: false, message: "הבדיקה נרשמה בתוך המערכת בלבד." }, 201);
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }
