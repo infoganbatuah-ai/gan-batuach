@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 // Opt-in, disposable schema-chain diagnosis. Never uses the existing database.
-import { randomBytes } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const socket = "unix:///Volumes/DIGITAL_OBSERVER/Development/gan-batuach/colima/gbi/docker.sock";
 const image = "public.ecr.aws/supabase/postgres:17.6.1.167";
+const enumBoundaryFile = "20260523003000_owner_role_and_onboarding.sql";
+const enumBoundarySha256 = "4fb904f0b22a755f3bcd9b5bd2fc9ba9481503628d8b83e418061e2255f1b965";
+const enumBoundaryMarker = "\n\nalter table public.gardens add column";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -64,15 +67,42 @@ try {
     if (Date.now() > deadline) throw new Error(`TIME_BOUND_AFTER_${passed}_FILES`);
     const source = readFileSync(join("supabase/migrations", file), "utf8");
     try {
-      docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
-        "-U", "supabase_admin", "-d", "postgres"], source, 90_000);
+      if (file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES") {
+        // PostgreSQL 17 cannot use a newly added enum value until commit.
+        // Keep the historical file byte-for-byte; commit only its guarded
+        // enum-addition statement, then apply its unchanged remainder atomically.
+        if (createHash("sha256").update(source).digest("hex") !== enumBoundarySha256 ||
+            source.split(enumBoundaryMarker).length !== 2) throw new Error("ENUM_BOUNDARY_SOURCE_DRIFT");
+        const splitAt = source.indexOf(enumBoundaryMarker);
+        const enumAddition = source.slice(0, splitAt);
+        const remainder = source.slice(splitAt);
+        if (!/end \$\$;\s*$/.test(enumAddition) || enumAddition + remainder !== source)
+          throw new Error("ENUM_BOUNDARY_SHAPE_INVALID");
+        docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"], enumAddition, 90_000);
+        const enumVisible = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"],
+          "select exists(select 1 from pg_enum where enumtypid='public.app_role'::regtype and enumlabel='owner');");
+        if (enumVisible !== "t") throw new Error("ENUM_BOUNDARY_NOT_COMMITTED");
+        docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"], remainder, 90_000);
+        const qualified = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"],
+          "select to_regprocedure('public.can_access_garden(uuid)') is not null, exists(select 1 from pg_policies where schemaname='public' and tablename='gardens' and policyname='managers owners update own garden');");
+        if (qualified !== "t|t") throw new Error("ENUM_BOUNDARY_REMAINDER_INCOMPLETE");
+      } else {
+        docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
+          "-U", "supabase_admin", "-d", "postgres"], source, 90_000);
+      }
       passed++;
     } catch (error) {
       const diagnostic = String(error.stderr ?? "").split("\n")
         .filter((line) => /^(?:ERROR|DETAIL|HINT|CONTEXT):/i.test(line.trim()))
         .slice(0, 4).join(" | ").slice(0, 800);
       console.log(JSON.stringify({ status: "FIRST_FAILURE", number: index + 1, file, priorPassed: passed,
-        transaction: "one_unmodified_file", error: diagnostic || `psql_exit_${error.status ?? "unknown"}` }));
+        transaction: file === enumBoundaryFile && process.env.PUSH44_ENUM_BOUNDARY === "YES"
+          ? "two_transactions_for_exact_enum_commit" : "one_unmodified_file",
+        error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
       process.exitCode = 1;
       break;
     }
