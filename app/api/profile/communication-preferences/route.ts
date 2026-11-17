@@ -90,6 +90,20 @@ export async function PATCH(request: Request) {
     if (!user || !profile) return fail("Authentication required.", 401);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
+    // Enable only after the reviewed 275th Development migration is applied.
+    // A failed RPC must never fall back to the legacy two-request write path.
+    if (typeof process !== "undefined" && process.env.PUSH44_ATOMIC_PREFERENCES_RPC === "enabled") {
+      const { push_category_preferences, ...preferencePatch } = payload;
+      const { data, error } = await supabase.rpc("save_communication_preferences_atomic", {
+        p_patch: preferencePatch,
+        p_categories: push_category_preferences ?? null
+      });
+      if (error) {
+        console.error("[communication-preferences] atomic save failed", { profile_id: profile.id, error: error.message });
+        return fail("שמירת העדפות התקשורת נכשלה.", 500);
+      }
+      return ok({ preferences: data });
+    }
     const existing = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
     if (existing.error) {
       console.error("[communication-preferences] existing load failed", { profile_id: profile.id, error: existing.error.message });
