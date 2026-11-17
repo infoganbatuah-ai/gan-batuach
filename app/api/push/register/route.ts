@@ -11,7 +11,9 @@ const schema = z.object({
   device_id: z.string().optional(),
   expected_profile_id: z.string().uuid().optional(),
   app_version: z.string().optional(),
-  metadata: z.record(z.string(), z.unknown()).optional()
+  metadata: z.object({
+    source: z.enum(["fcm_web", "digital_observer_fcm", "digital_observer_native"])
+  }).catchall(z.unknown())
 });
 
 export async function POST(request: Request) {
