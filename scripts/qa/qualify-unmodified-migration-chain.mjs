@@ -14,6 +14,20 @@ const typoFile = "20260523012000_qa_action_persistence.sql";
 const typoSha256 = "b54cb8b1e145afc90ccd7748815b9f1f3c3c12674374532176fabc68a6b701c7";
 const typoSource = "alter typeש public.camera_status add value if not exists 'pending_gateway';";
 const typoCorrection = "alter type public.camera_status add value if not exists 'pending_gateway';";
+// Rendered from Supabase Auth v2.196.0's official DNS-independent migration:
+// https://github.com/supabase/auth/blob/v2.196.0/migrations/20220531120530_add_auth_jwt_function.up.sql
+// Only the template Namespace=auth is substituted. Never install on the source DB.
+const stockAuthJwtSource = `create or replace function auth.jwt()
+returns jsonb
+language sql stable
+as $$
+  select
+    coalesce(
+        nullif(current_setting('request.jwt.claim', true), ''),
+        nullif(current_setting('request.jwt.claims', true), '')
+    )::jsonb
+$$;`;
+const stockAuthJwtSha256 = "da8cd1a869ff38ccad99a1da949f246e389865191f3412661a58f98565bce028";
 const files = readdirSync("supabase/migrations").filter((file) => /^\d{14}_[a-z0-9_]+\.sql$/.test(file)).sort();
 if (files.length !== 275) throw new Error(`EXPECTED_275_FILES_FOUND_${files.length}`);
 if (process.env.PUSH44_UNMODIFIED_CHAIN !== "YES") {
@@ -36,6 +50,7 @@ let attempted = false;
 let networkCreated = false;
 let passed = 0;
 let testOnlyTypoNormalization = false;
+let testOnlyStockAuthJwt = false;
 try {
   docker(["network", "create", "--internal", network]);
   networkCreated = true;
@@ -66,6 +81,17 @@ try {
     "-e", "PGRST_JWT_SECRET",
     "--entrypoint", "node", "public.ecr.aws/supabase/storage-api:v1.72.1",
     "dist/scripts/migrate-call.js"], undefined, 120_000, { PGRST_JWT_SECRET: disposableJwtSecret });
+
+  if (process.env.PUSH44_STOCK_AUTH_JWT === "YES") {
+    if (createHash("sha256").update(stockAuthJwtSource).digest("hex") !== stockAuthJwtSha256)
+      throw new Error("STOCK_AUTH_JWT_SOURCE_DRIFT");
+    const absent = docker(["exec", "-i", container, "psql", "-X", "-qAt", "-v", "ON_ERROR_STOP=1",
+      "-U", "supabase_admin", "-d", "postgres"], "select to_regprocedure('auth.jwt()') is null;");
+    if (absent !== "t") throw new Error("STOCK_AUTH_JWT_ALREADY_PRESENT");
+    docker(["exec", "-i", container, "psql", "-X", "-q", "-1", "-v", "ON_ERROR_STOP=1",
+      "-U", "supabase_admin", "-d", "postgres"], stockAuthJwtSource);
+    testOnlyStockAuthJwt = true;
+  }
 
   const deadline = Date.now() + 10 * 60_000;
   for (const [index, file] of files.entries()) {
@@ -118,13 +144,14 @@ try {
           ? "two_transactions_for_exact_enum_commit"
           : file === typoFile && testOnlyTypoNormalization ? "one_test_only_normalized_file" : "one_unmodified_file",
         testOnlyTypoNormalization,
+        testOnlyStockAuthJwt,
         exactEnumCommitBoundary: process.env.PUSH44_ENUM_BOUNDARY === "YES",
         error: diagnostic || (/^[A-Z_]+$/.test(error.message ?? "") ? error.message : `psql_exit_${error.status ?? "unknown"}`) }));
       process.exitCode = 1;
       break;
     }
   }
-  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization }));
+  if (passed === files.length) console.log(JSON.stringify({ status: "PASS", files: passed, testOnlyTypoNormalization, testOnlyStockAuthJwt }));
 } finally {
   if (attempted) {
     try { docker(["rm", "-f", container]); }
