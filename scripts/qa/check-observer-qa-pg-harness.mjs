@@ -26,6 +26,11 @@ test("harness targets cached gbi image with no network, explicit role checks and
   assert.match(source, /create role anon login; create role authenticated login; create role service_role login bypassrls/);
   assert.match(source, /has_function_privilege\('anon'/);
   assert.match(source, /has_table_privilege\('authenticated'/);
+  assert.match(source, /set role \$\{role\}; select \$\{functionCall\}/);
+  assert.match(source, /permission denied for function/);
+  assert.match(source, /consume\("verify", "c"\.repeat\(64\)\)/);
+  assert.match(source, /const expiredState = "d"\.repeat\(64\)/);
+  assert.match(source, /select pg_sleep\(2\)/);
   assert.match(source, /Promise\.all\(\[psqlAsync\(container, consume\(\)\), psqlAsync\(container, consume\(\)\)\]\)/);
   assert.match(source, /if \(startAttempted\)/);
   assert.match(source, /docker\(\["rm", "-f", container\]\)/);

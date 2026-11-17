@@ -89,18 +89,34 @@ async function main() {
       has_table_privilege('authenticated', 'observer_qa_private.callback_states', 'SELECT')
       from pg_catalog.pg_class limit 1;`);
     assert.equal(acl, "f|f|t|f|f|t|f|f");
+    for (const role of ["anon", "authenticated"]) {
+      for (const functionCall of [
+        `public.observer_qa_callback_state_put_v1('${state}','digital_observer','verify','${binding}',1)`,
+        `public.observer_qa_callback_state_consume_v1('${state}','digital_observer','verify','${binding}')`
+      ]) {
+        assert.throws(() => psql(container, `set role ${role}; select ${functionCall};`),
+          (error) => /permission denied for function/.test(String(error.stderr)));
+      }
+    }
     assert.equal(psql(container, "select relrowsecurity from pg_catalog.pg_class where oid='observer_qa_private.callback_states'::regclass;"), "t");
     const put = (deadline) => `set role service_role; select public.observer_qa_callback_state_put_v1('${state}','digital_observer','verify','${binding}',${deadline});`;
-    const consume = (flow = "verify") => `set role service_role; select public.observer_qa_callback_state_consume_v1('${state}','digital_observer','${flow}','${binding}');`;
+    const consume = (flow = "verify", bindingHash = binding) =>
+      `set role service_role; select public.observer_qa_callback_state_consume_v1('${state}','digital_observer','${flow}','${bindingHash}');`;
     const deadline = psql(container, "select (extract(epoch from clock_timestamp())*1000)::bigint + 120000;");
     assert.equal(psql(container, put(deadline)), "t");
     assert.equal(psql(container, put(deadline)), "f");
     assert.equal(psql(container, consume("recovery")), "f");
+    assert.equal(psql(container, consume("verify", "c".repeat(64))), "f");
     const results = await Promise.all([psqlAsync(container, consume()), psqlAsync(container, consume())]);
     assert.deepEqual(results.sort(), ["f", "t"]);
     assert.equal(psql(container, consume()), "f");
     assert.equal(psql(container, put("1")), "f");
-    console.log("PASS: isolated PostgreSQL ACL/RLS, duplicate/expiry/wrong-flow and concurrent one-use consume");
+    const expiredState = "d".repeat(64);
+    const expiresSoon = psql(container, "select (extract(epoch from clock_timestamp())*1000)::bigint + 1500;");
+    assert.equal(psql(container, `set role service_role; select public.observer_qa_callback_state_put_v1('${expiredState}','digital_observer','verify','${binding}',${expiresSoon});`), "t");
+    psql(container, "select pg_sleep(2);");
+    assert.equal(psql(container, `set role service_role; select public.observer_qa_callback_state_consume_v1('${expiredState}','digital_observer','verify','${binding}');`), "f");
+    console.log("PASS: isolated PostgreSQL direct role denial, ACL/RLS, duplicate, expired stored state, wrong flow/binding and concurrent one-use consume");
   } finally {
     if (startAttempted) {
       try { docker(["rm", "-f", container]); }
