@@ -53,6 +53,11 @@ export function nativeAppAcceptsMobileLink(rawUrl: string, appId: string, platfo
     platform === "android" && appId === "com.digitalobserver.app.qa" ? "observerqaandroid:" :
     ["ios", "android"].includes(platform) && ["com.ganbatuach.app", "com.ganbatuach.app.qa"].includes(appId) ? "digitalobserver:" : null;
   if (!expected || url.username || url.password || url.port || url.hash) return false;
+  // The Observer Android QA intent filter admits only the six resource hosts
+  // and the separate native return authority. A resource link carries exactly
+  // one site selector; never forward unknown query fields (including tokens).
+  if (platform === "android" && appId === "com.digitalobserver.app.qa" &&
+      (url.searchParams.size !== 1 || !url.searchParams.has("site"))) return false;
   if (url.protocol === "https:") {
     // A shared origin is not an installation identity. Only the distinct
     // Observer QA app may consume Observer HTTPS resource links.
@@ -76,7 +81,16 @@ export function parseMobileLink(rawUrl: string, allowedHttpsOrigins: string[] = 
   const customScheme = nativeLinkSchemes.has(url.protocol);
   const allowedHttps = url.protocol === "https:" && allowedHttpsOrigins.includes(url.origin);
   if (!customScheme && !allowedHttps) throw new Error("MOBILE_LINK_ORIGIN_DENIED");
+  // The server must enforce the same URL-metadata boundary as the native app.
+  // A fragment/userinfo/port is never part of a canonical resource identity.
+  if (url.username || url.password || url.port || url.hash)
+    throw new Error("MOBILE_LINK_INVALID");
   if (allowedHttps && !url.pathname.startsWith("/digital-observer/open/")) throw new Error("MOBILE_LINK_PATH_DENIED");
+  // A resource link is not an Auth return. Reject extra or duplicate query
+  // fields before forwarding or persisting it, even if the extra field would
+  // otherwise be ignored when building the authorized destination.
+  if (url.searchParams.size !== 1 || !url.searchParams.has("site"))
+    throw new Error("MOBILE_LINK_INVALID");
 
   const parts = customScheme
     ? [url.hostname, ...url.pathname.split("/").filter(Boolean)]

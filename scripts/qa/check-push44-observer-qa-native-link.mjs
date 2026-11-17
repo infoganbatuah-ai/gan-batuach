@@ -34,7 +34,7 @@ test("native QA schemes parse and survive one-use pending replay without becomin
   for (const scheme of ["observerqaapp", "observerqaandroid"]) {
     const storage = store();
     assert.equal(mobile.parseMobileLink(link(scheme)).observerSiteId, site);
-    assert.equal(pending.rememberPendingMobileLink(storage, `${link(scheme)}&ignored=1`, 1_000), true);
+    assert.equal(pending.rememberPendingMobileLink(storage, link(scheme), 1_000), true);
     assert.equal(pending.takePendingMobileLink(storage, 2_000), link(scheme));
     assert.equal(pending.takePendingMobileLink(storage, 2_000), null);
     assert.equal(pending.firstLaunchOfMobileLink(storage, link(scheme), 3_000), true);
@@ -74,6 +74,20 @@ test("Observer Android refuses malformed and non-resource intents before server 
   }
 });
 
+test("resource links reject unknown, duplicate, and bearer query fields before transport or replay", () => {
+  const appId = "com.digitalobserver.app.qa";
+  for (const raw of [
+    `${link("observerqaandroid")}&ignored=1`,
+    `${link("observerqaandroid")}&site=${site}`,
+    `${link("observerqaandroid")}&access_token=synthetic`,
+    `${origin}/digital-observer/open/camera/${camera}?site=${site}&code=synthetic`
+  ]) {
+    assert.throws(() => mobile.parseMobileLink(raw, [origin]), /MOBILE_LINK_INVALID/);
+    assert.equal(mobile.nativeAppAcceptsMobileLink(raw, appId, "android", origin), false);
+    assert.equal(pending.rememberPendingMobileLink(store(), raw, 1_000, origin), false);
+  }
+});
+
 test("native HTTPS return stays on the exact Observer origin and product path", () => {
   const appId = "com.digitalobserver.app.qa";
   assert.equal(mobile.nativeAppAcceptsMobileLink(`${origin}/digital-observer/open/camera/${camera}?site=${site}`, appId, "ios", origin), true);
@@ -92,7 +106,7 @@ test("native HTTPS return stays on the exact Observer origin and product path", 
 test("same-origin HTTPS link survives login replay, foreign origin cannot be stored or replayed", () => {
   const storage = store();
   const httpsLink = `${origin}/digital-observer/open/camera/${camera}?site=${site}`;
-  assert.equal(pending.rememberPendingMobileLink(storage, `${httpsLink}&ignored=1`, 1_000, origin), true);
+  assert.equal(pending.rememberPendingMobileLink(storage, httpsLink, 1_000, origin), true);
   assert.equal(pending.takePendingMobileLink(storage, 2_000, origin), httpsLink);
   assert.equal(pending.takePendingMobileLink(storage, 2_000, origin), null);
   assert.equal(pending.rememberPendingMobileLink(storage, httpsLink, 3_000, origin), true);

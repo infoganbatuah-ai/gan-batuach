@@ -1,15 +1,7 @@
-# Digital Observer iOS QA — offline unsigned build
+# Digital Observer iOS QA — isolated build states
 
-This is an isolated source/build qualification of the Observer app identity. It does not change the Xcode project's Release or PersonalTeamQA defaults. The earlier signed QA build used a `.invalid` server URL, which overrides its bundled page and can produce a black screen. This source revision removes the remote URL and supplies a clearly labeled, network-free local QA status page. It is **not** the authenticated Observer Product and cannot prove login, media, or Push.
+This is an isolated source/build qualification of the Observer app identity. It does not change the Xcode project's Release or PersonalTeamQA defaults. The earlier signed QA build used a `.invalid` server URL, which overrides its bundled page and can produce a black screen. The default offline template has no remote URL and displays "בדיקת התקנה מקומית בלבד". The separately opted-in authenticated-origin candidate is restricted to the exact Observer QA host and instead bundles "חיבור QA טרם אומת" as its local fallback. Neither page proves login, media, Push or a reachable QA service.
 
 The Observer-specific xcconfig selects `ObserverQAIcon`, rasterized from the existing Observer SVG. Its dedicated launch storyboard is compiled into the unsigned bundle by the Swift finalizer; no Gan splash asset is selected for launch. This is a source-controlled build override, not yet a distinct Xcode target or signed distribution configuration.
 
-From the repository root, with existing local Capacitor dependencies:
-
-```sh
-CAPACITOR_BUILD_PROFILE=qa CAPACITOR_SERVER_URL=https://gan-qa.example.invalid CAPACITOR_ALLOWED_SERVER_ORIGIN=https://gan-qa.example.invalid ./node_modules/.bin/cap sync ios
-xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration PersonalTeamQA -destination 'generic/platform=iOS' -derivedDataPath /path/on/external-drive/ObserverQADerivedData -xcconfig ios/qa-observer/ObserverQA.xcconfig CODE_SIGNING_ALLOWED=NO build
-swift scripts/qa/finalize-observer-ios-qa.swift /path/on/external-drive/ObserverQADerivedData/Build/Products/PersonalTeamQA-iphoneos/App.app ios/qa-observer/capacitor.config.json
-```
-
-The finalizer refuses a signed bundle, a wrong bundle identity, a wrong callback scheme, any remote URL, or embedded Push credentials. It also requires and compiles the Observer-only launch storyboard and replaces the bundled `public/index.html` with the Observer-specific offline page. Capacitor may mechanically rewrite tracked local-package paths when `node_modules` is a symlink; restore those generated path changes before committing. Do not install or distribute this unsigned `.app` without a separate device-qualification step.
+The default finalizer accepts only an unsigned bundle with no remote URL. With explicit `OBSERVER_QA_AUTH_BUILD=1`, it accepts only `https://observer-qa.ganbatuach.com/digital-observer/dashboard` and the exact `observerqaapp://return/qa/device-proof` callback contract; this still does not sign or install the app. Both modes reject a wrong bundle identity, callback scheme or embedded Push credentials. The finalizer compiles the Observer-only launch storyboard and chooses the appropriate local status page. No current source-level test proves a signed authenticated package, live QA host or callback. Do not install or distribute an unsigned `.app` as an authenticated build.

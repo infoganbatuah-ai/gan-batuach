@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { queueAuthorizedDelivery } from "@/lib/domain/digital-observer/notification-delivery-service";
 import { actionIntentDraft } from "@/lib/domain/digital-observer/notification-orchestration";
@@ -14,7 +14,9 @@ export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const payload = schema.parse(await request.json());
+    let body: unknown;
+    try { body = await request.json(); } catch { return fail("מבנה הבקשה אינו תקין.", 400); }
+    const payload = schema.parse(body);
     const site = await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לבדוק Push באתר הזה.", 403);
     if (!isAdminClientConfigured()) return fail("חסרה תצורת שרת מאובטחת לבדיקת חוזה Push.", 503);
@@ -52,6 +54,6 @@ export async function POST(request: Request) {
       message: "בדיקת חוזה Push נרשמה ללא שליחה חיצונית. הפעלת ספק Production דורשת אישור בעלים נפרד." }, 201);
   } catch (error) {
     if (error instanceof Error && error.message.startsWith("DELIVERY_")) return fail(error.message, 409);
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

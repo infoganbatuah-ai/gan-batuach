@@ -28,7 +28,8 @@ const store = () => {
 
 test("cold-start link is canonicalized, replayed once after login and still needs server authorization", () => {
   const storage = store();
-  assert.equal(pending.rememberPendingMobileLink(storage, `${link}&ignored=1`, 1_000), true);
+  assert.equal(pending.rememberPendingMobileLink(storage, `${link}&ignored=1`, 1_000), false);
+  assert.equal(pending.rememberPendingMobileLink(storage, link, 1_000), true);
   const replay = pending.takePendingMobileLink(storage, 2_000);
   assert.equal(replay, link);
   assert.equal(pending.takePendingMobileLink(storage, 2_000), null);
@@ -68,7 +69,7 @@ test("native runtime queues only a 401 link and replays after authenticated boot
   assert.match(runtime, /firstLaunchOfMobileLink\(window\.sessionStorage, launch\.url, Date\.now\(\), window\.location\.origin\)/);
 });
 
-async function authorizeLink({ session = true, siteAllowed = true, resourceAllowed = true } = {}) {
+async function authorizeLink({ session = true, siteAllowed = true, resourceAllowed = true, rawUrl = link } = {}) {
   const exports = {};
   const calls = [];
   const supabase = { from: (table) => {
@@ -95,7 +96,7 @@ async function authorizeLink({ session = true, siteAllowed = true, resourceAllow
     require: (id) => { assert.ok(Object.hasOwn(modules, id), id); return modules[id]; }
   }, { timeout: 5000 });
   const response = await exports.POST(new Request("https://qa.invalid/api/digital-observer/mobile/runtime", {
-    method: "POST", body: JSON.stringify({ url: link }), headers: { "content-type": "application/json" }
+    method: "POST", body: JSON.stringify({ url: rawUrl }), headers: { "content-type": "application/json" }
   }));
   return { status: response.status, calls };
 }
@@ -107,4 +108,22 @@ test("replayed link cannot bypass logged-out or cross-Site authorization", async
   const allowed = await authorizeLink();
   assert.equal(allowed.status, 200);
   assert.ok(allowed.calls.some(([name, value]) => name === "observer_site_id" && value === site));
+});
+
+test("authenticated server refuses bearer-bearing resource link before Site lookup", async () => {
+  const result = await authorizeLink({ rawUrl: `${link}&access_token=synthetic` });
+  assert.equal(result.status, 400);
+  assert.equal(result.calls.length, 0);
+});
+
+test("server rejects fragment, userinfo and explicit port before Site lookup", async () => {
+  for (const rawUrl of [
+    `${link}#access_token=synthetic`,
+    link.replace("//camera/", "//user@camera/"),
+    link.replace("//camera/", "//camera:1234/")
+  ]) {
+    const result = await authorizeLink({ rawUrl });
+    assert.equal(result.status, 400, rawUrl);
+    assert.equal(result.calls.length, 0);
+  }
 });
