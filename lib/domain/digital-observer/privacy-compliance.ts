@@ -64,6 +64,7 @@ export type PrivacyGateInput = {
   policyActive: boolean;
   decisionState: LegalDecisionState | null | undefined;
   approvalScopeMatches: boolean;
+  approvalEffectiveAt: string | null;
   approvalExpiresAt?: string | null;
   humanReviewRequired?: boolean;
   humanReviewerId?: string | null;
@@ -79,10 +80,33 @@ export type PrivacyGateDecision = {
     | "EXTERNAL_APPROVAL_REQUIRED"
     | "PROHIBITED"
     | "APPROVAL_SCOPE_MISMATCH"
+    | "APPROVAL_INVALID"
+    | "APPROVAL_NOT_YET_EFFECTIVE"
     | "APPROVAL_EXPIRED"
     | "HUMAN_REVIEW_REQUIRED";
   consentAloneIsSufficient: false;
 };
+
+export function legalApprovalMatchesPolicy(input: {
+  approvalStatus: string | null;
+  revokedAt: string | null;
+  approvalPurpose: string | null;
+  requestedPurpose: string;
+  approvalJurisdiction: string | null;
+  policyJurisdiction: string | null;
+}): boolean {
+  return input.approvalStatus === "approved" && input.revokedAt === null &&
+    input.approvalPurpose === input.requestedPurpose &&
+    !!input.policyJurisdiction && input.approvalJurisdiction === input.policyJurisdiction;
+}
+
+export function privacyPolicyMatchesTrustedTenant(input: {
+  policyOrganizationId: string | null;
+  trustedTenantId: string;
+}): boolean {
+  return !!input.trustedTenantId &&
+    (input.policyOrganizationId === null || input.policyOrganizationId === input.trustedTenantId);
+}
 
 const childRestricted = new Set<SensitiveCapability>([
   "FACE_RECOGNITION",
@@ -105,7 +129,15 @@ export function evaluatePrivacyGate(input: PrivacyGateInput, now = new Date()): 
   if (input.context === "KINDERGARTEN" && childRestricted.has(input.capability)) return deny("PROHIBITED");
   if (input.decisionState !== "EXTERNALLY_APPROVED") return deny("EXTERNAL_APPROVAL_REQUIRED");
   if (!input.approvalScopeMatches) return deny("APPROVAL_SCOPE_MISMATCH");
-  if (input.approvalExpiresAt && new Date(input.approvalExpiresAt).getTime() <= now.getTime()) return deny("APPROVAL_EXPIRED");
+  if (!input.approvalEffectiveAt) return deny("APPROVAL_INVALID");
+  const effectiveAt = Date.parse(input.approvalEffectiveAt);
+  if (!Number.isFinite(effectiveAt)) return deny("APPROVAL_INVALID");
+  if (effectiveAt > now.getTime()) return deny("APPROVAL_NOT_YET_EFFECTIVE");
+  if (input.approvalExpiresAt) {
+    const expiresAt = Date.parse(input.approvalExpiresAt);
+    if (!Number.isFinite(expiresAt)) return deny("APPROVAL_INVALID");
+    if (expiresAt <= now.getTime()) return deny("APPROVAL_EXPIRED");
+  }
   if (input.humanReviewRequired && !input.humanReviewerId) return deny("HUMAN_REVIEW_REQUIRED");
   return { allowed: true, reason: "APPROVED", consentAloneIsSufficient: false };
 }
@@ -122,7 +154,10 @@ export type RetentionDecisionInput = {
 export function evaluateRetentionDisposition(input: RetentionDecisionInput, now = new Date()) {
   if (input.activeLegalHold) return { action: "PRESERVE", reason: "LEGAL_HOLD" } as const;
   if (input.policyDecision !== "EXTERNALLY_APPROVED") return { action: "REVIEW", reason: "POLICY_NOT_APPROVED" } as const;
-  if (!input.expiresAt || new Date(input.expiresAt).getTime() > now.getTime()) return { action: "PRESERVE", reason: "NOT_EXPIRED" } as const;
+  if (!input.expiresAt) return { action: "PRESERVE", reason: "NOT_EXPIRED" } as const;
+  const expiresAt = Date.parse(input.expiresAt);
+  if (!Number.isFinite(expiresAt)) return { action: "REVIEW", reason: "INVALID_EXPIRY" } as const;
+  if (expiresAt > now.getTime()) return { action: "PRESERVE", reason: "NOT_EXPIRED" } as const;
   if (input.externalSystemOwnsData && !input.externalDeletionConfirmed) {
     return { action: "RECORD_EXTERNAL_PENDING", reason: "EXTERNAL_DELETION_UNVERIFIED" } as const;
   }
@@ -142,7 +177,10 @@ export function truthfulDeletionReceipt(input: {
 }
 
 export function isLegalHoldActive(input: { status: string; startsAt: string; endsAt?: string | null }, now = new Date()) {
-  return input.status === "active"
-    && new Date(input.startsAt).getTime() <= now.getTime()
-    && (!input.endsAt || new Date(input.endsAt).getTime() > now.getTime());
+  if (input.status !== "active") return false;
+  const startsAt = Date.parse(input.startsAt);
+  const endsAt = input.endsAt ? Date.parse(input.endsAt) : null;
+  // Unparseable active-hold dates must not authorize deletion.
+  if (!Number.isFinite(startsAt) || (endsAt !== null && !Number.isFinite(endsAt))) return true;
+  return startsAt <= now.getTime() && (endsAt === null || endsAt > now.getTime());
 }
