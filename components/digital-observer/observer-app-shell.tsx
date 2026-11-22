@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { LogoutButton } from "@/components/logout-button";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { isObserverNavActive } from "@/lib/ui/observer-navigation";
 import type { ObserverMode } from "@/lib/domain/digital-observer/runtime";
 
 type ObserverShellProfile = {
@@ -140,8 +141,8 @@ export function ObserverAppShell({
         <nav aria-label="ניווט התצפיתן הדיגיטלי">
           {nav.map((item) => {
             const Icon = item.icon;
-            const active = activeHref === item.href || (item.href !== "/digital-observer/dashboard" && activeHref.startsWith(item.href));
-            return <Link className={active ? "active" : ""} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
+            const active = isObserverNavActive(activeHref, item.href);
+            return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
           })}
         </nav>
         <Link className="do-sidebar-help" href="/digital-observer/trust"><CircleHelp /><span>עזרה, פרטיות ואמון</span></Link>
@@ -160,8 +161,8 @@ export function ObserverAppShell({
                 <nav aria-label="כל מסכי התצפיתן">
                   {nav.map((item) => {
                     const Icon = item.icon;
-                    const active = activeHref === item.href || (item.href !== "/digital-observer/dashboard" && activeHref.startsWith(item.href));
-                    return <Link className={active ? "active" : ""} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
+                    const active = isObserverNavActive(activeHref, item.href);
+                    return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
                   })}
                 </nav>
                 <footer>
@@ -192,8 +193,8 @@ export function ObserverAppShell({
       <nav className="do-bottom-nav" aria-label="ניווט תחתון">
         {mobileNav.map((item) => {
           const Icon = item.icon ?? Menu;
-          const active = activeHref === item.href || (item.href !== "/digital-observer/dashboard" && activeHref.startsWith(item.href));
-          return <Link className={active ? "active" : ""} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
+          const active = isObserverNavActive(activeHref, item.href);
+          return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
         })}
       </nav>
     </div>
