@@ -30,3 +30,20 @@ The six historical migration edits in this branch are source bootstrap correctio
 On the isolated, already migrated `q275` database, a synthetic `subprocessor_register` row was inserted. `supabase migration up --local` reported `applied: []`; the registry stayed at 275 and the fixture stayed present. The fixture was then removed. This verifies non-reapplication and data preservation for that local case, **not** an upgrade from the pre-change integration database. The migration registry contains version, statements, and name columns; no history record was edited or repaired.
 
 Missing qualification: a separately restored pre-change integration database with representative existing Home data. The original source baseline cannot fresh-bootstrap past the six defects, and this task excludes the original `gbi` and hosted QA. Before any deployment, restore a permitted pre-change backup into a separate QA database, compare schema and data, and rehearse the Home-Site-present branch and rollback. Do not treat the current source-only candidate as READY TO APPLY. The scoped dump/restore rehearsal above is evidence for backup mechanics, not a lossless rollback with active Home data.
+
+## Bounded pre-change fixture inventory and 2026-11-23 checks
+
+One bounded name/metadata inventory on Kingston found:
+
+- The encrypted original Development snapshot at `Development/gan-batuach/recovered-development-backup.HvyUwd/` (2026-10-22, 256 applied migrations, 24 Auth users). Its manifest does not establish Home camera row counts, and the private `age` identity is not locally available to this task. No ciphertext was decrypted.
+- Three unencrypted September `push38qa`/`push38t` QA dumps under `Projects/Gan-Batuach/exports/restricted/`. The `push38t-db-pre-rest-repair-20260922.dump` table inventory included `observer_sites` and `digital_observer_camera_sources`. This is a QA dump, not the original Development database.
+
+The September `push38t` dump was restored only to a new disposable database inside isolated `q275`. Full restore reported exactly one `vault.secrets` permission error, so it is not a qualified full-platform restore. Metadata-only queries found one canonical Home Site, **zero Home camera sources**, zero automation policies, and no media-evidence table. This is insufficient for a representative Home upgrade or migration-170 live-data equivalence test.
+
+The candidate `20260902033000` migration was run against that disposable restore. It failed at its existing guard with `Authorized camera scope is incomplete or unhealthy` (psql exit 3). No activation was committed. This proves the added Site-presence guard does not skip the original missing-camera denial in this fixture. The Site-absent case was covered by the 275/275 fresh bootstrap with zero enabled policies. A real Home Site with all five sources and authorization prerequisites was **not** exercised.
+
+`scripts/qa/media-evidence-source-equivalence.sql` passed in isolated PostgreSQL using synthetic Sites and cameras. It compares the repaired correlated first-eligible-camera query to the valid LATERAL form of the original intent, including eligible/ineligible sources and no-source cases, inside a rolled-back transaction. It is not equivalence proof for historical media rows.
+
+The disposable restore databases and temporary container copies were removed, and `q275` was cleanly stopped. No original Development database, hosted database, or Home service was accessed.
+
+**Forward-only feasibility:** A new migration after version 275 cannot make a fresh source replay pass the malformed `alter typeש` in version `20260523012000`, nor can it correct the earlier enum-in-transaction, invalid seed, invalid target-alias SQL, or Home-Site-missing failure before those files execute. Therefore a forward-only-only candidate with all historical files reverted would fail before reaching the new migration. Do not label such a candidate PASS or publish it. The minimal viable source-only bootstrap correction still requires the six narrow historical repairs; deployment policy for already applied history and full representative upgrade/rollback remain separate gates.
