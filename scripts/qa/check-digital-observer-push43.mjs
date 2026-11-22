@@ -37,6 +37,12 @@ assert.equal(contract.validateEmbedOrigin("https://app.partner.example", ["https
 assert.throws(() => contract.validateEmbedOrigin("http://app.partner.example", ["http://app.partner.example"]), /PARTNER_EMBED_HTTPS_REQUIRED/);
 assert.equal(contract.validateEmbedOrigin("http://localhost:3000", ["http://localhost:3000"]), "http://localhost:3000");
 assert.throws(() => contract.validateEmbedOrigin("https://attacker.example", ["https://app.partner.example"]), /ORIGIN_DENIED/);
+const publicBrand = { brand_name: "Partner", product_name: "Observer", primary_color: "#123456",
+  accent_color: "#abcdef", privacy_url: "https://partner.example/privacy",
+  terms_url: "https://partner.example/terms", legally_required_notices: ["Privacy notice"] };
+assert.equal(contract.brandProfileSchema.safeParse(publicBrand).success, true);
+for (const privacy_url of ["https://user:secret@partner.example/privacy", "https://partner.example/privacy#token"])
+  assert.equal(contract.brandProfileSchema.safeParse({ ...publicBrand, privacy_url }).success, false);
 const issued = contract.issueEmbeddedToken({ pepper: "safe-test-pepper-value", ttlMinutes: 15, now: 1792375200000 });
 assert.match(issued.raw, /^doemb_[A-Za-z0-9_-]+$/);
 assert.equal(issued.expiresAt, "2026-10-19T02:15:00.000Z");

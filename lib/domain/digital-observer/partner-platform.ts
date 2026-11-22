@@ -8,7 +8,8 @@ export type EmbeddedScope = (typeof embeddedScopes)[number];
 
 const httpsOrLocal = z.string().url().max(1000).refine((value) => {
   const url = new URL(value);
-  return url.protocol === "https:" || (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname));
+  return !url.username && !url.password && !url.hash &&
+    (url.protocol === "https:" || (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)));
 }, "HTTPS_REQUIRED");
 
 export const brandProfileSchema = z.object({
