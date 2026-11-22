@@ -95,6 +95,9 @@ assert.equal(unknownSandbox.confirmedDelivery, false);
 for (const candidate of ["http://example.com/hook", "https://localhost/hook", "https://127.0.0.1/hook", "https://169.254.169.254/hook", "https://10.0.0.2/hook", "https://[::1]/hook", "https://evil.example/hook"])
   assert.equal(webhooks.validateWebhookDestination(candidate, ["hooks.example.com"]).allowed, false, candidate);
 assert.equal(webhooks.validateWebhookDestination("https://hooks.example.com/do", ["hooks.example.com"]).allowed, true);
+for (const candidate of ["https://[::1]/hook", "https://[fc00::1]/hook", "https://[fe90::1]/hook", "https://[::ffff:127.0.0.1]/hook"])
+  assert.equal(webhooks.validateWebhookDestination(candidate, [new URL(candidate).hostname]).reason,
+    "private_destination_denied", `allowlisting must not permit ${candidate}`);
 const body = JSON.stringify(webhooks.versionedWebhookPayload({ deliveryId: "delivery-a", eventType: "delivery.status", occurredAt: "2026-10-18T00:00:00Z", siteReference: "site-ref", status: "delivered" }));
 const signature = webhooks.webhookSignature({ body, timestamp: 1000, deliveryId: "delivery-a", secret: "sandbox-secret", keyVersion: 2 });
 assert.equal(webhooks.verifyWebhookSignature({ body, timestamp: 1000, deliveryId: "delivery-a", signature, secret: "sandbox-secret", keyVersion: 2, now: 1000 }).valid, true);

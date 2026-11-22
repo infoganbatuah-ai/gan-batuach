@@ -5,13 +5,15 @@ import { PUSH39_WEBHOOK_VERSION } from "./notification-orchestration";
 const forbiddenHosts = new Set(["localhost", "localhost.localdomain", "metadata.google.internal", "metadata.aws.internal"]);
 
 function privateIp(host: string) {
-  if (isIP(host) === 4) {
-    const [a, b] = host.split(".").map(Number);
+  const address = host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
+  if (isIP(address) === 4) {
+    const [a, b] = address.split(".").map(Number);
     return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
   }
-  if (isIP(host) === 6) {
-    const value = host.toLowerCase();
-    return value === "::1" || value === "::" || value.startsWith("fc") || value.startsWith("fd") || value.startsWith("fe80:");
+  if (isIP(address) === 6) {
+    const value = address.toLowerCase();
+    return value === "::1" || value === "::" || value.startsWith("fc") || value.startsWith("fd") ||
+      /^fe[89ab]/.test(value) || value.startsWith("::ffff:");
   }
   return false;
 }
