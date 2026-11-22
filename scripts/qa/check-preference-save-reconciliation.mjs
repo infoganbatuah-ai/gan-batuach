@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { loadPersistedPreferences, saveAndReconcilePreferences } from "../../lib/management/preference-save-reconciliation.ts";
 
 const persisted = { data: { preferences: { receive_email: false }, push_category_preferences: { message: false } } };
-const reply = (status, body) => ({ ok: status < 400, json: async () => body });
+const reply = (status, body) => ({ status, ok: status < 400, json: async () => body });
 
 test("successful save keeps editable state and confirms success", async () => {
   const calls = [];
@@ -14,6 +14,19 @@ test("successful save keeps editable state and confirms success", async () => {
   }, { receive_email: true });
   assert.deepEqual(result, { status: "saved" });
   assert.deepEqual(calls, ["PATCH"]);
+});
+
+test("409 account switch neither reports success nor loads another account into the stale form", async () => {
+  const calls = [];
+  const result = await saveAndReconcilePreferences(async (_url, options) => {
+    calls.push(options.method);
+    return reply(409, { error: "account_changed" });
+  }, { expected_profile_id: "previous-account", receive_email: true });
+  assert.equal(result.status, "account_changed");
+  assert.deepEqual(calls, ["PATCH"]);
+  const component = readFileSync(new URL("../../components/parent-notification-preferences.tsx", import.meta.url), "utf8");
+  assert.match(component, /if \(result\.status === "account_changed"\) setAccountChanged\(true\)/);
+  assert.match(component, /accountChanged[\s\S]*?window\.location\.reload\(\)/);
 });
 
 test("server 500 after a partial first write reloads actual persisted values", async () => {
@@ -51,7 +64,7 @@ test("malformed GET never manufactures saved consent", async () => {
 
 test("shared component used by all four role pages hides the form on unknown result", () => {
   const component = readFileSync(new URL("../../components/parent-notification-preferences.tsx", import.meta.url), "utf8");
-  assert.match(component, /unavailable \? <button[\s\S]*?NotificationPreferencesForm/);
+  assert.match(component, /unavailable \? accountChanged[\s\S]*?NotificationPreferencesForm/);
   assert.match(component, /<div role="alert"/);
   for (const role of ["parent", "staff", "garden", "inspector"]) {
     const page = readFileSync(new URL(`../../app/dashboard/${role}/notifications/page.tsx`, import.meta.url), "utf8");

@@ -47,7 +47,7 @@ export default async function GardenNotificationsPage() {
       </TeacherSection>
       <TeacherSection title="העדפות ושעות שקט" subtitle="הערוצים מוצגים לפי מוכנות אמיתית של הספק.">
         {preferencesAvailable
-          ? <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="עדכוני הניהול שלך" />
+          ? <NotificationPreferencesPanel ownerKey={profile.id} preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="עדכוני הניהול שלך" />
           : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}
       </TeacherSection>
     </TeacherAppFrame>
