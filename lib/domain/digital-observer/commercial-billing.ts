@@ -60,9 +60,13 @@ export type PlanVersion = {
 
 export function validatePlanForCheckout(plan: PlanVersion, at = new Date()) {
   if (plan.pricingStatus !== "approved") throw new Error("PLAN_PRICE_NOT_OWNER_APPROVED");
-  if (!plan.currency || plan.priceMinor === null || plan.priceMinor < 0) throw new Error("PLAN_PRICE_NOT_CONFIGURED");
-  if (new Date(plan.effectiveFrom).getTime() > at.getTime()) throw new Error("PLAN_NOT_YET_EFFECTIVE");
-  if (plan.effectiveUntil && new Date(plan.effectiveUntil).getTime() <= at.getTime()) throw new Error("PLAN_VERSION_EXPIRED");
+  if (!plan.currency || plan.priceMinor === null || !Number.isSafeInteger(plan.priceMinor) || plan.priceMinor < 0) throw new Error("PLAN_PRICE_NOT_CONFIGURED");
+  const start = Date.parse(plan.effectiveFrom);
+  const end = plan.effectiveUntil ? Date.parse(plan.effectiveUntil) : null;
+  if (!Number.isFinite(start) || !Number.isFinite(at.getTime()) ||
+    (end !== null && (!Number.isFinite(end) || end <= start))) throw new Error("PLAN_EFFECTIVE_WINDOW_INVALID");
+  if (start > at.getTime()) throw new Error("PLAN_NOT_YET_EFFECTIVE");
+  if (end !== null && end <= at.getTime()) throw new Error("PLAN_VERSION_EXPIRED");
   return plan;
 }
 
@@ -90,10 +94,20 @@ export function evaluateEntitlement(input: {
   at?: Date;
   expiresAt?: string | null;
 }) : EntitlementDecision {
+  if (!commercialSubscriptionStates.includes(input.state)) return { allowed: false, reason: "subscription_state_invalid", limit: null, current: null };
   if (["suspended", "cancelled", "expired"].includes(input.state)) return { allowed: false, reason: `subscription_${input.state}`, limit: null, current: input.currentUsage ?? null };
-  if (input.expiresAt && new Date(input.expiresAt).getTime() <= (input.at ?? new Date()).getTime()) return { allowed: false, reason: "entitlement_expired", limit: null, current: input.currentUsage ?? null };
+  if (input.currentUsage !== undefined && (!Number.isFinite(input.currentUsage) || input.currentUsage < 0))
+    return { allowed: false, reason: "entitlement_usage_invalid", limit: null, current: null };
+  if (input.expiresAt) {
+    const expiry = Date.parse(input.expiresAt);
+    const now = (input.at ?? new Date()).getTime();
+    if (!Number.isFinite(expiry) || !Number.isFinite(now)) return { allowed: false, reason: "entitlement_expiry_invalid", limit: null, current: input.currentUsage ?? null };
+    if (expiry <= now) return { allowed: false, reason: "entitlement_expired", limit: null, current: input.currentUsage ?? null };
+  }
   const limit = input.entitlements[input.key];
   if (limit === undefined || limit === false) return { allowed: false, reason: "entitlement_not_granted", limit: limit ?? null, current: input.currentUsage ?? null };
+  if (typeof limit === "number" && (!Number.isFinite(limit) || limit < 0))
+    return { allowed: false, reason: "entitlement_limit_invalid", limit: null, current: input.currentUsage ?? null };
   if (typeof limit === "number" && (input.currentUsage ?? 0) >= limit) return { allowed: false, reason: "entitlement_limit_reached", limit, current: input.currentUsage ?? 0 };
   return { allowed: true, reason: input.state === "grace_period" || input.state === "past_due" ? "grace_policy_allows" : "entitled", limit, current: input.currentUsage ?? null };
 }

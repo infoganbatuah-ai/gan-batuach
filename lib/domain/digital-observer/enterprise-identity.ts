@@ -130,6 +130,9 @@ export function evaluateEnterpriseAuthorization(input: {
   if (!permissionsForRole(input.role, input.explicitPermissions).includes(input.permission)) {
     return { allowed: false, reason: "permission_denied" } as const;
   }
+  if (!input.scope.allSites && !input.targetSiteId) {
+    return { allowed: false, reason: "site_scope_required" } as const;
+  }
   if (input.targetSiteId && !input.scope.allSites && !input.scope.siteIds.includes(input.targetSiteId)) {
     return { allowed: false, reason: "site_scope_mismatch" } as const;
   }
@@ -293,7 +296,9 @@ export function sessionDecision(input: {
   const now = input.now ?? new Date();
   if (!input.activeMembership) return { allowed: false, reason: "membership_revoked" } as const;
   if (input.revokedAt) return { allowed: false, reason: "session_revoked" } as const;
-  if (new Date(input.sessionExpiresAt).getTime() <= now.getTime()) return { allowed: false, reason: "session_expired" } as const;
+  const expiry = Date.parse(input.sessionExpiresAt);
+  if (!Number.isFinite(expiry) || !Number.isFinite(now.getTime())) return { allowed: false, reason: "session_expiry_invalid" } as const;
+  if (expiry <= now.getTime()) return { allowed: false, reason: "session_expired" } as const;
   if (input.suspicious) return { allowed: false, reason: "suspicious_session_reauthentication_required" } as const;
   return { allowed: true, reason: "session_active" } as const;
 }

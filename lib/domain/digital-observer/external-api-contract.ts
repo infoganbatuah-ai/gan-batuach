@@ -131,12 +131,13 @@ export function safeExternalProductPath(path: string) {
 }
 
 export function integrationCapabilityTruth(input: { kind: string; configured: boolean; realProof: boolean; supportsDeepLink?: boolean }) {
+  const connectedAndVerified = input.configured && input.realProof;
   return {
     kind: input.kind,
-    status: input.realProof ? "CONNECTED_AND_VERIFIED" : input.configured ? "CONNECTED_NOT_PROVEN" : "NOT_CONFIGURED",
+    status: connectedAndVerified ? "CONNECTED_AND_VERIFIED" : input.configured ? "CONNECTED_NOT_PROVEN" : "NOT_CONFIGURED",
     supports_deep_link: Boolean(input.supportsDeepLink && input.configured),
     universal_compatibility_claimed: false,
-    external_proof_required: !input.realProof
+    external_proof_required: !connectedAndVerified
   } as const;
 }
 
@@ -163,7 +164,9 @@ export function externalWebhookSignature(input: { payload: string; timestamp: nu
 }
 
 export function verifyExternalWebhookSignature(input: { payload: string; timestamp: number; deliveryId: string; signature: string; secret: string; keyVersion: number; now?: number }) {
-  if (Math.abs((input.now ?? Math.floor(Date.now() / 1000)) - input.timestamp) > 300) return { valid: false as const, reason: "timestamp_outside_replay_window" };
+  const now = input.now ?? Math.floor(Date.now() / 1000);
+  if (!Number.isSafeInteger(input.timestamp) || !Number.isSafeInteger(now) || Math.abs(now - input.timestamp) > 300)
+    return { valid: false as const, reason: "timestamp_outside_replay_window" };
   if (!/^v1=[a-f0-9]{64}$/i.test(input.signature)) return { valid: false as const, reason: "signature_invalid" };
   const expected = externalWebhookSignature(input);
   const valid = expected.length === input.signature.length && timingSafeEqual(Buffer.from(expected), Buffer.from(input.signature));

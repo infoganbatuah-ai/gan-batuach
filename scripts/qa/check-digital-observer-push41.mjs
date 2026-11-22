@@ -50,6 +50,9 @@ assert.deepEqual(identity.evaluateEnterpriseAuthorization({ actorOrganizationId:
 assert.equal(identity.evaluateEnterpriseAuthorization({ actorOrganizationId: organizationId, targetOrganizationId: organizationId,
   role: "security_operator", permission: "camera.live.view", active: true,
   scope: { organizationId, allSites: false, siteIds: [siteA] }, targetSiteId: siteB }).reason, "site_scope_mismatch");
+assert.equal(identity.evaluateEnterpriseAuthorization({ actorOrganizationId: organizationId, targetOrganizationId: organizationId,
+  role: "security_operator", permission: "camera.live.view", active: true,
+  scope: { organizationId, allSites: false, siteIds: [siteA] } }).reason, "site_scope_required");
 assert.equal(identity.evaluateEnterpriseAuthorization({ actorOrganizationId: organizationId, targetOrganizationId: "other",
   role: "organization_owner", permission: "users.manage", active: true,
   scope: { organizationId, allSites: true, siteIds: [] } }).reason, "organization_scope_mismatch");
@@ -100,6 +103,12 @@ assert.equal(identity.sessionDecision({ activeMembership: false, sessionExpiresA
   now: new Date("2026-10-19T00:00:00Z") }).reason, "membership_revoked");
 assert.equal(identity.sessionDecision({ activeMembership: true, sessionExpiresAt: "2026-10-18T00:00:00Z",
   now: new Date("2026-10-19T00:00:00Z") }).reason, "session_expired");
+assert.equal(identity.sessionDecision({ activeMembership: true, sessionExpiresAt: "invalid",
+  now: new Date("2026-10-19T00:00:00Z") }).reason, "session_expiry_invalid");
+assert.equal(identity.sessionDecision({ activeMembership: true, sessionExpiresAt: "2027-01-01T00:00:00Z",
+  now: new Date("invalid") }).reason, "session_expiry_invalid");
+assert.equal(identity.sessionDecision({ activeMembership: true, sessionExpiresAt: "2027-01-01T00:00:00Z",
+  now: new Date("2026-10-19T00:00:00Z") }).reason, "session_active");
 assert.equal(identity.sessionDecision({ activeMembership: true, sessionExpiresAt: "2027-01-01T00:00:00Z", suspicious: true,
   now: new Date("2026-10-19T00:00:00Z") }).reason, "suspicious_session_reauthentication_required");
 assert.equal(identity.enterpriseSloFoundation({ targetAvailabilityPercent: 99.9, responseMinutes: 15, resolutionHours: 4 }).realWorldProofRequired, true);
