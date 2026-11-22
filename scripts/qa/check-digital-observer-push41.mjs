@@ -50,6 +50,9 @@ assert.deepEqual(identity.evaluateEnterpriseAuthorization({ actorOrganizationId:
 assert.equal(identity.evaluateEnterpriseAuthorization({ actorOrganizationId: organizationId, targetOrganizationId: organizationId,
   role: "security_operator", permission: "camera.live.view", active: true,
   scope: { organizationId, allSites: false, siteIds: [siteA] }, targetSiteId: siteB }).reason, "site_scope_mismatch");
+assert.equal(identity.evaluateEnterpriseAuthorization({ actorOrganizationId: organizationId, targetOrganizationId: organizationId,
+  role: "security_operator", permission: "camera.live.view", active: true,
+  scope: { organizationId, allSites: false, siteIds: [siteA] } }).reason, "site_scope_required");
 assert.equal(identity.evaluateEnterpriseAuthorization({ actorOrganizationId: organizationId, targetOrganizationId: "other",
   role: "organization_owner", permission: "users.manage", active: true,
   scope: { organizationId, allSites: true, siteIds: [] } }).reason, "organization_scope_mismatch");

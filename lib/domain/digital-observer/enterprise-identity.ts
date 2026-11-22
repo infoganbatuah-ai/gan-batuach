@@ -130,6 +130,9 @@ export function evaluateEnterpriseAuthorization(input: {
   if (!permissionsForRole(input.role, input.explicitPermissions).includes(input.permission)) {
     return { allowed: false, reason: "permission_denied" } as const;
   }
+  if (!input.scope.allSites && !input.targetSiteId) {
+    return { allowed: false, reason: "site_scope_required" } as const;
+  }
   if (input.targetSiteId && !input.scope.allSites && !input.scope.siteIds.includes(input.targetSiteId)) {
     return { allowed: false, reason: "site_scope_mismatch" } as const;
   }
