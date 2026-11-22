@@ -33,3 +33,23 @@ test("result validator cannot accept PASS with any unresolved gate", () => {
   assert.throws(() => assertQualificationResult(forged), /qualification_pass_has_gate_failures/);
   assert.equal(assertQualificationResult({ ...forged, gate_failures: [] }), true);
 });
+
+test("invalid, reversed, or out-of-window checkpoint times fail coverage", () => {
+  const first = { ...sample, sampled_at: new Date(end - 60_000).toISOString(),
+    playback: { verified: 11 }, ai: { ok: true } };
+  const second = { ...first, sequence: 2, sampled_at: new Date(end).toISOString() };
+  const summarize = points => summarizeRealHomeSoak(points, {
+    startedAt: end - 60_000, endedAt: end, requiredDurationMs: 0
+  });
+  const valid = summarize([first, second]);
+  assert.ok(!valid.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+  const invalid = summarize([first, { ...second, sampled_at: "not-a-date" }]);
+  assert.equal(invalid.checkpoint_coverage.invalid_timestamps, 1);
+  assert.ok(invalid.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+  const reversed = summarize([second, first]);
+  assert.equal(reversed.checkpoint_coverage.non_increasing_checkpoints, 1);
+  assert.ok(reversed.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+  const outside = summarize([first, { ...second, sampled_at: new Date(end + 1).toISOString() }]);
+  assert.equal(outside.checkpoint_coverage.out_of_window_checkpoints, 1);
+  assert.ok(outside.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+});
