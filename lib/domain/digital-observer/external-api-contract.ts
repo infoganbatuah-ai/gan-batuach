@@ -131,12 +131,13 @@ export function safeExternalProductPath(path: string) {
 }
 
 export function integrationCapabilityTruth(input: { kind: string; configured: boolean; realProof: boolean; supportsDeepLink?: boolean }) {
+  const connectedAndVerified = input.configured && input.realProof;
   return {
     kind: input.kind,
-    status: input.realProof ? "CONNECTED_AND_VERIFIED" : input.configured ? "CONNECTED_NOT_PROVEN" : "NOT_CONFIGURED",
+    status: connectedAndVerified ? "CONNECTED_AND_VERIFIED" : input.configured ? "CONNECTED_NOT_PROVEN" : "NOT_CONFIGURED",
     supports_deep_link: Boolean(input.supportsDeepLink && input.configured),
     universal_compatibility_claimed: false,
-    external_proof_required: !input.realProof
+    external_proof_required: !connectedAndVerified
   } as const;
 }
 

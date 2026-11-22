@@ -72,6 +72,11 @@ assert.throws(() => contract.parseCursor("not-a-cursor"), /INVALID_CURSOR/);
 assert.equal(contract.integrationCapabilityTruth({ kind: "vms", configured: false, realProof: false }).status, "NOT_CONFIGURED");
 assert.equal(contract.integrationCapabilityTruth({ kind: "vms", configured: true, realProof: false }).status, "CONNECTED_NOT_PROVEN");
 assert.equal(contract.integrationCapabilityTruth({ kind: "vms", configured: true, realProof: true }).status, "CONNECTED_AND_VERIFIED");
+const disconnectedWithHistoricalProof = contract.integrationCapabilityTruth({ kind: "vms", configured: false,
+  realProof: true, supportsDeepLink: true });
+assert.equal(disconnectedWithHistoricalProof.status, "NOT_CONFIGURED");
+assert.equal(disconnectedWithHistoricalProof.external_proof_required, true);
+assert.equal(disconnectedWithHistoricalProof.supports_deep_link, false);
 assert.deepEqual(contract.ganBatuachRoleMapping.parent, []);
 assert.deepEqual(contract.ganBatuachRoleMapping.staff, []);
 
