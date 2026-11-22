@@ -47,6 +47,8 @@ export function customerReference(value: string) {
 
 export function validateEmbedOrigin(origin: string, allowlist: string[]) {
   const parsed = new URL(origin);
+  if (parsed.protocol !== "https:" && !(parsed.protocol === "http:" &&
+    ["localhost", "127.0.0.1"].includes(parsed.hostname))) throw new Error("PARTNER_EMBED_HTTPS_REQUIRED");
   if (parsed.username || parsed.password || parsed.hash || parsed.pathname !== "/" || parsed.search) throw new Error("PARTNER_EMBED_ORIGIN_INVALID");
   const normalized = parsed.origin;
   if (!allowlist.includes(normalized)) throw new Error("PARTNER_EMBED_ORIGIN_DENIED");

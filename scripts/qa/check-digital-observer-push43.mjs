@@ -34,6 +34,8 @@ assert.equal(contract.partnerCustomerTransition("provisioning", "active"), "acti
 assert.equal(contract.partnerCustomerTransition("suspended", "active"), "active");
 assert.throws(() => contract.partnerCustomerTransition("deprovisioned", "active"), /TRANSITION_DENIED/);
 assert.equal(contract.validateEmbedOrigin("https://app.partner.example", ["https://app.partner.example"]), "https://app.partner.example");
+assert.throws(() => contract.validateEmbedOrigin("http://app.partner.example", ["http://app.partner.example"]), /PARTNER_EMBED_HTTPS_REQUIRED/);
+assert.equal(contract.validateEmbedOrigin("http://localhost:3000", ["http://localhost:3000"]), "http://localhost:3000");
 assert.throws(() => contract.validateEmbedOrigin("https://attacker.example", ["https://app.partner.example"]), /ORIGIN_DENIED/);
 const issued = contract.issueEmbeddedToken({ pepper: "safe-test-pepper-value", ttlMinutes: 15, now: 1792375200000 });
 assert.match(issued.raw, /^doemb_[A-Za-z0-9_-]+$/);
