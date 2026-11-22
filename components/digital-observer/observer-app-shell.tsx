@@ -109,7 +109,7 @@ export function ObserverAppShell({
   flowBackHref?: string;
   mobileBackHref?: string;
   desktopTitle?: string;
-  desktopSearch?: { action: string; placeholder: string; name?: string };
+  desktopSearch?: { action: string; placeholder: string; name?: string; value?: string };
 }) {
   const baseNav = mode === "admin" ? adminNav : mode === "home" ? homeNav : businessNav;
   const nav = mode !== "admin" && profile?.role === "admin"
@@ -174,7 +174,7 @@ export function ObserverAppShell({
             </details>}
           </div>
           <div className={`do-page-title${desktopSearch ? " has-search" : ""}`}>
-            {desktopSearch ? <form className="do-top-search" action={desktopSearch.action} method="get"><Search /><input type="search" name={desktopSearch.name || "q"} placeholder={desktopSearch.placeholder} aria-label={desktopSearch.placeholder} /></form> : null}
+            {desktopSearch ? <form className="do-top-search" action={desktopSearch.action} method="get"><Search /><input type="search" name={desktopSearch.name || "q"} defaultValue={desktopSearch.value} placeholder={desktopSearch.placeholder} aria-label={desktopSearch.placeholder} /></form> : null}
             <h1><span className={desktopSearch ? "do-title-search-desktop" : "do-title-desktop"}>{desktopSearch ? "" : desktopTitle || title}</span><span className="do-title-mobile">{title}</span></h1>
             {!desktopSearch && statusLabel ? <span className="do-live-dot">{statusLabel}</span> : null}
           </div>
