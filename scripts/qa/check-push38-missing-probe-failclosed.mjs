@@ -53,3 +53,20 @@ test("invalid, reversed, or out-of-window checkpoint times fail coverage", () =>
   assert.equal(outside.checkpoint_coverage.out_of_window_checkpoints, 1);
   assert.ok(outside.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
 });
+
+test("dense early samples cannot stand in for the end of a soak window", () => {
+  const startedAt = end - 120_000;
+  const point = (offset, sequence) => ({ ...sample, sequence,
+    sampled_at: new Date(startedAt + offset).toISOString(),
+    playback: { verified: 11 }, ai: { ok: true } });
+  const summarize = points => summarizeRealHomeSoak(points, {
+    startedAt, endedAt: end, requiredDurationMs: 120_000
+  });
+  const covered = summarize([point(0, 1), point(60_000, 2)]);
+  assert.equal(covered.checkpoint_coverage.window_boundary_missing, false);
+  assert.ok(!covered.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+  const compressed = summarize([point(0, 1), point(1_000, 2)]);
+  assert.equal(compressed.checkpoint_coverage.window_end_gap_ms, 119_000);
+  assert.equal(compressed.checkpoint_coverage.window_boundary_missing, true);
+  assert.ok(compressed.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+});
