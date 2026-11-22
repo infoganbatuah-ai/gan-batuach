@@ -68,24 +68,24 @@ select has_function_privilege('authenticated','public.save_communication_prefere
   let backupHash = "not-run";
   if (pass) {
     const dump = spawnSync("docker", ["exec", "-u", "postgres", container,
-      "pg_dump", "-Fc", "--no-owner", "--no-acl", "-n", "public", "-n", "auth",
+      "pg_dump", "-U", "supabase_admin", "-Fc", "--no-owner", "-n", "public", "-n", "auth",
       "-n", "storage", "-n", "supabase_migrations", "-d", "postgres"],
     { cwd: workdir, env, maxBuffer: 32 * 1024 * 1024 });
     if (dump.status === 0 && dump.stdout?.length) {
       backupHash = createHash("sha256").update(dump.stdout).digest("hex");
       writeFileSync(join(workdir, "scoped-backup.dump"), dump.stdout, { mode: 0o600 });
       const create = run("docker", ["exec", "-u", "postgres", container,
-        "createdb", "-T", "template0", "qa_restore"]);
+        "createdb", "-U", "supabase_admin", "-T", "template0", "qa_restore"]);
       const empty = create.status === 0 && run("docker", ["exec", "-u", "postgres", container,
-        "psql", "-q", "-d", "qa_restore", "-c", "drop schema public cascade"]).status === 0;
+        "psql", "-U", "supabase_admin", "-q", "-d", "qa_restore", "-c", "drop schema public cascade"]).status === 0;
       if (empty) {
         const restored = spawnSync("docker", ["exec", "-i", "-u", "postgres", container,
-          "pg_restore", "--no-owner", "--no-acl", "-d", "qa_restore"],
+          "pg_restore", "-U", "supabase_admin", "--no-owner", "-d", "qa_restore"],
         { cwd: workdir, env, input: dump.stdout, maxBuffer: 16 * 1024 * 1024 });
         const verify = restored.status === 0 && run("docker", ["exec", "-u", "postgres", container,
-          "psql", "-At", "-d", "qa_restore", "-c",
-          "select count(*) from supabase_migrations.schema_migrations; select to_regprocedure('public.save_communication_preferences_atomic(jsonb,jsonb)') is not null;"]);
-        restore = Boolean(verify && verify.status === 0 && verify.stdout?.trim() === "275\nt");
+          "psql", "-U", "supabase_admin", "-At", "-d", "qa_restore", "-c",
+          "select count(*) from supabase_migrations.schema_migrations; select to_regprocedure('public.save_communication_preferences_atomic(jsonb,jsonb)') is not null; select count(*) from pg_class where oid in ('public.communication_preferences'::regclass,'public.push_category_preferences'::regclass) and relrowsecurity; select has_function_privilege('authenticated','public.save_communication_preferences_atomic(jsonb,jsonb)','EXECUTE'),has_function_privilege('anon','public.save_communication_preferences_atomic(jsonb,jsonb)','EXECUTE');"]);
+        restore = Boolean(verify && verify.status === 0 && verify.stdout?.trim() === "275\nt\n2\nt|f");
       }
     }
   }
