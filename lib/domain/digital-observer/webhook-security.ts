@@ -8,7 +8,10 @@ function privateIp(host: string) {
   const address = host.startsWith("[") && host.endsWith("]") ? host.slice(1, -1) : host;
   if (isIP(address) === 4) {
     const [a, b] = address.split(".").map(Number);
-    return a === 10 || a === 127 || a === 0 || (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127);
+    return a === 10 || a === 127 || a === 0 || a >= 224 ||
+      (a === 169 && b === 254) || (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && b === 168) || (a === 100 && b >= 64 && b <= 127) ||
+      (a === 198 && (b === 18 || b === 19));
   }
   if (isIP(address) === 6) {
     const value = address.toLowerCase();
