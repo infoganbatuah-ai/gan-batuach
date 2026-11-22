@@ -51,6 +51,10 @@ assert.deepEqual(billing.evaluateEntitlement({ state: "active", key: "cameras", 
 assert.equal(billing.evaluateEntitlement({ state: "active", key: "cameras", entitlements: { cameras: 2 }, currentUsage: 2 }).reason, "entitlement_limit_reached");
 assert.equal(billing.evaluateEntitlement({ state: "suspended", key: "notifications", entitlements: { notifications: true } }).allowed, false);
 assert.equal(billing.evaluateEntitlement({ state: "active", key: "investigation", entitlements: { investigation: false } }).allowed, false);
+assert.equal(billing.evaluateEntitlement({ state: "active", key: "cameras", entitlements: { cameras: 2 }, expiresAt: "invalid" }).reason, "entitlement_expiry_invalid");
+assert.equal(billing.evaluateEntitlement({ state: "active", key: "cameras", entitlements: { cameras: Number.NaN } }).reason, "entitlement_limit_invalid");
+assert.equal(billing.evaluateEntitlement({ state: "active", key: "cameras", entitlements: { cameras: 2 }, currentUsage: -1 }).reason, "entitlement_usage_invalid");
+assert.equal(billing.evaluateEntitlement({ state: "unknown", key: "cameras", entitlements: { cameras: 2 } }).reason, "subscription_state_invalid");
 
 const trial = billing.controlledTrial({ alreadyUsed: false, durationDays: 14, startsAt: new Date("2026-10-19T00:00:00Z") });
 assert.equal(trial.endsAt, "2026-11-02T00:00:00.000Z");

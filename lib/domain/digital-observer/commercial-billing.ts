@@ -90,10 +90,20 @@ export function evaluateEntitlement(input: {
   at?: Date;
   expiresAt?: string | null;
 }) : EntitlementDecision {
+  if (!commercialSubscriptionStates.includes(input.state)) return { allowed: false, reason: "subscription_state_invalid", limit: null, current: null };
   if (["suspended", "cancelled", "expired"].includes(input.state)) return { allowed: false, reason: `subscription_${input.state}`, limit: null, current: input.currentUsage ?? null };
-  if (input.expiresAt && new Date(input.expiresAt).getTime() <= (input.at ?? new Date()).getTime()) return { allowed: false, reason: "entitlement_expired", limit: null, current: input.currentUsage ?? null };
+  if (input.currentUsage !== undefined && (!Number.isFinite(input.currentUsage) || input.currentUsage < 0))
+    return { allowed: false, reason: "entitlement_usage_invalid", limit: null, current: null };
+  if (input.expiresAt) {
+    const expiry = Date.parse(input.expiresAt);
+    const now = (input.at ?? new Date()).getTime();
+    if (!Number.isFinite(expiry) || !Number.isFinite(now)) return { allowed: false, reason: "entitlement_expiry_invalid", limit: null, current: input.currentUsage ?? null };
+    if (expiry <= now) return { allowed: false, reason: "entitlement_expired", limit: null, current: input.currentUsage ?? null };
+  }
   const limit = input.entitlements[input.key];
   if (limit === undefined || limit === false) return { allowed: false, reason: "entitlement_not_granted", limit: limit ?? null, current: input.currentUsage ?? null };
+  if (typeof limit === "number" && (!Number.isFinite(limit) || limit < 0))
+    return { allowed: false, reason: "entitlement_limit_invalid", limit: null, current: input.currentUsage ?? null };
   if (typeof limit === "number" && (input.currentUsage ?? 0) >= limit) return { allowed: false, reason: "entitlement_limit_reached", limit, current: input.currentUsage ?? 0 };
   return { allowed: true, reason: input.state === "grace_period" || input.state === "past_due" ? "grace_policy_allows" : "entitled", limit, current: input.currentUsage ?? null };
 }
