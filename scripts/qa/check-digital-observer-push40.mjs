@@ -46,6 +46,11 @@ assert.equal(quote.amountMinor, 1000);
 assert.equal(quote.providerContacted, false);
 assert.equal(quote.quoteId, billing.quoteForPlan({ plan: approvedPlan, siteId: "site-a", at: new Date("2026-10-19T00:00:00Z") }).quoteId);
 assert.throws(() => billing.quoteForPlan({ plan: { ...approvedPlan, pricingStatus: "unapproved" }, siteId: "site-a" }), /PLAN_PRICE_NOT_OWNER_APPROVED/);
+for (const priceMinor of [Number.NaN, Number.POSITIVE_INFINITY, 1.5])
+  assert.throws(() => billing.quoteForPlan({ plan: { ...approvedPlan, priceMinor }, siteId: "site-a" }), /PLAN_PRICE_NOT_CONFIGURED/);
+for (const window of [{ effectiveFrom: "invalid" }, { effectiveUntil: "invalid" },
+  { effectiveUntil: "2025-12-31T00:00:00Z" }])
+  assert.throws(() => billing.quoteForPlan({ plan: { ...approvedPlan, ...window }, siteId: "site-a" }), /PLAN_EFFECTIVE_WINDOW_INVALID/);
 
 assert.deepEqual(billing.evaluateEntitlement({ state: "active", key: "cameras", entitlements: { cameras: 2 }, currentUsage: 1 }).allowed, true);
 assert.equal(billing.evaluateEntitlement({ state: "active", key: "cameras", entitlements: { cameras: 2 }, currentUsage: 2 }).reason, "entitlement_limit_reached");

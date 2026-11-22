@@ -60,9 +60,13 @@ export type PlanVersion = {
 
 export function validatePlanForCheckout(plan: PlanVersion, at = new Date()) {
   if (plan.pricingStatus !== "approved") throw new Error("PLAN_PRICE_NOT_OWNER_APPROVED");
-  if (!plan.currency || plan.priceMinor === null || plan.priceMinor < 0) throw new Error("PLAN_PRICE_NOT_CONFIGURED");
-  if (new Date(plan.effectiveFrom).getTime() > at.getTime()) throw new Error("PLAN_NOT_YET_EFFECTIVE");
-  if (plan.effectiveUntil && new Date(plan.effectiveUntil).getTime() <= at.getTime()) throw new Error("PLAN_VERSION_EXPIRED");
+  if (!plan.currency || plan.priceMinor === null || !Number.isSafeInteger(plan.priceMinor) || plan.priceMinor < 0) throw new Error("PLAN_PRICE_NOT_CONFIGURED");
+  const start = Date.parse(plan.effectiveFrom);
+  const end = plan.effectiveUntil ? Date.parse(plan.effectiveUntil) : null;
+  if (!Number.isFinite(start) || !Number.isFinite(at.getTime()) ||
+    (end !== null && (!Number.isFinite(end) || end <= start))) throw new Error("PLAN_EFFECTIVE_WINDOW_INVALID");
+  if (start > at.getTime()) throw new Error("PLAN_NOT_YET_EFFECTIVE");
+  if (end !== null && end <= at.getTime()) throw new Error("PLAN_VERSION_EXPIRED");
   return plan;
 }
 
