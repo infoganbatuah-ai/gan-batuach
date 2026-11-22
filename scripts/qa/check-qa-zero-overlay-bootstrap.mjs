@@ -2,7 +2,7 @@
 // Local-only fresh Supabase bootstrap. Never accepts a hosted database URL.
 import { spawnSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { mkdirSync, readFileSync, readdirSync, rmdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -40,7 +40,7 @@ config = config.replace(/^project_id = .+$/m, `project_id = "${id}"`)
   .replace(/(\[db\.migrations\][\s\S]*?\nenabled = )(?:true|false)/, "$1true")
   .replace(/(\[db\.seed\][\s\S]*?\nenabled = )(?:true|false)/, "$1false");
 writeFileSync(configPath, config, { mode: 0o600 });
-rmdirSync(join(supabaseDir, "migrations")); // supabase init creates this empty directory.
+if (existsSync(join(supabaseDir, "migrations"))) rmdirSync(join(supabaseDir, "migrations"));
 symlinkSync(migrations, join(supabaseDir, "migrations"));
 const manifest = files.map((name) => `${name} ${createHash("sha256").update(readFileSync(join(migrations, name))).digest("hex")}`);
 writeFileSync(join(workdir, "source-sha256.txt"), `${manifest.join("\n")}\n`, { mode: 0o600 });
