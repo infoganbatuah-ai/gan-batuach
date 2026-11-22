@@ -115,6 +115,7 @@ export function ObserverAppShell({
   const nav = mode !== "admin" && profile?.role === "admin"
     ? [...baseNav, { href: "/digital-observer/admin", label: "ניהול מערכת", icon: ShieldCheck }]
     : [...baseNav];
+  const navHrefs = nav.map(item => item.href);
   const displayName = cleanSyntheticLabel(profile?.full_name, mode === "home" ? "הבית שלי" : mode === "admin" ? "מנהל התצפיתן" : "העסק שלי");
   const initial = displayName.trim().slice(0, 1) || "צ";
   const darkDesktopTopbar = mode === "business"
@@ -141,7 +142,7 @@ export function ObserverAppShell({
         <nav aria-label="ניווט התצפיתן הדיגיטלי">
           {nav.map((item) => {
             const Icon = item.icon;
-            const active = isObserverNavActive(activeHref, item.href);
+            const active = isObserverNavActive(activeHref, item.href, navHrefs);
             return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
           })}
         </nav>
@@ -161,7 +162,7 @@ export function ObserverAppShell({
                 <nav aria-label="כל מסכי התצפיתן">
                   {nav.map((item) => {
                     const Icon = item.icon;
-                    const active = isObserverNavActive(activeHref, item.href);
+                    const active = isObserverNavActive(activeHref, item.href, navHrefs);
                     return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
                   })}
                 </nav>
@@ -193,7 +194,7 @@ export function ObserverAppShell({
       <nav className="do-bottom-nav" aria-label="ניווט תחתון">
         {mobileNav.map((item) => {
           const Icon = item.icon ?? Menu;
-          const active = isObserverNavActive(activeHref, item.href);
+          const active = isObserverNavActive(activeHref, item.href, navHrefs);
           return <Link className={active ? "active" : ""} aria-current={active ? "page" : undefined} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
         })}
       </nav>
