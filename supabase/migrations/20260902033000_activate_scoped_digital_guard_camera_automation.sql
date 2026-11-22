@@ -134,6 +134,14 @@ do $$
 declare
   expected integer;
 begin
+  -- A fresh isolated installation has no Home Site to activate. Keep the
+  -- original strict checks whenever that exact Site is present.
+  if not exists (
+    select 1 from public.observer_sites
+    where id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'
+  ) then
+    return;
+  end if;
   select count(*) into expected
   from public.digital_observer_camera_sources
   where observer_site_id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'

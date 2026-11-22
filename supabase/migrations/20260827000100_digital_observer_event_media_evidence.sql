@@ -77,16 +77,17 @@ set metadata = coalesce(s.metadata, '{}'::jsonb) || jsonb_build_object(
   'camera_source_id', c.id,
   'evidence_repair', 'linked_first_active_camera_source'
 )
-from lateral (
-  select cs.id
-  from public.digital_observer_camera_sources cs
-  where cs.observer_site_id = s.observer_site_id
-    and coalesce(cs.status, '') in ('connected','active','ready')
-    and coalesce(cs.health_status, '') in ('healthy','unknown')
-  order by cs.created_at asc
-  limit 1
-) c
-where s.observer_site_id is not null
+from public.digital_observer_camera_sources c
+where c.id = (
+    select cs.id
+    from public.digital_observer_camera_sources cs
+    where cs.observer_site_id = s.observer_site_id
+      and coalesce(cs.status, '') in ('connected','active','ready')
+      and coalesce(cs.health_status, '') in ('healthy','unknown')
+    order by cs.created_at asc
+    limit 1
+  )
+  and s.observer_site_id is not null
   and s.source_type = 'system'
   and coalesce(s.metadata, '{}'::jsonb) ? 'event_type'
   and coalesce(s.metadata, '{}'::jsonb)->>'event_type' in ('home_learning_started','home_learning_progress','home_activity_change')

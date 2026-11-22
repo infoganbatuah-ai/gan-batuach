@@ -7,6 +7,11 @@ declare
   site_id constant uuid := 'cc1673b8-3eb0-4785-a12c-1fb88f425a41';
   camera_id constant uuid := '6fddc732-13df-4268-9f32-3357262ea997';
 begin
+  -- Empty isolated installations have no authorized Home Site. Do not
+  -- activate anything; preserve every existing check when the Site exists.
+  if not exists (select 1 from public.observer_sites where id = site_id) then
+    return;
+  end if;
   if to_regprocedure('public.enqueue_digital_guard_capability_refresh_v1(uuid,text,text)') is null then
     raise exception 'Digital Guard capability refresh RPC is unavailable';
   end if;
