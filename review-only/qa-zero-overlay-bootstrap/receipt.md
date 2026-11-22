@@ -13,3 +13,20 @@ Scope: disposable Supabase CLI project on isolated Colima profile `q275` on King
 - A prior `Broken` observation was caused by restricted access to the isolated Docker socket: a privileged check showed `q275` Running with a healthy disposable database. Temporary host database forwarding for the repeat run was closed by cleanly stopping `q275`; no listener remained on ports 59422 or 58422.
 
 The six historical migration edits in this branch are source bootstrap corrections only. In particular, the two Home activation migrations now skip activation only when their exact Home Site is absent; their existing checks remain when it is present. Historical checksum, upgrade, and live-data compatibility require separate review before any application. This branch is not ready for hosted SQL or migration deployment.
+
+## Historical delta and local upgrade qualification
+
+`node scripts/qa/check-qa-historical-delta.mjs` passed all six exact baseline-to-candidate assertions. Inventory:
+
+| Migration | Exact change | Existing-data risk |
+| --- | --- | --- |
+| `20260523000000_initial_schema` | Include `owner` when first creating the role enum; the later idempotent addition becomes a no-op on a fresh bootstrap. | An already applied enum is unchanged because this historical file is skipped. |
+| `20260523012000_qa_action_persistence` | Correct one invalid `ALTER TYPE` token. | Already applied databases skip the file. |
+| `20260612016600_external_legal_privacy_regulatory_review_pack` | Use conservative allowed review statuses in the Vercel seed. | A fresh seed differs from earlier deployed data; no deployed row is overwritten by an ordinary upgrade. |
+| `20260827000100_digital_observer_event_media_evidence` | Replace an invalid target-alias reference with an equivalent first eligible camera correlated subquery. | Live-data equivalence is not proven for all historical rows. |
+| `20260902033000_activate_scoped_digital_guard_camera_automation` | Return from the authorization DO block only if the exact Home Site is absent. | With the Site present, the original checks and later DML remain byte-identical; no live Home fixture was exercised. |
+| `20260902043000_activate_channel_1_guard_lighting` | Return from the activation DO block only if the exact Home Site is absent. | With the Site present, the original authorization checks and activation remain byte-identical; no live Home fixture was exercised. |
+
+On the isolated, already migrated `q275` database, a synthetic `subprocessor_register` row was inserted. `supabase migration up --local` reported `applied: []`; the registry stayed at 275 and the fixture stayed present. The fixture was then removed. This verifies non-reapplication and data preservation for that local case, **not** an upgrade from the pre-change integration database. The migration registry contains version, statements, and name columns; no history record was edited or repaired.
+
+Missing qualification: a separately restored pre-change integration database with representative existing Home data. The original source baseline cannot fresh-bootstrap past the six defects, and this task excludes the original `gbi` and hosted QA. Before any deployment, restore a permitted pre-change backup into a separate QA database, compare schema and data, and rehearse the Home-Site-present branch and rollback. Do not treat the current source-only candidate as READY TO APPLY. The scoped dump/restore rehearsal above is evidence for backup mechanics, not a lossless rollback with active Home data.
