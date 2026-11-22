@@ -73,7 +73,18 @@ for (const [name, substitutions] of changes) {
     assert.equal(expected.split(oldText).length, 2, `${name}: baseline substitution must be unique`);
     expected = expected.replace(oldText, newText);
   }
-  const actual = readFileSync(join(root, path), "utf8");
+  let actual = readFileSync(join(root, path), "utf8");
+  if (name === "20260902033000_activate_scoped_digital_guard_camera_automation.sql") {
+    const withoutPreflight = actual.replace(
+      /  -- The next migration activates CH1\.[\s\S]*?  \) then raise exception 'A physical command requires operator reconciliation'; end if;\n/,
+      "",
+    );
+    assert.notEqual(withoutPreflight, actual, "CH1 prerequisite preflight must be present");
+    actual = withoutPreflight
+      .replace("site.id,authorized.camera_id,\n  false,", "site.id,authorized.camera_id,\n  public.digital_guard_crossing_line_valid(source.metadata -> 'crossing_line'),")
+      .replace("'activation_state','authorized_waiting_for_channel_1_activation',",
+        "'activation_state',case when public.digital_guard_crossing_line_valid(source.metadata -> 'crossing_line')\n      then 'active' else 'authorized_waiting_for_crossing_line' end,");
+  }
   if (name === "20260523000000_initial_schema.sql") {
     expected = expected.replace("create type public.app_role", "-- Fresh bootstrap must define owner before a later migration uses it in the\n-- same transaction in which ALTER TYPE ADD VALUE would otherwise run.\ncreate type public.app_role");
   }

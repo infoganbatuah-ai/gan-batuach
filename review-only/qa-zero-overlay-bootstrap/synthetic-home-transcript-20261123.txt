@@ -12,3 +12,9 @@ FRESH SOURCE REPLAY: 275/275; registry=275; Home Site=0; enabled automation=0; R
 EDGE: if four synthetic siren crossing lines are valid, migration 178 enables four siren policies; failure of later migration 181 does not roll back the earlier committed migration.
 CLEANUP: all task-created disposable databases and container copies removed; q275 stopped.
 LIMIT: fixture is synthetic and starts from post-275 schema; no real pre-change Home upgrade or real-data rollback proof.
+
+AFTER FAIL-CLOSED SOURCE CORRECTION:
+Crossing-line edge fixture, capability receipt missing: migration 178 exit 3, expected error Verified Gateway lighting capability is unavailable; policies=1 preexisting, enabled=0, authorization audits=0.
+Crossing-line success fixture, receipt present: migrations 170/178/181 exit 0; policies=5, distinct sources=5, enabled=1 CH1 only; CH1 activation audits=1; signal link=CH1; registry=275; RLS tables=2; grants authenticated=true/anon=false.
+Fresh source-only bootstrap rerun: 275/275, registry=275, Home Site=0, enabled=0, RLS tables=2, grants=true|false, ACL-preserving scoped restore PASS; ignored receipt observer-zero-overlay-ed6be5d4.
+Earlier edge line above records the pre-fix behavior; the corrected source was verified against the same edge condition.
