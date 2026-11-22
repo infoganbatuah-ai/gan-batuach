@@ -4,7 +4,8 @@ const API_VERSION = "2026-10-19.v1";
 const WEBHOOK_VERSION = "do-external-webhook-v1";
 
 export function verifyDigitalObserverWebhook({ payload, timestamp, deliveryId, signature, secret, keyVersion, now = Math.floor(Date.now() / 1000) }) {
-  if (Math.abs(now - Number(timestamp)) > 300 || !/^v1=[a-f0-9]{64}$/i.test(signature ?? "")) return false;
+  if (!Number.isSafeInteger(timestamp) || !Number.isSafeInteger(now) ||
+    Math.abs(now - timestamp) > 300 || !/^v1=[a-f0-9]{64}$/i.test(signature ?? "")) return false;
   const canonical = `${WEBHOOK_VERSION}.${keyVersion}.${timestamp}.${deliveryId}.${payload}`;
   const expected = `v1=${createHmac("sha256", secret).update(canonical).digest("hex")}`;
   return expected.length === signature.length && timingSafeEqual(Buffer.from(expected), Buffer.from(signature));

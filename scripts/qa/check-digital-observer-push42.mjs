@@ -56,6 +56,14 @@ assert.equal(verifyDigitalObserverWebhook({ payload: webhookPayload, timestamp: 
   signature: webhookSignature, secret: "test-secret", keyVersion: 1, now: 1792375200 }), true);
 assert.equal(verifyDigitalObserverWebhook({ payload: webhookPayload, timestamp: 1792375200, deliveryId: "delivery-2",
   signature: webhookSignature, secret: "test-secret", keyVersion: 1, now: 1792375200 }), false);
+for (const timestamp of [Number.NaN, Number.POSITIVE_INFINITY, "invalid"]) {
+  const matchingSignature = contract.externalWebhookSignature({ payload: webhookPayload, timestamp,
+    deliveryId: "delivery-1", secret: "test-secret", keyVersion: 1 });
+  const input = { payload: webhookPayload, timestamp, deliveryId: "delivery-1",
+    signature: matchingSignature, secret: "test-secret", keyVersion: 1, now: 1792375200 };
+  assert.equal(contract.verifyExternalWebhookSignature(input).valid, false);
+  assert.equal(verifyDigitalObserverWebhook(input), false);
+}
 assert.equal(contract.webhookSubscriptionSchema.parse({ action: "revoke", site_id: "00000000-0000-4000-8000-000000000001",
   subscription_id: "00000000-0000-4000-8000-000000000002" }).action, "revoke");
 assert.throws(() => contract.safeExternalProductPath("//attacker.example"), /INVALID_PRODUCT_PATH/);
