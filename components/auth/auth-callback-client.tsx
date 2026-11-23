@@ -6,6 +6,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/browser";
 import { singleUseAuthCodeExchange } from "@/lib/domain/single-use-auth-code";
 import { needsExplicitObserverOptIn, safeAuthNextPath, verifiedCallbackProduct } from "@/lib/domain/auth-flow";
+import { resolvePersistedAuthProduct } from "@/lib/domain/auth-product-boundary";
 
 const otpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
 const exchangeCodeOnce = singleUseAuthCodeExchange((code: string) => createClient().auth.exchangeCodeForSession(code));
@@ -112,11 +113,25 @@ export function AuthCallbackClient({
 
       recovery = recovery || authEvent === "PASSWORD_RECOVERY";
 
-      // Product hints from query/cookies select only pre-auth failure UI. They
-      // cannot promote a verified Gan identity into Observer account creation.
-      observer = verifiedCallbackProduct(user) === "digital_observer";
+      const [observerAccountResult, profileResult, parentResult] = await Promise.all([
+        supabase.from("digital_observer_accounts" as never).select("profile_id").eq("profile_id", user.id).maybeSingle(),
+        supabase.from("profiles").select("id,role").eq("id", user.id).maybeSingle(),
+        supabase.from("parents" as never).select("id").or(`profile_id.eq.${user.id},user_id.eq.${user.id}`).limit(1).maybeSingle()
+      ]);
+      const persistedProduct = resolvePersistedAuthProduct({
+        hasObserverAccount: Boolean(observerAccountResult.data),
+        hasGanProfile: Boolean(profileResult.data),
+        hasGanParent: Boolean(parentResult.data),
+        ganRole: profileResult.data?.role
+      });
+      observer = persistedProduct === "digital_observer"
+        || (persistedProduct === "both" && requestedProduct === "digital_observer")
+        || (persistedProduct === "none" && verifiedCallbackProduct(user) === "digital_observer");
       product = observer ? "digital_observer" : "gan_batuach";
-      if (!recovery && needsExplicitObserverOptIn(user, requestedProduct === "digital_observer")) {
+      if (!recovery
+        && persistedProduct !== "digital_observer"
+        && persistedProduct !== "both"
+        && needsExplicitObserverOptIn(user, requestedProduct === "digital_observer")) {
         authEvents.data.subscription.unsubscribe();
         await supabase.auth.signOut();
         document.cookie = "auth_callback_product=; Path=/; Max-Age=0; SameSite=Lax";

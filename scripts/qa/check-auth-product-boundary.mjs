@@ -2,18 +2,39 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { authCallbackUrl } from "../../lib/domain/auth-flow.ts";
 import { hasExplicitGanBatuachAccess } from "../../lib/domain/gan-batuach/access.ts";
+import { resolvePersistedAuthProduct } from "../../lib/domain/auth-product-boundary.ts";
 
 test("Digital Observer recovery remains in the Observer product", () => {
   const callback = new URL(authCallbackUrl("digital_observer", "/digital-observer/set-password", "recovery"));
   assert.equal(callback.pathname, "/auth/callback");
-  assert.equal(callback.searchParams.get("product"), "digital_observer");
-  assert.equal(callback.searchParams.get("flow"), "recovery");
-  assert.equal(callback.searchParams.get("next"), "/digital-observer/set-password");
+  assert.equal(callback.search, "");
 });
 
-test("Observer recovery rejects a cross-product next path", () => {
-  const callback = new URL(authCallbackUrl("digital_observer", "/reset-password", "recovery"));
-  assert.equal(callback.searchParams.get("next"), "/digital-observer/set-password");
+test("persisted Observer account without a Gan parent remains Observer-only", () => {
+  assert.equal(resolvePersistedAuthProduct({
+    hasObserverAccount: true,
+    hasGanProfile: true,
+    hasGanParent: false,
+    ganRole: "parent"
+  }), "digital_observer");
+});
+
+test("persisted Gan parent without an Observer account remains Gan-only", () => {
+  assert.equal(resolvePersistedAuthProduct({
+    hasObserverAccount: false,
+    hasGanProfile: true,
+    hasGanParent: true,
+    ganRole: "parent"
+  }), "gan_batuach");
+});
+
+test("a deliberately provisioned dual-product identity is explicit", () => {
+  assert.equal(resolvePersistedAuthProduct({
+    hasObserverAccount: true,
+    hasGanProfile: true,
+    hasGanParent: true,
+    ganRole: "parent"
+  }), "both");
 });
 
 test("an auth identity is not a Gan Batuach parent without an explicit parent row", async () => {

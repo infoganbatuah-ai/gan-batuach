@@ -30,11 +30,12 @@ export function appOrigin() {
 }
 
 export function authCallbackUrl(product: AuthProduct, next: string, flow: "verify" | "recovery") {
-  const callback = new URL("/auth/callback", appOrigin());
-  callback.searchParams.set("product", product);
-  callback.searchParams.set("flow", flow);
-  callback.searchParams.set("next", safeAuthNextPath(next, product, flow));
-  return callback.toString();
+  // This must remain byte-for-byte identical to the approved Supabase redirect.
+  // Product intent is resolved after authentication from persisted account data.
+  void product;
+  void next;
+  void flow;
+  return `${appOrigin()}/auth/callback`;
 }
 
 export function safeAuthNextPath(value: string | null | undefined, product: AuthProduct, flow?: string | null) {
