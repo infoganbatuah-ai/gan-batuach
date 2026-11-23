@@ -36,10 +36,13 @@ test("server callback product ignores untrusted URL hints and pending-registrati
 test("OTP route uses verified product selection after token verification", () => {
   const route = readFileSync(new URL("../../app/auth/confirm/route.ts", import.meta.url), "utf8");
   assert.match(route, /verifiedCallbackProduct\(data\.user\)/);
+  assert.match(route, /resolvePersistedAuthProduct/);
+  assert.match(route, /persistedProductReadFailed/);
   assert.doesNotMatch(route, /confirmedObserver\s*=\s*observerRequest/);
   assert.doesNotMatch(route, /verifiedCallbackProduct\(data\.user,\s*pendingEmail\)/);
   const client = readFileSync(new URL("../../components/auth/auth-callback-client.tsx", import.meta.url), "utf8");
-  assert.match(client, /observer = verifiedCallbackProduct\(user\) === "digital_observer"/);
+  assert.match(client, /persistedProduct === "none" && verifiedCallbackProduct\(user\) === "digital_observer"/);
+  assert.match(client, /persistedProductReadFailed/);
   assert.doesNotMatch(client, /observer = observer\s*\|\| user\.user_metadata/);
 });
 
@@ -52,11 +55,12 @@ test("existing Gan identity needs explicit Observer sign-in; signup and recovery
   assert.equal(verifiedCallbackProduct(gan), "gan_batuach");
   assert.equal(verifiedCallbackProduct(observer), "digital_observer");
   const route = readFileSync(new URL("../../app/auth/confirm/route.ts", import.meta.url), "utf8");
-  assert.match(route, /!recovery && needsExplicitObserverOptIn/);
+  assert.match(route, /!recovery[\s\S]*needsExplicitObserverOptIn\(data\.user, pendingObserverIntent\)/);
+  assert.match(route, /persistedProduct !== "digital_observer"[\s\S]*persistedProduct !== "both"/);
   assert.match(route, /pendingEmail === data\.user\.email\?\.toLowerCase\(\)/);
   assert.match(route, /await supabase\.auth\.signOut\(\)/);
   const client = readFileSync(new URL("../../components/auth/auth-callback-client.tsx", import.meta.url), "utf8");
-  assert.match(client, /!recovery && needsExplicitObserverOptIn/);
+  assert.match(client, /!recovery[\s\S]*needsExplicitObserverOptIn\(user, requestedProduct === "digital_observer"\)/);
   assert.match(client, /await supabase\.auth\.signOut\(\)/);
   const login = readFileSync(new URL("../../app/api/digital-observer/auth/login/route.ts", import.meta.url), "utf8");
   assert.ok(login.indexOf("supabase.auth.signInWithPassword") < login.indexOf('supabase.rpc("ensure_digital_observer_account"'));
