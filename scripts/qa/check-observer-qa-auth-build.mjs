@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { OBSERVER_QA_BUNDLE_ID, OBSERVER_QA_CALLBACK, OBSERVER_QA_ANDROID_CALLBACK, OBSERVER_QA_ORIGIN,
+  OBSERVER_QA_APPROVED_PREVIEW_ORIGIN,
   prepareObserverQaAuthConfig, validateObserverQaAuthBuild } from "../../lib/domain/digital-observer/observer-qa-auth-build.mjs";
 
 const valid = {
@@ -16,6 +17,21 @@ test("exact preparatory Observer QA contract accepts one candidate without activ
     bundleId: OBSERVER_QA_BUNDLE_ID, origin: OBSERVER_QA_ORIGIN,
     launchUrl: valid.launchUrl, callback: OBSERVER_QA_CALLBACK
   });
+});
+
+test("one explicitly opted-in iOS reachability candidate pins the approved protected Preview", () => {
+  const preview = { ...valid, previewReachability: "1", origin: OBSERVER_QA_APPROVED_PREVIEW_ORIGIN,
+    launchUrl: `${OBSERVER_QA_APPROVED_PREVIEW_ORIGIN}/digital-observer/dashboard` };
+  assert.equal(validateObserverQaAuthBuild(preview).launchUrl, preview.launchUrl);
+  const offline = JSON.parse(readFileSync(new URL("../../ios/qa-observer/capacitor.config.json", import.meta.url), "utf8"));
+  assert.equal(prepareObserverQaAuthConfig(preview, offline).server.url, preview.launchUrl);
+  assert.equal(offline.server.url, undefined);
+  for (const override of [
+    { previewReachability: undefined }, { optIn: undefined }, { platform: "android" },
+    { origin: OBSERVER_QA_ORIGIN }, { launchUrl: `${OBSERVER_QA_APPROVED_PREVIEW_ORIGIN}/digital-observer/login` },
+    { launchUrl: "https://digital-observer-bwhfz2moe-gan-batuach-s-projects.vercel.app.evil.invalid/digital-observer/dashboard" },
+    { launchUrl: `${OBSERVER_QA_APPROVED_PREVIEW_ORIGIN}/digital-observer/dashboard?token=x` }
+  ]) assert.throws(() => validateObserverQaAuthBuild({ ...preview, ...override }));
 });
 
 test("Android callback matches its packaged scheme and rejects the iOS return", () => {

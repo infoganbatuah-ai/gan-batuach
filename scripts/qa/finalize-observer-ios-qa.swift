@@ -8,6 +8,8 @@ guard CommandLine.arguments.count == 3 else {
 let app = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let template = URL(fileURLWithPath: CommandLine.arguments[2])
 let authenticated = ProcessInfo.processInfo.environment["OBSERVER_QA_AUTH_BUILD"] == "1"
+let previewReachability = ProcessInfo.processInfo.environment["OBSERVER_QA_PREVIEW_REACHABILITY"] == "1"
+guard !previewReachability || authenticated else { fatalError("OBSERVER_QA_PREVIEW_REQUIRES_AUTH_OPT_IN") }
 let statusPageName = authenticated ? "auth-unavailable.html" : "index.html"
 let statusPage = URL(fileURLWithPath: "ios/qa-observer/\(statusPageName)", relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true))
 let files = FileManager.default
@@ -61,7 +63,10 @@ guard let config = try JSONSerialization.jsonObject(with: data) as? [String: Any
     fatalError("OBSERVER_QA_RUNTIME_CONFIG_INVALID")
 }
 if authenticated {
-    guard server["url"] as? String == "https://observer-qa.ganbatuach.com/digital-observer/dashboard",
+    let expectedUrl = previewReachability
+        ? "https://digital-observer-bwhfz2moe-gan-batuach-s-projects.vercel.app/digital-observer/dashboard"
+        : "https://observer-qa.ganbatuach.com/digital-observer/dashboard"
+    guard server["url"] as? String == expectedUrl,
           server["cleartext"] as? Bool == false,
           ProcessInfo.processInfo.environment["OBSERVER_QA_CALLBACK"] == "observerqaapp://return/qa/device-proof" else {
         fatalError("OBSERVER_QA_AUTH_BUILD_BOUNDARY_INVALID")

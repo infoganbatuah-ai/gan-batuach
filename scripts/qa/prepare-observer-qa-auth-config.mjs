@@ -10,6 +10,7 @@ if (!platform || !sourcePath || !outputPath || sourcePath === outputPath) {
 const source = JSON.parse(readFileSync(sourcePath, "utf8"));
 const config = prepareObserverQaAuthConfig({
   optIn: process.env.OBSERVER_QA_AUTH_BUILD,
+  previewReachability: process.env.OBSERVER_QA_PREVIEW_REACHABILITY,
   platform,
   bundleId: process.env.OBSERVER_QA_BUNDLE_ID,
   origin: process.env.OBSERVER_QA_ORIGIN,
