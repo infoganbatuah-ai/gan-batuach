@@ -29,10 +29,12 @@ export function appOrigin() {
     : `https://${normalized}`;
 }
 
-export function authCallbackUrl(_product: AuthProduct, _next: string, _flow: "verify" | "recovery") {
-  // Keep the redirect identical to the Supabase allow-list entry. Product and
-  // flow are derived from the verified user and OTP type after the callback.
-  return `${appOrigin()}/auth/callback`;
+export function authCallbackUrl(product: AuthProduct, next: string, flow: "verify" | "recovery") {
+  const callback = new URL("/auth/callback", appOrigin());
+  callback.searchParams.set("product", product);
+  callback.searchParams.set("flow", flow);
+  callback.searchParams.set("next", safeAuthNextPath(next, product, flow));
+  return callback.toString();
 }
 
 export function safeAuthNextPath(value: string | null | undefined, product: AuthProduct, flow?: string | null) {

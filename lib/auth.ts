@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasPermission, isRole, type Permission, type UserRole } from "@/lib/roles";
 import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
+import { hasExplicitGanBatuachAccess } from "@/lib/domain/gan-batuach/access";
 
 export async function getSessionProfile() {
   const supabase = await createClient();
@@ -26,6 +27,12 @@ export async function requireRole(allowed: UserRole[], loginPath = "/login", den
   const session = await requireUser(loginPath);
   const role = session.profile.role;
   if (!isRole(role) || !allowed.includes(role)) redirect(deniedPath);
+  if (role === "parent") {
+    const supabase = await createClient();
+    if (!await hasExplicitGanBatuachAccess(supabase, session.profile)) {
+      redirect("/app/access-not-provisioned");
+    }
+  }
   if (role === "manager" || role === "owner") {
     const context = await resolveManagementGardenContext(session.profile);
     if (context.available) session.profile.garden_id = context.activeGarden?.id ?? null;
@@ -80,6 +87,9 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
   }
   if (profile.role === "parent") {
     const supabase = await createClient();
+    if (!await hasExplicitGanBatuachAccess(supabase, profile)) {
+      return "/app/access-not-provisioned";
+    }
     const { data: parent } = await supabase
       .from("parents" as any)
       .select("id, status, completed_profile, onboarding_status")
