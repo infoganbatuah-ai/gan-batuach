@@ -134,6 +134,14 @@ do $$
 declare
   expected integer;
 begin
+  -- A fresh isolated installation has no Home Site to activate. Keep the
+  -- original strict checks whenever that exact Site is present.
+  if not exists (
+    select 1 from public.observer_sites
+    where id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'
+  ) then
+    return;
+  end if;
   select count(*) into expected
   from public.digital_observer_camera_sources
   where observer_site_id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'
@@ -155,6 +163,48 @@ begin
   ) then
     raise exception 'Authorized observer site owner is unavailable';
   end if;
+  -- The next migration activates CH1. Fail before creating any policy or
+  -- authorization audit when its external prerequisites are unavailable.
+  if to_regprocedure('public.enqueue_digital_guard_capability_refresh_v1(uuid,text,text)') is null then
+    raise exception 'Digital Guard capability refresh RPC is unavailable';
+  end if;
+  if not exists (
+    select 1 from public.observer_sites
+    where id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'
+      and monitoring_enabled is true
+      and metadata ->> 'observer_monitoring_consent' = 'true'
+  ) then raise exception 'Observer site monitoring consent is unavailable'; end if;
+  if not exists (
+    select 1 from public.digital_observer_camera_sources
+    where id = '6fddc732-13df-4268-9f32-3357262ea997'
+      and observer_site_id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'
+      and status in ('connected','online','active','ready')
+      and health_status in ('healthy','online','connected','ok')
+      and coalesce(metadata ->> 'monitoring_enabled','true') <> 'false'
+      and metadata ->> 'gateway_id' is not null
+      and metadata ->> 'gateway_stream_id' is not null
+      and jsonb_typeof(metadata -> 'dvr_channel') = 'number'
+      and (metadata ->> 'dvr_channel')::integer = 1
+  ) then raise exception 'Authorized channel 1 source is not live or correctly bound'; end if;
+  if not exists (
+    select 1 from public.digital_observer_camera_action_requests
+    where observer_site_id = 'cc1673b8-3eb0-4785-a12c-1fb88f425a41'
+      and camera_source_id = '6fddc732-13df-4268-9f32-3357262ea997'
+      and task_kind = 'capability_snapshot' and action_status = 'completed'
+      and result ->> 'reported_by_gateway' = 'true'
+      and result #>> '{outcome_payload,executor_installed}' = 'true'
+      and result #>> '{outcome_payload,capabilities,lighting}' = 'true'
+      and result #>> '{outcome_payload,gateway_id}' = (
+        select metadata ->> 'gateway_id' from public.digital_observer_camera_sources
+        where id = '6fddc732-13df-4268-9f32-3357262ea997'
+      )
+  ) then raise exception 'Verified Gateway lighting capability is unavailable'; end if;
+  if exists (
+    select 1 from public.digital_observer_camera_action_requests
+    where camera_source_id = '6fddc732-13df-4268-9f32-3357262ea997'
+      and task_kind = 'physical_command'
+      and action_status in ('reconciliation_required','unknown')
+  ) then raise exception 'A physical command requires operator reconciliation'; end if;
 end;
 $$;
 
@@ -222,13 +272,12 @@ insert into public.digital_observer_camera_automation_policies (
 )
 select
   site.id,authorized.camera_id,
-  public.digital_guard_crossing_line_valid(source.metadata -> 'crossing_line'),
+  false,
   array['siren']::text[],array['person_detected']::text[],authorized.siren_events,
   0.9500,0.9500,1000,'00:00','00:00',30,300,3,site.owner_profile_id,clock_timestamp(),
   jsonb_build_object(
     'approval_scope','explicit_user_authorization_2026_09_02',
-    'activation_state',case when public.digital_guard_crossing_line_valid(source.metadata -> 'crossing_line')
-      then 'active' else 'authorized_waiting_for_crossing_line' end,
+    'activation_state','authorized_waiting_for_channel_1_activation',
     'authorized_action','one_second_siren_on_critical_verified_line_crossing',
     'authorized_channel',authorized.channel,'ptz_allowed',false,'talkback_allowed',false
   )

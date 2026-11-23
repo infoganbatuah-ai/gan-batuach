@@ -3,7 +3,9 @@
 
 create extension if not exists "pgcrypto";
 
-create type public.app_role as enum ('admin', 'inspector', 'manager', 'staff', 'parent');
+-- Fresh bootstrap must define owner before a later migration uses it in the
+-- same transaction in which ALTER TYPE ADD VALUE would otherwise run.
+create type public.app_role as enum ('admin', 'inspector', 'manager', 'owner', 'staff', 'parent');
 create type public.garden_status as enum ('pending', 'active', 'blocked', 'archived');
 create type public.safe_status as enum ('pending_review', 'safe', 'requires_fix', 'not_compliant');
 create type public.task_status as enum ('open', 'in_progress', 'waiting_approval', 'done', 'overdue', 'rejected');
