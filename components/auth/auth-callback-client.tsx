@@ -6,7 +6,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/browser";
 import { singleUseAuthCodeExchange } from "@/lib/domain/single-use-auth-code";
 import { needsExplicitObserverOptIn, safeAuthNextPath, verifiedCallbackProduct } from "@/lib/domain/auth-flow";
-import { resolvePersistedAuthProduct } from "@/lib/domain/auth-product-boundary";
+import { persistedProductReadFailed, resolvePersistedAuthProduct } from "@/lib/domain/auth-product-boundary";
 
 const otpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
 const exchangeCodeOnce = singleUseAuthCodeExchange((code: string) => createClient().auth.exchangeCodeForSession(code));
@@ -118,6 +118,12 @@ export function AuthCallbackClient({
         supabase.from("profiles").select("id,role").eq("id", user.id).maybeSingle(),
         supabase.from("parents" as never).select("id").or(`profile_id.eq.${user.id},user_id.eq.${user.id}`).limit(1).maybeSingle()
       ]);
+      if (persistedProductReadFailed([observerAccountResult, profileResult, parentResult])) {
+        authEvents.data.subscription.unsubscribe();
+        await supabase.auth.signOut({ scope: "local" });
+        window.location.replace("/auth/product-resolution-failed");
+        return;
+      }
       const persistedProduct = resolvePersistedAuthProduct({
         hasObserverAccount: Boolean(observerAccountResult.data),
         hasGanProfile: Boolean(profileResult.data),

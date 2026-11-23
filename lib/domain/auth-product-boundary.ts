@@ -1,5 +1,9 @@
 export type PersistedAuthProduct = "digital_observer" | "gan_batuach" | "both" | "none";
 
+export function persistedProductReadFailed(results: Array<{ error?: unknown }>) {
+  return results.some((result) => Boolean(result.error));
+}
+
 export function resolvePersistedAuthProduct(input: {
   hasObserverAccount: boolean;
   hasGanProfile: boolean;

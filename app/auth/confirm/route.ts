@@ -2,7 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { needsExplicitObserverOptIn, verifiedCallbackProduct } from "@/lib/domain/auth-flow";
-import { resolvePersistedAuthProduct } from "@/lib/domain/auth-product-boundary";
+import { persistedProductReadFailed, resolvePersistedAuthProduct } from "@/lib/domain/auth-product-boundary";
 
 const allowedOtpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
 
@@ -47,6 +47,10 @@ export async function GET(request: NextRequest) {
     supabase.from("profiles").select("id,role").eq("id", data.user.id).maybeSingle(),
     supabase.from("parents" as never).select("id").or(`profile_id.eq.${data.user.id},user_id.eq.${data.user.id}`).limit(1).maybeSingle()
   ]);
+  if (persistedProductReadFailed([observerAccountResult, profileResult, parentResult])) {
+    await supabase.auth.signOut({ scope: "local" });
+    return NextResponse.redirect(new URL("/auth/product-resolution-failed", request.url));
+  }
   const persistedProduct = resolvePersistedAuthProduct({
     hasObserverAccount: Boolean(observerAccountResult.data),
     hasGanProfile: Boolean(profileResult.data),
