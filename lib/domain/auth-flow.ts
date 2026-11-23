@@ -29,9 +29,12 @@ export function appOrigin() {
     : `https://${normalized}`;
 }
 
-export function authCallbackUrl(_product: AuthProduct, _next: string, _flow: "verify" | "recovery") {
-  // Keep the redirect identical to the Supabase allow-list entry. Product and
-  // flow are derived from the verified user and OTP type after the callback.
+export function authCallbackUrl(product: AuthProduct, next: string, flow: "verify" | "recovery") {
+  // This must remain byte-for-byte identical to the approved Supabase redirect.
+  // Product intent is resolved after authentication from persisted account data.
+  void product;
+  void next;
+  void flow;
   return `${appOrigin()}/auth/callback`;
 }
 

@@ -106,6 +106,7 @@
     "qa:management-legacy-consolidation": "node --test scripts/qa/check-management-legacy-consolidation.mjs",
     "qa:management-dashboard-e2e": "node scripts/qa/run-management-dashboard-role-e2e.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",
+    "qa:auth-product-boundary": "node --experimental-strip-types --test scripts/qa/check-auth-product-boundary.mjs",
     "qa:digital-observer-event-media": "node scripts/qa/check-digital-observer-event-media.mjs",
     "qa:event-journal": "node scripts/qa/check-event-journal.mjs && node scripts/qa/check-event-ingest.mjs && node scripts/qa/check-event-outbox.mjs && node scripts/qa/check-object-inference.mjs && node scripts/qa/check-digital-observer-event-media.mjs",
     "qa:real-detection-event-bridge": "node scripts/qa/check-real-detection-event-bridge.mjs",

@@ -2,6 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { needsExplicitObserverOptIn, verifiedCallbackProduct } from "@/lib/domain/auth-flow";
+import { persistedProductReadFailed, resolvePersistedAuthProduct } from "@/lib/domain/auth-product-boundary";
 
 const allowedOtpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
 
@@ -41,14 +42,33 @@ export async function GET(request: NextRequest) {
   if (error || !data.user) return authFailure(request, recovery, observerRequest);
 
   const pendingEmail = request.cookies.get("do_pending_email")?.value?.trim().toLowerCase();
-  // The pending-registration cookie is browser-controlled context, not proof
-  // that a Gan identity opted into the Observer product. Existing identities
-  // must use the explicit Observer verification/login flow for that transition.
-  const confirmedObserver = verifiedCallbackProduct(data.user) === "digital_observer";
+  const [observerAccountResult, profileResult, parentResult] = await Promise.all([
+    supabase.from("digital_observer_accounts" as never).select("profile_id").eq("profile_id", data.user.id).maybeSingle(),
+    supabase.from("profiles").select("id,role").eq("id", data.user.id).maybeSingle(),
+    supabase.from("parents" as never).select("id").or(`profile_id.eq.${data.user.id},user_id.eq.${data.user.id}`).limit(1).maybeSingle()
+  ]);
+  if (persistedProductReadFailed([observerAccountResult, profileResult, parentResult])) {
+    await supabase.auth.signOut({ scope: "local" });
+    return NextResponse.redirect(new URL("/auth/product-resolution-failed", request.url));
+  }
+  const persistedProduct = resolvePersistedAuthProduct({
+    hasObserverAccount: Boolean(observerAccountResult.data),
+    hasGanProfile: Boolean(profileResult.data),
+    hasGanParent: Boolean(parentResult.data),
+    ganRole: profileResult.data?.role
+  });
+  const confirmedObserver = persistedProduct === "digital_observer"
+    || (persistedProduct === "both" && observerRequest)
+    || (persistedProduct === "none" && verifiedCallbackProduct(data.user) === "digital_observer");
 
-  // A matching pending cookie may guide the user back to the explicit sign-in
-  // flow, but cannot grant or prepare an Observer account by itself.
-  if (!recovery && needsExplicitObserverOptIn(data.user, Boolean(pendingEmail && pendingEmail === data.user.email?.toLowerCase()))) {
+  // Browser hints may request the Observer sign-in experience, but cannot
+  // provision an existing Gan-only identity into the Observer product.
+  const pendingObserverIntent = observerRequest
+    || Boolean(pendingEmail && pendingEmail === data.user.email?.toLowerCase());
+  if (!recovery
+    && persistedProduct !== "digital_observer"
+    && persistedProduct !== "both"
+    && needsExplicitObserverOptIn(data.user, pendingObserverIntent)) {
     await supabase.auth.signOut();
     const response = NextResponse.redirect(new URL("/digital-observer/login?error=existing_account_sign_in", request.url));
     response.cookies.delete("do_pending_email");
