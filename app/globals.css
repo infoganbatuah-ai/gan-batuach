@@ -2,6 +2,17 @@
 @import "./styles/public.css";
 @import "./styles/auth.css";
 
+.gan-address-fields { display: grid; gap: 10px; min-width: 0; }
+.gan-address-search { display: flex; gap: 8px; align-items: stretch; }
+.gan-address-search input { flex: 1; min-width: 0; }
+.gan-address-search button { flex: none; min-height: 44px; }
+.gan-address-results { display: grid; gap: 4px; border: 1px solid #cbdff4; border-radius: 14px; padding: 5px; background: #fff; box-shadow: 0 10px 24px rgba(7,31,92,.09); }
+.gan-address-results button { min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: #123b8f; display: flex; align-items: center; gap: 8px; padding: 8px 11px; text-align: right; cursor: pointer; }
+.gan-address-results button:hover, .gan-address-results button:focus-visible { background: #eaf0ff; outline: 2px solid #2f5bff; }
+.gan-address-verified, .gan-address-unverified { display: flex; align-items: center; gap: 7px; margin: 0; font-size: .86rem; }
+.gan-address-verified { color: #0a7a55; }.gan-address-unverified { color: #705719; }
+@media (max-width: 640px) { .gan-address-search { flex-wrap: wrap; }.gan-address-search button { width: 100%; justify-content: center; } }
+
 :root {
   --blue: #123b8f;
   --blue-dark: #071f5c;

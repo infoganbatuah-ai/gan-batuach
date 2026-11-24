@@ -27,11 +27,11 @@ import {
 } from "lucide-react";
 import { ManagerParentInvitationPanel } from "@/components/manager-parent-invitation-panel";
 import { UploadImageField } from "@/components/upload-image-field";
+import { GanAddressFields } from "@/components/gan-address-fields";
 import { onboardingReviewRequirements } from "@/lib/domain/kindergarten-onboarding-review";
 import {
   ganBatuachTrialDays,
   kindergartenAgeGroups,
-  knownKindergartenCities,
   managerRegistrationSteps,
   operationalDistrictForCity,
   requiredKindergartenDocumentCategories
@@ -130,6 +130,8 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
           city: text(form.get("city")),
           street: text(form.get("street")),
           address_details: text(form.get("address_details")),
+          address_place_id: text(form.get("address_place_id")),
+          address_session_token: text(form.get("address_session_token")),
           public_description: text(form.get("public_description")),
           opening_hours: text(form.get("opening_hours")),
           contact_phone: text(form.get("contact_phone")),
@@ -207,9 +209,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         <div className="section-heading"><span className="manager-section-number">3</span><div><h3>פרטי הגן</h3><p>פרטי ליבה בלבד. כיתות, מסמכים, צוות והזמנות יושלמו בטיוטת ההקמה.</p></div></div>
         <div className="form-grid">
           <label>שם הגן *<input name="kindergarten_name" required minLength={2} /></label>
-          <label>עיר *<select name="city" required defaultValue=""><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
-          <label>רחוב *<input name="street" required /></label>
-          <label>מספר / פרטי כתובת<input name="address_details" /></label>
+          <GanAddressFields requiredCity requiredStreet buildingName="address_details" />
           <label>שם משפטי / עוסק<input name="legal_entity_name" /></label>
           <label>ח.פ / עוסק<input name="business_id" /></label>
           <label>טלפון הגן<input name="contact_phone" defaultValue={managerPhone ?? ""} /></label>
@@ -304,11 +304,14 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         image_url: imageUrl,
         gallery_urls: text(form.get("gallery_urls")).split("\n").map((item) => item.trim()).filter(Boolean),
         address: text(form.get("address")),
+        address_place_id: text(form.get("address_place_id")),
+        address_session_token: text(form.get("address_session_token")),
         phone: text(form.get("phone")),
         email: text(form.get("email")),
         owner_name: text(form.get("owner_name")),
         city: text(form.get("city")),
         street: text(form.get("street")),
+        building_number: text(form.get("building_number")),
         operational_district: operationalDistrictForCity(text(form.get("city"))),
         manager_name: text(form.get("manager_name")),
         manager_phone: text(form.get("manager_phone")),
@@ -445,9 +448,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
             <h3>פרטי קשר וכתובת</h3>
             <div className="form-grid">
               <label>שם הגן<input name="name" defaultValue={garden.name ?? ""} /></label>
-              <label>עיר<select name="city" defaultValue={cityFromAddress}><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
-              <label>רחוב<input name="street" defaultValue={profileData.street ?? ""} /></label>
-              <label>כתובת מלאה<input name="address" defaultValue={garden.address ?? ""} /></label>
+              <GanAddressFields initialCity={cityFromAddress} initialStreet={profileData.street ?? ""} initialBuilding={profileData.building_number ?? ""} initialAddress={garden.address ?? ""} />
               <label>טלפון<input name="phone" defaultValue={garden.phone ?? ""} /></label>
               <label>אימייל<input name="email" type="email" defaultValue={garden.email ?? ""} /></label>
               <label>שם בעלים<input name="owner_name" defaultValue={garden.owner_name ?? ""} /></label>

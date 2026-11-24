@@ -3,9 +3,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, MapPin, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/components/gan-batuach-design-system";
-import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
+import { GanAddressFields } from "@/components/gan-address-fields";
 
 type ApiState = { ok: boolean; message: string; href?: string };
 export type SelfServiceAccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager" | "kindergarten_owner";
@@ -45,7 +45,6 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
   const [busy, setBusy] = useState(false);
   const [accountType, setAccountType] = useState<SelfServiceAccountType>(fixedAccountType ?? "parent");
   const isFixedRole = Boolean(fixedAccountType);
-  const cities = knownKindergartenCities();
   const activeRole = registrationRoles.find((role) => role.type === accountType) ?? { type: "kindergarten_owner" as const, icon: Building2, title: "בעל/ת גן", text: "", cta: "הרשמה כבעל/ת גן" };
 
   useEffect(() => {
@@ -93,6 +92,8 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
         email: formValue(form, "email"),
         phone: formValue(form, "phone") || undefined,
         city: formValue(form, "city") || undefined,
+        address_place_id: formValue(form, "address_place_id") || undefined,
+        address_session_token: formValue(form, "address_session_token") || undefined,
         password: formValue(form, "password"),
         invitation_token: invitationToken || undefined,
         identity_number: formValue(form, "identity_number") || undefined,
@@ -152,18 +153,13 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
           <FormField icon={Mail} label="כתובת דוא״ל *" name="email" type="email" required autoComplete="username" dir="ltr" />
           <FormField icon={UserRound} label="מספר טלפון *" name="phone" required autoComplete="tel" dir="ltr" />
           <FormField icon={BadgeCheck} label={accountType === "parent" ? "תעודת זהות" : "תעודת זהות *"} name="identity_number" required={accountType !== "parent"} inputMode="numeric" dir="ltr" />
-          {accountType === "kindergarten_manager" || accountType === "inspector_candidate" ? (
-            <FormField icon={MapPin} as="select" label="עיר *" name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></FormField>
-          ) : (
-            <FormField icon={MapPin} label="עיר" name="city" list="known-cities" />
-          )}
+          <GanAddressFields mode="city" requiredCity={accountType === "kindergarten_manager" || accountType === "inspector_candidate"} />
           {accountType === "staff_candidate" ? <FormField as="textarea" className="wide" label="ניסיון קודם קצר" name="previous_experience" rows={3} placeholder="ספרו בקצרה על ניסיון בגן או עבודה עם ילדים" /> : null}
           {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="אזורים מועדפים" name="preferred_regions" rows={3} placeholder="מרכז, שרון, ירושלים" /> : null}
           {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="ניסיון מקצועי" name="previous_experience" rows={3} placeholder="פיקוח, חינוך, בטיחות, תפעול או ניסיון רלוונטי" /> : null}
           <FormField icon={KeyRound} label="סיסמה *" name="password" type="password" required minLength={8} autoComplete="new-password" hint="לפחות 8 תווים" />
           <FormField icon={KeyRound} label="אימות סיסמה *" name="confirm_password" type="password" required minLength={8} autoComplete="new-password" />
         </div>
-        <datalist id="known-cities">{cities.map((city) => <option value={city} key={city} />)}</datalist>
         <label className="terms-check"><input name="terms_approved" type="checkbox" required /> אני מאשר/ת שימוש בפרטים לצורך הפעלת השירות, שיוך לגן או בדיקת מועמדות, בהתאם למדיניות הפרטיות ותנאי השימוש.</label>
         <div className="register-helper-row">
           <Link href="/trust">מדיניות פרטיות ואמון</Link>

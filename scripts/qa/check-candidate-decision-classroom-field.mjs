@@ -52,7 +52,7 @@ async function submitForm(classroomFieldName) {
     'next/navigation': { useRouter: () => ({ refresh: () => {} }) },
     'lucide-react': new Proxy({}, { get: () => () => null }),
     '@/components/gan-batuach-design-system': {},
-    '@/lib/domain/kindergarten-onboarding': { knownKindergartenCities: () => [] }
+    '@/components/gan-address-fields': { GanAddressFields: () => null }
   }, {
     FormData: FixtureFormData,
     fetch: async (url, options) => { calls.push({ url, body: JSON.parse(options.body) }); return { ok: true, json: async () => ({ data: {} }) }; }
