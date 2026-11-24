@@ -3,7 +3,7 @@
   "observedAt": "2026-11-15T00:07:50Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_274_OF_276_APPLIED_TWO_PENDING",
+  "localDatabaseStatus": "CANONICAL_ISOLATED_DEVELOPMENT_227_BASELINE_49_POST_APPLIED_SIX_CURRENT_SOURCE_VARIANTS",
   "migrations": [
     {
       "file": "supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql",
@@ -8473,17 +8473,19 @@
       "sourceCommit": "af5f003b3ef1ce39985e7b95054f72eca1e6c308",
       "inGit": true,
       "inIntegration": true,
-      "inclusion": "INTEGRATED_DEVELOPMENT_PENDING_APPLY",
+      "inclusion": "INTEGRATED_DEVELOPMENT",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "Gan coordinator isolated restore and rollback-only SQL probe in .recovery/gbi-20261124T1848/RECOVERY_RECEIPT.md; production and Product API behavior not claimed.",
       "developmentDependsOn": [],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-24T19:43:42.340738+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json; .recovery/gbi-20261124T1848/DEVELOPMENT_APPLY_RECEIPT.md",
+      "developmentHistoryDigest": "18779b4985c8e0bcc2ff5998023b06119448b13eb813af886c9f3329ed1a1dc9",
+      "developmentSchemaFingerprint": "ac46e74eb27a4243cb9b87873bb242d02dccc3197ff79bfb08debee717286c22",
       "productionApplied": "NO",
       "productionEvidence": "No Production application authorized or attempted",
       "recovery": "Use protected canonical Development snapshot before guarded apply; no Production action.",
-      "developmentStatusReason": "Pending canonical local Development application"
+      "developmentStatusReason": "Guarded canonical local Development application at integrated commit 3d648c7a2dd310acfc2cd10acac1ee3a2eb819f8; focused authenticated RPC and anon denial verified; Product QA open"
     },
     {
       "file": "supabase/migrations/20261123000100_qa_public_rls_and_invoker_views.sql",
@@ -8494,22 +8496,26 @@
       "sourceCommit": "2b04b43cf07b57a18aec6bb32e44cb8bec1e46fc",
       "inGit": true,
       "inIntegration": true,
-      "inclusion": "INTEGRATED_DEVELOPMENT_PENDING_APPLY",
+      "inclusion": "INTEGRATED_DEVELOPMENT",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentApprovalEvidence": "Gan coordinator isolated restore and rollback-only role/policy/view SQL probe in .recovery/gbi-20261124T1848/RECOVERY_RECEIPT.md; authenticated own-garden 3 signatures, other garden 0, parent 0. No Product API claim.",
       "developmentDependsOn": [],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-11-24T19:44:17.758399+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json; .recovery/gbi-20261124T1848/DEVELOPMENT_APPLY_RECEIPT.md",
+      "developmentHistoryDigest": "ad77a7478d80b257bb3c1c78311984fe28dd7d55414c155b4d05329222f599c4",
+      "developmentSchemaFingerprint": "eb803202fb1b63b59851a570ed861e918ec7914e472f01668853e0545525f86d",
       "productionApplied": "NO",
       "productionEvidence": "No Production application authorized or attempted",
       "recovery": "Use protected canonical Development snapshot before guarded apply; no Production action.",
-      "developmentStatusReason": "Pending canonical local Development application"
+      "developmentStatusReason": "Guarded canonical local Development application at integrated commit 3d648c7a2dd310acfc2cd10acac1ee3a2eb819f8; five RLS flags and two invoker views verified; Product QA open"
     }
   ],
   "developmentExpected": 276,
-  "developmentAppliedVerified": 274,
-  "blockers": ["Two selected migrations remain unapplied to canonical Development. Current-state source correction proof does not establish historical row equivalence.", "Authenticated Child/Garden and Parent-name Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
+  "developmentAppliedVerified": 270,
+  "developmentHistoryAppliedCount": 276,
+  "developmentCurrentSourceReplayVariants": 6,
+  "blockers": ["Six current fresh-replay source variants are not historical Development applications; current-state correction proof does not establish historical row equivalence.", "Authenticated Child/Garden and Parent-name Product API readback, full-provider restore/RPO/RTO, legal retention and all-supplier cost remain open; no Production release authorization."],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
