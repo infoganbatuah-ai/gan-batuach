@@ -8,7 +8,11 @@ import AuthenticationServices
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-    var window: UIWindow?
+    var window: UIWindow? {
+        didSet {
+            if window !== oldValue { updateCaptureShield() }
+        }
+    }
     private var captureShieldView: UIView?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -27,18 +31,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     private func updateCaptureShield() {
-        guard let window = window else { return }
-        if UIScreen.main.isCaptured {
-            if captureShieldView == nil {
-                let shield = UIView(frame: window.bounds)
-                shield.backgroundColor = UIColor.black
-                shield.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-                window.addSubview(shield)
-                captureShieldView = shield
-            }
-            captureShieldView?.isHidden = false
+        guard UIScreen.main.isCaptured, let window = window else {
+            captureShieldView?.removeFromSuperview()
+            captureShieldView = nil
+            return
+        }
+
+        let shield = captureShieldView ?? UIView(frame: window.bounds)
+        if shield.superview !== window {
+            shield.frame = window.bounds
+            shield.backgroundColor = .black
+            shield.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            window.addSubview(shield)
+            captureShieldView = shield
         } else {
-            captureShieldView?.isHidden = true
+            window.bringSubviewToFront(shield)
         }
     }
 
@@ -53,11 +60,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
-        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
+        updateCaptureShield()
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        updateCaptureShield()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
