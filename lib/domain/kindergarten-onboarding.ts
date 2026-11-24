@@ -23,19 +23,6 @@ export const kindergartenAgeGroups = [
 
 export type KindergartenAgeGroupKey = (typeof kindergartenAgeGroups)[number]["key"];
 
-export const israeliCityStreetMap: Record<string, string[]> = {
-  "תל אביב-יפו": ["דיזנגוף", "אבן גבירול", "ויצמן", "יהודה הלוי", "אלנבי"],
-  "ירושלים": ["יפו", "עמק רפאים", "הרצל", "קרן היסוד", "דרך חברון"],
-  "חיפה": ["מוריה", "הרצל", "הנשיא", "דרך הים", "חלוצי התעשייה"],
-  "ראשון לציון": ["הרצל", "רוטשילד", "ז'בוטינסקי", "הכרמל", "שדרות ירושלים"],
-  "פתח תקווה": ["חיים עוזר", "ז'בוטינסקי", "רוטשילד", "ההסתדרות", "העצמאות"],
-  "באר שבע": ["רגר", "העצמאות", "טוביהו", "המשחררים", "התקווה"],
-  "נתניה": ["הרצל", "ויצמן", "בן צבי", "שדרות בנימין", "סמילנסקי"],
-  "רמת גן": ["ביאליק", "ז'בוטינסקי", "הרא\"ה", "בן גוריון", "קריניצי"],
-  "אשדוד": ["הרצל", "בני ברית", "שדרות ירושלים", "הציונות", "רוגוזין"],
-  "הרצליה": ["סוקולוב", "בן גוריון", "הנשיא", "מדינת היהודים", "משכית"]
-};
-
 export const operationalDistricts = ["צפון", "חיפה", "מרכז", "תל אביב", "ירושלים", "דרום", "אחר", "לא ידוע"] as const;
 
 const cityDistrictMap: Record<string, (typeof operationalDistricts)[number]> = {
@@ -50,10 +37,6 @@ const cityDistrictMap: Record<string, (typeof operationalDistricts)[number]> = {
   "אשדוד": "דרום",
   "באר שבע": "דרום"
 };
-
-export function knownKindergartenCities() {
-  return Object.keys(israeliCityStreetMap);
-}
 
 export function operationalDistrictForCity(city?: string | null) {
   const normalized = String(city ?? "").trim();

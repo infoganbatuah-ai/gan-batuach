@@ -6,6 +6,8 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 import { createClient } from "@/lib/supabase/server";
 import { activationWizardSteps, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
 import { managementContactVerification } from "@/lib/management/contact-verification";
+import { assertGanAddressProviderBudget, verifyGanAddressSelection } from "@/lib/management/verified-address";
+import { assertTrustedMutationOrigin, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const onboardingSchema = z.object({
   submit: z.boolean().optional(),
@@ -19,6 +21,9 @@ const onboardingSchema = z.object({
     gallery_urls: z.array(z.string()).optional(),
     city: z.string().trim().optional(),
     street: z.string().trim().optional(),
+    building_number: z.string().trim().optional(),
+    address_place_id: z.string().trim().max(300).optional(),
+    address_session_token: z.string().uuid().optional().or(z.literal("")),
     operational_district: z.string().trim().optional(),
     address: z.string().trim().optional(),
     phone: z.string().trim().optional(),
@@ -171,8 +176,28 @@ export async function PATCH(request: Request) {
       return fail("הגן כבר פעיל או חסום לעריכה דרך אשף ההקמה", 409);
     }
 
+    const { address_place_id, address_session_token, ...gardenInput } = payload.garden;
+    const previousAddress = ((existingOnboarding as { profile_data?: Record<string, unknown> } | null)?.profile_data ?? {});
+    const sameVerifiedAddress = !address_place_id && previousAddress.address_verification_status === "verified" &&
+      previousAddress.city === gardenInput.city && previousAddress.street === gardenInput.street &&
+      previousAddress.building_number === gardenInput.building_number && existingGarden?.address === gardenInput.address;
+    if (address_place_id) {
+      assertTrustedMutationOrigin(request);
+      await assertGanAddressProviderBudget(privateRateLimitIdentifier({ headers: request.headers }));
+    }
+    const selectedAddress = await verifyGanAddressSelection({ placeId: address_place_id, sessionToken: address_session_token,
+      city: gardenInput.city, street: gardenInput.street, buildingNumber: gardenInput.building_number }, "full");
+    if (address_place_id && selectedAddress.status !== "verified") return fail("בחירת הכתובת אינה תואמת לפרטים המאומתים. בחרו שוב או המשיכו בהזנה ידנית.", 422);
+    const verifiedAddress = selectedAddress.address;
     const profileData: Record<string, any> = {
-      ...(payload.garden as Record<string, unknown>),
+      ...(gardenInput as Record<string, unknown>),
+      city: verifiedAddress?.city ?? gardenInput.city,
+      street: verifiedAddress?.street ?? gardenInput.street,
+      building_number: verifiedAddress?.buildingNumber ?? gardenInput.building_number,
+      address: verifiedAddress?.formattedAddress ?? gardenInput.address,
+      address_verification_status: verifiedAddress || sameVerifiedAddress ? "verified" : "unverified",
+      address_provider: verifiedAddress || sameVerifiedAddress ? "google_places" : null,
+      address_place_id: verifiedAddress?.placeId ?? (sameVerifiedAddress ? previousAddress.address_place_id : null),
       manager_name: payload.garden.manager_name || profile.full_name || null
     };
     const merged = { ...(existingGarden ?? {}), ...((existingOnboarding as any)?.profile_data ?? {}), ...profileData };
@@ -197,10 +222,10 @@ export async function PATCH(request: Request) {
     const subscriptionAmount = Number(activePlan.monthly_price);
     const gardenPatch = Object.fromEntries(Object.entries({
       name: payload.garden.name || existingGarden?.name,
-      city: payload.garden.city || undefined,
+      city: profileData.city || undefined,
       logo_url: payload.garden.logo_url || null,
       image_url: payload.garden.image_url || null,
-      address: payload.garden.address || null,
+      address: profileData.address || null,
       phone: payload.garden.phone || null,
       email: payload.garden.email || null,
       owner_name: payload.garden.owner_name || null,
@@ -237,7 +262,7 @@ export async function PATCH(request: Request) {
         required_fields: activationWizardSteps as unknown as string[],
         profile_data: {
           ...profileData,
-          operational_district: payload.garden.operational_district || operationalDistrictForCity(payload.garden.city),
+          operational_district: operationalDistrictForCity(profileData.city),
           required_staff: requiredStaff,
           current_staff: currentStaff,
           missing_staff: missingStaff,

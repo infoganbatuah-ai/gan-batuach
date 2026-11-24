@@ -7,13 +7,16 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 import { createClient } from "@/lib/supabase/server";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
+import { assertGanAddressProviderBudget, verifyGanAddressSelection } from "@/lib/management/verified-address";
 
 const schema = z.object({
   account_type: z.enum(["parent", "staff_candidate", "inspector_candidate", "kindergarten_manager", "kindergarten_owner"]),
   full_name: z.string().min(2),
   email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email()),
   phone: z.string().optional(),
-  city: z.string().optional(),
+  city: z.string().trim().max(120).optional(),
+  address_place_id: z.string().trim().min(4).max(300).optional(),
+  address_session_token: z.string().uuid().optional(),
   password: z.string().min(8),
   invitation_token: z.string().min(40).max(2048).optional()
 });
@@ -32,6 +35,9 @@ export async function POST(request: Request) {
     await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:self-service-register", 10, 10 * 60);
     if (!isAdminClientConfigured()) return fail("הרשמה עצמאית דורשת הגדרת Service Role בצד השרת.", 503);
     const payload = schema.parse(await parseBoundedJson(request, 16 * 1024));
+    if (payload.address_place_id) await assertGanAddressProviderBudget(privateRateLimitIdentifier({ headers: request.headers }));
+    const selectedAddress = await verifyGanAddressSelection({ placeId: payload.address_place_id, sessionToken: payload.address_session_token, city: payload.city }, "city");
+    if (payload.address_place_id && selectedAddress.status !== "verified") return fail("בחירת העיר אינה תואמת למיקום המאומת. בחרו שוב או המשיכו בהזנה ידנית.", 422);
     const admin = createAdminClient();
     const resolvedInvitation = payload.invitation_token ? await resolveSignedInvitation(admin, payload.invitation_token) : null;
     if (resolvedInvitation && !resolvedInvitation.ok) return fail("ההזמנה אינה זמינה.", 410);
@@ -96,9 +102,11 @@ export async function POST(request: Request) {
       full_name: payload.full_name,
       phone: payload.phone ?? null,
       email: payload.email,
-      city: payload.city ?? null,
+      city: selectedAddress.address?.city ?? payload.city ?? null,
       verification_status: { email: data.user.email_confirmed_at ? "verified" : "pending", phone: "pending", mfa: "not_required" },
-      metadata: { registration_source: "self_service", contact_verification_required: true }
+      metadata: { registration_source: "self_service", contact_verification_required: true,
+        address_verification_status: selectedAddress.status,
+        ...(selectedAddress.address ? { address_provider: "google_places", address_place_id: selectedAddress.address.placeId } : {}) }
     }, { onConflict: "profile_id" });
     if (selfServiceWrite.error) {
       await admin.auth.admin.deleteUser(data.user.id);
