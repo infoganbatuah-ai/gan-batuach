@@ -1,6 +1,8 @@
+import { createOwnerApproval, approvalCookie } from "./observer-first-party/owner-approval.mjs";
+import { OBSERVER_QA_HOST, observerQaRouteAllowed, observerQaRedirect } from "./push44-observer-qa-ingress-policy.mjs";
 import { createServer, request as requestOrigin } from "node:http";
-import { timingSafeEqual } from "node:crypto";
-import { readFileSync, statSync } from "node:fs";
+import { randomBytes, timingSafeEqual } from "node:crypto";
+import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
@@ -71,13 +73,34 @@ export function safeQaRedirect(rawLocation, incomingHost) {
   return allowedQaRequest("GET", destination) ? destination : null;
 }
 
-export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, qaHost, expiresAt } = {}) {
-  if (!validToken(ownerToken)) throw new Error("PUSH44 QA requires a 256-bit temporary owner token");
+// Next constructs some redirects using its local listener authority. Resolve
+// only this configured port, then apply the same external route allowlist.
+export function observerOriginRedirect(location, upstream, gate) {
+  const port = new URL(upstream).port;
+  for (const scheme of ["http", "https"]) {
+    for (const host of ["localhost", "127.0.0.1"]) {
+      const prefix = `${scheme}://${host}:${port}/`;
+      if (location.startsWith(prefix)) {
+        return observerQaRedirect(location.slice(prefix.length - 1), gate);
+      }
+    }
+  }
+  return observerQaRedirect(location, gate);
+}
+
+export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, approvalCode, qaHost, expiresAt } = {}) {
+  const observer = qaHost === OBSERVER_QA_HOST;
+  if (observer && (ownerToken !== undefined || !/^http:\/\/127\.0\.0\.1:\d+$/.test(upstream))) {
+    throw new Error("Observer requires an isolated loopback origin and one-use approval");
+  }
+  if (!observer && !validToken(ownerToken)) throw new Error("PUSH44 QA requires a 256-bit temporary owner token");
   if (typeof qaHost !== "string" || !/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(qaHost)) {
     throw new Error("PUSH44 QA requires one exact HTTPS hostname");
   }
   const started = now();
   const deadline = Math.min(started + maxDurationMs, expiresAt ?? started + maxDurationMs);
+  const approval = observer ? createOwnerApproval({ code: approvalCode, now, deadline }) : null;
+  const gate = { host: qaHost, ownerAuthorized: true, trustedHttps: true };
   let requests = 0;
   let responseBytes = 0;
   let minuteStart = started;
@@ -88,7 +111,7 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
     // an empty map can crash cloudflared on an early rejected request.
     outgoing.setHeader("cache-control", "no-store");
     outgoing.setHeader("x-robots-tag", "noindex, nofollow");
-    outgoing.setHeader("referrer-policy", "no-referrer");
+    outgoing.setHeader("referrer-policy", observer ? "same-origin" : "no-referrer");
     if (process.env.PUSH44_QA_DIAGNOSTICS === "1") {
       let path = "/";
       try { path = new URL(incoming.url ?? "/", origin).pathname; } catch { /* invalid URLs remain unclassified */ }
@@ -114,7 +137,20 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
       return void outgoing.writeHead(429).end();
     }
     if (incoming.headers.host !== qaHost) return void outgoing.writeHead(421).end();
-    if (incoming.method === "GET" && incoming.url?.startsWith("/__push44/bootstrap?")) {
+    if (observer) {
+      // Only a TLS-terminating, host-pinned ingress may forward to this loopback listener.
+      if (incoming.headers["x-forwarded-proto"] !== "https") return void outgoing.writeHead(403).end();
+      if (incoming.url === approval.approvalPath || !approval.authorized(incoming.headers.cookie)) {
+        approval.respond(incoming, outgoing).catch(() => outgoing.destroy());
+        return;
+      }
+      if (incoming.method === "POST" && incoming.headers.origin !== `https://${qaHost}`) {
+        return void outgoing.writeHead(403).end();
+      }
+      if (!observerQaRouteAllowed({ ...gate, method: incoming.method, rawUrl: incoming.url, rsc: incoming.headers.rsc })) {
+        return void outgoing.writeHead(404).end();
+      }
+    } else if (incoming.method === "GET" && incoming.url?.startsWith("/__push44/bootstrap?")) {
       let bootstrap;
       try { bootstrap = new URL(incoming.url, `https://${qaHost}`); } catch { /* denied below */ }
       if (bootstrap?.pathname !== "/__push44/bootstrap" || bootstrap.searchParams.size !== 1
@@ -125,8 +161,8 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
       outgoing.setHeader("location", "/digital-observer/login");
       return void outgoing.writeHead(303).end();
     }
-    if (!authorizedCookie(incoming.headers.cookie, ownerToken)) return void outgoing.writeHead(401).end();
-    if (!allowedQaRequest(incoming.method, incoming.url)) return void outgoing.writeHead(404).end();
+    if (!observer && !authorizedCookie(incoming.headers.cookie, ownerToken)) return void outgoing.writeHead(401).end();
+    if (!observer && !allowedQaRequest(incoming.method, incoming.url)) return void outgoing.writeHead(404).end();
     if (Number(incoming.headers["content-length"] ?? 0) > maxRequestBytes) return void outgoing.writeHead(413).end();
 
     const target = new URL(incoming.url, upstream);
@@ -139,19 +175,30 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
     delete headers["x-forwarded-port"];
     if (headers.cookie) {
       const productCookies = headers.cookie.split(";").map((part) => part.trim())
-        .filter((part) => !part.startsWith(`${ownerCookieName}=`));
+        .filter((part) => !part.startsWith(`${ownerCookieName}=`) && !part.startsWith(`${approvalCookie}=`));
       if (productCookies.length) headers.cookie = productCookies.join("; ");
       else delete headers.cookie;
     }
     const forwarded = requestOrigin(target, { method: incoming.method, headers, timeout: 15_000 }, (source) => {
       const safeHeaders = { ...source.headers, "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
       delete safeHeaders["transfer-encoding"];
+      // A cold WebView reloads many bundles. Cache only successful immutable
+      // build assets on this device, never session data or shared edge responses.
+      if (observer && incoming.method === "GET" && source.statusCode === 200 &&
+          !source.headers["set-cookie"] && target.pathname.startsWith("/_next/static/") &&
+          /\bimmutable\b/i.test(source.headers["cache-control"] ?? "") &&
+          /[.-][a-f0-9]{16}\.(?:js|css)$/.test(target.pathname)) {
+        const ttl = Math.max(0, Math.floor((deadline - now()) / 1000));
+        safeHeaders["cache-control"] = `private, max-age=${ttl}, immutable`;
+        safeHeaders["cdn-cache-control"] = "no-store";
+      }
+      if (observer) safeHeaders["referrer-policy"] = "same-origin";
       if (safeHeaders["set-cookie"]) {
         safeHeaders["set-cookie"] = safeHeaders["set-cookie"].map((cookie) =>
           /(?:^|;)\s*secure(?:;|$)/i.test(cookie) ? cookie : `${cookie}; Secure`);
       }
       if (safeHeaders.location) {
-        const location = safeQaRedirect(safeHeaders.location, incoming.headers.host ?? "");
+        const location = observer ? observerOriginRedirect(safeHeaders.location, upstream, gate) : safeQaRedirect(safeHeaders.location, incoming.headers.host ?? "");
         if (!location) { source.destroy(); outgoing.writeHead(502).end(); return; }
         safeHeaders.location = location;
       }
@@ -181,8 +228,11 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const tokenFile = process.env.PUSH44_QA_TOKEN_FILE;
   const qaHost = process.env.PUSH44_QA_HOST;
-  if (!tokenFile || !qaHost) throw new Error("PUSH44 QA token file and exact hostname are required");
-  if (statSync(tokenFile).mode & 0o077) throw new Error("QA token file must be owner-readable only");
+  const observer = qaHost === OBSERVER_QA_HOST;
+  const output = process.env.PUSH44_QA_APPROVAL_OUTPUT;
+  if (observer && (!output || tokenFile)) throw new Error("Set a fresh local owner approval output path only");
+  if ((!observer && !tokenFile) || !qaHost) throw new Error("PUSH44 QA token file and exact hostname are required");
+  if (!observer && statSync(tokenFile).mode & 0o077) throw new Error("QA token file must be owner-readable only");
   const expectedSha = process.env.PUSH44_QA_EXPECTED_SHA;
   if (!expectedSha || !/^[a-f0-9]{8,40}$/.test(expectedSha)) throw new Error("Expected QA source SHA is required");
   const sourceSha = execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim();
@@ -195,7 +245,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   if (!Number.isSafeInteger(expiresAt) || expiresAt <= Date.now() || expiresAt - Date.now() > maxDurationMs) {
     throw new Error("QA requires a valid deadline within 30 minutes");
   }
-  const server = createQaProxy({ ownerToken: readFileSync(tokenFile, "utf8").trim(), qaHost, expiresAt });
+  const approvalCode = observer ? randomBytes(8).toString("hex") : undefined;
+  const ownerToken = observer ? undefined : readFileSync(tokenFile, "utf8").trim();
+  const server = createQaProxy({ ownerToken, approvalCode, qaHost, expiresAt });
+  if (observer) writeFileSync(output, approvalCode + "\n", { flag: "wx", mode: 0o600 });
   server.listen(listenPort, listenHost, () => {
     console.log(`PUSH44 owner QA route filter active on ${listenHost}:${listenPort}; fixed deadline; no media routes`);
   });

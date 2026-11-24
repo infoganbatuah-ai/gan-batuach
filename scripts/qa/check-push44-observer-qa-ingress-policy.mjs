@@ -105,3 +105,17 @@ test("bearer URLs, host spoofing, traversal and open redirects fail closed", () 
   assert.equal(observerQaRedirect("https://user@observer-qa.ganbatuach.com/digital-observer/dashboard", gate), null);
   assert.equal(observerQaRedirect("/digital-observer/login?code=secret", gate), null);
 });
+
+test("Next client navigation accepts its bounded page discriminator on admitted pages only", () => {
+  const rsc = { rsc: "1" };
+  const path = "/digital-observer/onboarding";
+  for (const query of ["?_rsc", "?_rsc=Xa0Dj5GgZ-0d2Ca_", "?type=home&_rsc=Xa0Dj5GgZ-0d2Ca_"]) {
+    assert.equal(allows("GET", path + query, rsc), true);
+    assert.equal(allows("GET", path + query), false);
+    assert.equal(observerQaRedirect(path + query, gate), null);
+  }
+  for (const value of [path + "?_rsc=a", path + "?_rsc&_rsc", path + "?_rsc&type=other",
+    path + "?_rsc&next=/admin", "/api/digital-observer/mobile/runtime?_rsc",
+    "/digital-observer/cameras?_rsc"]) assert.equal(allows("GET", value, rsc), false);
+  assert.equal(allows("POST", path + "?_rsc", rsc), false);
+});
