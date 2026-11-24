@@ -1,8 +1,8 @@
 -- Review artifact only. The isolated in-memory test reads the marked candidate section.
+begin;
 do $$ begin raise exception 'REVIEW ONLY: site save requires separate schema and ACL qualification'; end $$;
 
 -- BEGIN CANDIDATE
-begin;
 create function public.save_observer_onboarding_atomic(
   target_site uuid, target_package uuid, site_patch jsonb, schedule_mode_input text, monitoring_targets jsonb
 ) returns jsonb

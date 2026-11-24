@@ -56,7 +56,8 @@ async function fixture(t) {
   await db.query("insert into observer_monitoring_packages(id,name,package_type,included_entitlements) values ($1,'QA','home',$2)",
     [pack, { sites: 1, cameras: 1 }]);
   await assert.rejects(db.exec(source), /REVIEW ONLY/);
-  await db.exec(source.split("-- BEGIN CANDIDATE\n")[1]);
+  await db.exec("rollback");
+  await db.exec("begin;\n" + source.split("-- BEGIN CANDIDATE\n")[1]);
   return db;
 }
 async function save(db, site = null, packageId = pack, name = patch.name) {
@@ -127,4 +128,61 @@ test("ineligible trial update, foreign ownership, expired session and missing EX
     const {rows} = await db.query("select has_function_privilege($1, 'public.save_observer_onboarding_atomic(uuid,uuid,jsonb,text,jsonb)', 'EXECUTE') as allowed", [role]);
     assert.equal(rows[0].allowed, false);
   }
+});
+
+test("scoped writer replays one committed owner result and rejects other callers, stale sessions and conflicting retries", async t => {
+  const db = await fixture(t);
+  const writer = readFileSync(new URL("./writer.sql", import.meta.url), "utf8");
+  const session = "00000000-0000-4000-8000-000000000003";
+  const submission = "00000000-0000-4000-8000-000000000004";
+  const other = "00000000-0000-4000-8000-000000000005";
+  const digest = "1".repeat(64);
+  await db.exec(`create role observer_site_save_executor nologin nobypassrls;
+    create role observer_site_save_caller nologin nobypassrls;
+    create table auth.sessions(id uuid primary key,user_id uuid not null,not_after timestamptz);
+    create function auth.jwt() returns jsonb language sql stable as $$select current_setting('request.jwt.claims',true)::jsonb$$;
+    create or replace function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;
+    grant usage on schema auth,extensions to observer_site_save_executor;
+    grant select on profiles to observer_site_save_executor;
+    grant select,update(profile_id) on digital_observer_accounts to observer_site_save_executor;
+    grant select,update(id) on observer_monitoring_packages to observer_site_save_executor;
+    grant select,insert,update on observer_sites,observer_site_onboarding_drafts,observer_monitoring_schedules to observer_site_save_executor;
+    grant select,insert,update(id) on observer_site_subscriptions to observer_site_save_executor;
+    grant insert on observer_site_memberships,digital_observer_entitlement_grants,digital_observer_financial_audit to observer_site_save_executor;`);
+  const sessionMigration = readFileSync(new URL("../../supabase/migrations/20261023161928_digital_observer_push44_session_validity.sql", import.meta.url), "utf8");
+  await db.exec(sessionMigration);
+  await db.exec("grant execute on function digital_observer_current_session_active() to observer_site_save_executor");
+  await db.query("insert into auth.sessions values($1,$2,null)", [session,actor]);
+  await assert.rejects(db.exec(writer), /REVIEW ONLY/);
+  await db.exec("rollback");
+  await db.exec("begin;\n" + writer.split("-- BEGIN WRITER CANDIDATE\n")[1]);
+
+  const submit = (options = {}) => db.transaction(async tx => {
+    const role = options.role ?? "observer_site_save_caller";
+    assert(["anon","authenticated","observer_site_save_caller"].includes(role));
+    await tx.exec("set local role " + role);
+    await tx.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({role})]);
+    const {rows} = await tx.query("select public.submit_observer_site_save($1,$2,2000000000,$3,$4,$5,$6,$7,'event_only','[]') as result",
+      [options.actor ?? actor, session, options.key ?? submission, options.digest ?? digest,options.site ?? null,pack,patch]);
+    const claims = await tx.query("select current_setting('request.jwt.claims')::jsonb as claims");
+    assert.deepEqual(claims.rows[0].claims, {role});
+    return rows[0].result;
+  });
+  for (const role of ["anon","authenticated"]) await assert.rejects(submit({role}), {code:"42501"});
+  await assert.rejects(submit({actor:other}), {code:"42501"});
+  const [first, retry] = await Promise.all([submit(), submit()]);
+  assert.deepEqual(first,retry);
+  assert.deepEqual(await submit(), first); // first response lost after commit
+  await assert.rejects(submit({digest:"2".repeat(64)}), {code:"P0440"});
+  assert.deepEqual((await snapshot(db)).map(rows => rows.length),[1,1,1,1,1,10,1]);
+  assert.equal((await db.query("select count(*)::int as n from observer_site_save_private.receipts")).rows[0].n,1);
+  await db.exec("alter table observer_site_save_private.receipts add constraint reject_receipt check(false) not valid");
+  const before = await snapshot(db);
+  await assert.rejects(submit({key:other,site:first.site.id}), /reject_receipt/);
+  assert.deepEqual(await snapshot(db), before);
+  await db.query("update observer_sites set owner_profile_id=null where id=$1",[first.site.id]);
+  await assert.rejects(submit(), {code:"42501"});
+  await assert.rejects(submit({key:other,site:first.site.id}), {code:"42501"});
+  await db.exec("delete from auth.sessions");
+  await assert.rejects(submit(), {code:"42501"});
 });

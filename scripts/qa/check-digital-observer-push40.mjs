@@ -134,7 +134,7 @@ assert(callbackRoute.includes("refund_stable_id") && callbackRoute.includes("Ref
 assert(callbackRoute.includes("subscription.payment_failed") && callbackRoute.includes("subscription.payment_recovered"));
 assert(camerasRoute.includes('key: "cameras"') && notificationsRoute.includes('key: "notifications"') && investigationRoute.includes('key: "investigation"'));
 const atomicOnboarding = readFileSync(new URL("../../review-only/observer-site-save/atomic.sql", import.meta.url), "utf8");
-assert(onboardingRoute.includes('supabase.rpc("save_observer_onboarding_atomic"'));
+assert(onboardingRoute.includes('await submitOwnerSiteSave(') && readFileSync(new URL('../../review-only/observer-site-save/writer.sql', import.meta.url), 'utf8').includes('saved := public.save_observer_onboarding_atomic('));
 const checkSitesQuota = atomicOnboarding.indexOf("quota := sub.entitlement_snapshot->'sites'");
 assert(checkSitesQuota >= 0 && atomicOnboarding.indexOf("insert into public.observer_sites(") > checkSitesQuota);
 assert(atomicOnboarding.includes("SITE_ENTITLEMENT_DENIED"));

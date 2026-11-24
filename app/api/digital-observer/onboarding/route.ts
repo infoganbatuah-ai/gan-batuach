@@ -2,6 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { submitOwnerSiteSave } from "@/lib/domain/digital-observer/onboarding-writer";
 import { resolveObserverAddress } from "@/lib/domain/digital-observer/address-provider";
 import { getObserverSiteTemplate, observerSiteTemplateKeys } from "@/lib/domain/digital-observer/site-templates";
 
@@ -10,6 +11,7 @@ const scheduleModes = ["24_7", "night_only", "business_hours", "custom_schedule"
 const weekdayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
 const schema = z.object({
+  submission_id: z.string().uuid(),
   observer_site_id: z.string().uuid().optional(),
   name: z.string().trim().min(2).max(100),
   site_type: z.enum(siteTypes),
@@ -56,6 +58,7 @@ export async function POST(request: Request) {
     const { profile, observerAccount, supabase } = session;
     const rawPayload = navigationSubmission
       ? await request.formData().then((formData) => ({
+        submission_id: String(formData.get("submission_id") ?? ""),
         observer_site_id: String(formData.get("observer_site_id") ?? "") || undefined,
         name: String(formData.get("name") ?? ""),
         site_type: String(formData.get("site_type") ?? "home"),
@@ -87,8 +90,15 @@ export async function POST(request: Request) {
     const respondFail = (message: string, status: number) => navigationSubmission ? navigationFailure(message, payload.site_type) : fail(message, status);
     if (!observerAccount) return respondFail("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.", 409);
     if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
-    if (payload.observer_site_id && !await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true })) {
+    const siteAccess = payload.observer_site_id ? await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true }) : null;
+    if (payload.observer_site_id && siteAccess?.owner_profile_id !== profile.id) {
       return respondFail("אין הרשאה לעדכן את האתר הזה.", 403);
+    }
+    const { data: identity } = await supabase.auth.getClaims(session.accessToken ?? undefined);
+    const claims = identity?.claims;
+    if (!claims || claims.sub !== profile.id || claims.role !== "authenticated"
+      || !z.string().uuid().safeParse(claims.session_id).success || !Number.isSafeInteger(claims.exp) || claims.exp <= Date.now() / 1000) {
+      return respondFail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     }
     if (payload.site_type === "home" && payload.business_handles_children) return respondFail("מצב עסק המטפל בילדים זמין רק בחשבון עסקי.", 422);
     const siteTemplate = getObserverSiteTemplate(payload.site_type === "home" ? "home" : payload.site_template);
@@ -149,14 +159,17 @@ export async function POST(request: Request) {
 
     // A single database command owns every write, including the trial and its audit.
     // The review-only RPC must be installed and qualified before this route can ship.
-    const { data, error } = await supabase.rpc("save_observer_onboarding_atomic" as never, {
+    const { data, error } = await submitOwnerSiteSave(
+      { sub: claims.sub, session_id: String(claims.session_id), exp: claims.exp },
+      payload.submission_id, { ...payload, address_session_token: undefined }, {
       target_site: payload.observer_site_id ?? null,
       target_package: payload.package_id,
       site_patch: sitePatch,
       schedule_mode_input: payload.schedule_mode,
       monitoring_targets: payload.monitoring_targets
-    } as never);
+    });
     if (error) {
+      if (error.code === "P0440") return respondFail("בקשת השמירה הקודמת כבר נוצלה לפרטים אחרים.", 409);
       if (error.code === "42501") return respondFail("אין הרשאה לשמור את האתר.", 403);
       if (error.code === "23514") return respondFail("לא ניתן לשמור את האתר עם החבילה שנבחרה.", 422);
       return respondFail("שמירת האתר לא אושרה. יש לבדוק את מצב האתר לפני ניסיון נוסף.", 503);
