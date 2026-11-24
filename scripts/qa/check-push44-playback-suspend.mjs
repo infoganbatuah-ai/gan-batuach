@@ -9,8 +9,8 @@ const js = ts.transpileModule(source, {compilerOptions: {module: ts.ModuleKind.C
 const tick = async () => { for (let i=0;i<12;i++) await Promise.resolve(); };
 function harness({native=true}={}) {
   let now=0, cursor=0, rerender=false, effect, cleanup, timerId=0, sourceId="camera";
-  const slots=[], timers=new Map(), removedTimers=[], listeners=new Map(), requests=[], hlsInstances=[], calls={play:0,src:0,fetch:0};
-  const video={currentTime:0, muted:true, canPlayType:()=>native?"maybe":"", pause(){}, load(){}, removeAttribute(){}, play(){calls.play++;return Promise.resolve();}, set src(v){calls.src++;this._src=v;}, get src(){return this._src;}};
+  const slots=[], timers=new Map(), removedTimers=[], listeners=new Map(), requests=[], hlsInstances=[], calls={play:0,src:0,fetch:0,pause:0,clear:0};
+  const video={currentTime:0, muted:true, canPlayType:()=>native?"maybe":"", pause(){calls.pause++;}, load(){}, removeAttribute(name){if(name==="src"){calls.clear++;this._src=undefined;}}, play(){calls.play++;return Promise.resolve();}, set src(v){calls.src++;this._src=v;}, get src(){return this._src;}};
   const React={
     useRef(initial){const i=cursor++;return slots[i] ||= {current: i===0?video:initial};},
     useState(initial){const i=cursor++;if(!(i in slots))slots[i]=initial;return [slots[i],value=>{slots[i]=typeof value==="function"?value(slots[i]):value;rerender=true;}];},
@@ -24,7 +24,7 @@ function harness({native=true}={}) {
     fetch(_url,options){calls.fetch++;return new Promise((resolve,reject)=>requests.push({resolve,reject,body:options?.body}));}};
   runInNewContext(js,env);
   let tree;
-  function render(){cursor=0;effect=null;tree=env.exports.ObserverLivePlayer({observerSiteId:"site",cameraSourceId:sourceId,name:"synthetic"});if(effect){cleanup?.();cleanup=effect();}rerender=false;}
+  function render(){cursor=0;effect=null;rerender=false;tree=env.exports.ObserverLivePlayer({observerSiteId:"site",cameraSourceId:sourceId,name:"synthetic"});if(effect){cleanup?.();cleanup=effect();}}
   function flush(){if(rerender)render();}
   function event(name){for(const fn of listeners.get(name)||[])fn();}
   function resolve(i){requests[i].resolve({ok:true,json:async()=>({data:{playback:{hls_url:"https://example.invalid/stream"}}})});}
@@ -32,8 +32,20 @@ function harness({native=true}={}) {
   function advance(ms){now+=ms;for(const t of [...timers.values()])if(t.repeat)t.fn();}
   function childVideo(){return tree.props.children.find(x=>x?.type==="video");}
   render();
-  return {calls,requests,hlsInstances,removedTimers,event,resolve,timeout,advance,flush,childVideo,changeSource(id){sourceId=id;render();},get state(){return slots.find(x=>x==="loading"||x==="playing"||x==="error");},unmount(){cleanup?.();},video};
+  return {calls,requests,hlsInstances,removedTimers,event,resolve,timeout,advance,flush,childVideo,changeSource(id){sourceId=id;render();},get state(){return slots.find(x=>x==="loading"||x==="playing"||x==="error");},get visibleState(){return tree.props["data-playback-state"];},unmount(){cleanup?.();},video};
 }
+
+test("synthetic source loss hides stale video until fresh playback progresses",async()=>{
+ const h=harness();h.resolve(0);await tick();h.childVideo().props.onTimeUpdate({currentTarget:{currentTime:2}});h.flush();
+ assert.equal(h.visibleState,"playing");assert.ok(h.video.src);
+ h.childVideo().props.onError();h.flush();
+ assert.equal(h.visibleState,"error");assert.equal(h.video.src,undefined);assert.ok(h.calls.pause>=1);assert.ok(h.calls.clear>=1);
+ h.childVideo().props.onTimeUpdate({currentTarget:{currentTime:3}});h.flush();assert.equal(h.visibleState,"error");
+ assert.equal(h.timeout(5000).length,1);h.timeout(5000)[0].fn();h.flush();h.flush();
+ assert.equal(h.calls.fetch,2);assert.equal(h.visibleState,"loading");assert.equal(h.video.src,undefined);
+ h.resolve(1);await tick();h.childVideo().props.onTimeUpdate({currentTarget:{currentTime:4}});h.flush();
+ assert.equal(h.visibleState,"playing");assert.equal(h.calls.play,2);h.unmount();
+});
 
 test("offline fences pending native success and heartbeat, reconnects once on resume",async()=>{
  const h=harness();h.event("digital-observer:mobile-offline");h.advance(31000);h.resolve(0);await tick();
