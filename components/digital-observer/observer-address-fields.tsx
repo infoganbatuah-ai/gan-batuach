@@ -63,7 +63,7 @@ export function ObserverAddressFields({ value, onChange, collapsibleDetails = fa
         session_token: token.current
       });
       setSuggestions(data.suggestions ?? []);
-      if (!data.suggestions?.length) setMessage("לא נמצאה התאמה. אפשר להמשיך במילוי ידני והכתובת תסומן לבדיקה.");
+      if (!data.suggestions?.length) setMessage("לא נמצאה כתובת מאומתת. יש לדייק עיר, רחוב ומספר ולנסות שוב.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "לא ניתן לחפש כתובת כרגע");
       setSuggestions([]);
@@ -111,7 +111,7 @@ export function ObserverAddressFields({ value, onChange, collapsibleDetails = fa
     </div>
     <div className={value.address_place_id ? "do-notice good" : "do-notice warn"}>
       <MapPin />
-      <span>{value.address_place_id ? "המיקום נקשר לכתובת אמיתית. הכתובת המדויקת לדיווח חירום דורשת אישור סופי לפני הפעלה." : "הכתובת עדיין לא אומתה מול ספק מפות. אפשר להקים את החשבון, אך דיווחי חירום ומפה יישארו חסומים עד אימות."}</span>
+      <span>{value.address_place_id ? "המיקום נקשר לכתובת אמיתית. דירה וקומה נשמרות בנפרד ואינן משנות את נקודת המפה." : "יש לבחור כתובת מאומתת מרשימת ספק המפות לפני שאפשר להמשיך. הזנה ידנית בלבד אינה מספיקה להפעלת ההגנה."}</span>
     </div>
   </>;
 
