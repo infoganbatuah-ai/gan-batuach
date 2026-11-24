@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-25",
+  "parent": "cb9896ab21f67c9ee2152555995ec90efbbe78d8",
+  "source_tree_before_evidence": "dd56ed47f2110a5d98f7737ca61d4b4ddcfa71b1",
+  "environment": "q669, 276 source migrations, desktop Chromium, loopback-only Next.js with isolated Auth and PostgREST",
+  "product": {
+    "scope": "Desktop browser, actual local Next.js Product and q669",
+    "saveHTTP": 201,
+    "missingPackageHTTP": 400,
+    "replayHTTP": 201,
+    "nonownerEditHTTP": 403,
+    "ownerReadAfterReload": true,
+    "nonownerReadHTTP": 200,
+    "nonownerReadDenied": true,
+    "alertsEmptyAfterThreeLoads": true
+  },
+  "persistent_rows": {
+    "sites_for_owner": 1,
+    "memberships": 1,
+    "drafts": 1,
+    "schedules": 1,
+    "subscriptions": 1,
+    "grants": 10,
+    "audits": 1,
+    "receipts": 1,
+    "partial_sites": 0
+  },
+  "identical_replay": true,
+  "nonownerDetail": "Streamed Next.js not-found fallback in an HTTP 200 response, with no owner Site heading. Edit returned HTTP 403.",
+  "policy_sql_sha256": "1a51b15d476a34497b8a2f62ef8c0a3d887383ca36b12800271b62579478b080",
+  "ch1": {
+    "schema": 276,
+    "ch1_source_count": 0,
+    "site_count_for_home_source": 0,
+    "qa_external_route": false,
+    "decision": "NO-GO",
+    "reason": "CH1 was progressing on the installed monitor. The isolated stack has neither its canonical Site/source nor a verified isolated viewer binding and media path. No frames accessed.",
+    "owner_qa_viewing_consent": "confirmed by owner through specification chat",
+    "monitor_receipt": {
+      "channel": 1,
+      "status": "healthy",
+      "progressing": true,
+      "recorded_at": "2026-11-24T22:36:22.700Z"
+    }
+  },
+  "cleanup": {
+    "policy_snapshot_restored": true,
+    "temporary_caller_disabled": true,
+    "auth_sessions_remaining": 0,
+    "running_containers": 0,
+    "synthetic_credentials_file_removed": true,
+    "vm_stopped": true,
+    "host_listeners_remaining": 0
+  },
+  "not_run": [
+    "public Product ingress",
+    "physical iPhone Site save",
+    "hosted QA",
+    "CH1 frames",
+    "APNs delivery",
+    "long-duration soak"
+  ],
+  "local_notification": {
+    "channel": "in_app",
+    "source": "synthetic authorized notification intent",
+    "product_create_http": 201,
+    "resubmit_http": 200,
+    "same_delivery_on_replay": true,
+    "recipient_reads": 3,
+    "other_user_history_http": 403,
+    "other_user_ack_http": 403,
+    "recipient_ack_http": 200,
+    "durable_recipient_ack": true,
+    "delivery_attempts": 1,
+    "external_provider_calls": 0,
+    "physical_device_tested": false
+  }
+}
