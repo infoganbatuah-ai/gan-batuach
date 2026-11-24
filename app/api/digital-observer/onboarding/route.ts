@@ -24,7 +24,7 @@ const schema = z.object({
   floor_kind: z.enum(["ground", "floor"]).default("floor"),
   floor_number: z.union([z.string(), z.number()]).optional().default(""),
   postal_code: z.string().trim().max(20).optional().default(""),
-  address_place_id: z.string().trim().max(300).optional().default(""),
+  address_place_id: z.string().trim().min(4).max(300),
   address_session_token: z.string().trim().max(100).optional().default(""),
   formatted_address: z.string().trim().max(300).optional().default(""),
   business_handles_children: z.boolean().default(false),
@@ -93,10 +93,11 @@ export async function POST(request: Request) {
     const siteTemplate = getObserverSiteTemplate(payload.site_type === "home" ? "home" : payload.site_template);
     const businessHandlesChildren = payload.site_type !== "home" && (payload.business_handles_children || siteTemplate.childPrivacyRequired);
     const privacyMode = businessHandlesChildren ? "skeleton_only" : "standard_consent";
-    const resolvedAddress = payload.address_place_id
-      ? await resolveObserverAddress(payload.address_place_id, payload.address_session_token || null)
-      : null;
-    if (payload.address_place_id && !resolvedAddress) return respondFail("הכתובת שנבחרה לא אומתה. יש לבחור אותה שוב מרשימת הכתובות.", 422);
+    const resolvedAddress = await resolveObserverAddress(payload.address_place_id, payload.address_session_token || null);
+    if (!resolvedAddress) return respondFail("הכתובת שנבחרה לא אומתה. יש לבחור אותה שוב מרשימת הכתובות.", 422);
+    if (!resolvedAddress.city || !resolvedAddress.street || !resolvedAddress.buildingNumber) {
+      return respondFail("הכתובת שנבחרה אינה כוללת עיר, רחוב ומספר בניין מאומתים. יש לבחור כתובת מלאה.", 422);
+    }
     const floorNumber = payload.floor_kind === "ground" ? 0 : payload.floor_number === "" ? Number.NaN : Number(payload.floor_number);
     const normalizedFloorNumber = Number.isInteger(floorNumber) ? floorNumber : null;
     const baseAddress = resolvedAddress?.formattedAddress || `${payload.street} ${payload.building_number}, ${payload.city}`;
