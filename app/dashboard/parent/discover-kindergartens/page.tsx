@@ -51,10 +51,10 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           <button className="parent-filter-button" type="submit"><SlidersHorizontal size={22} /> סינון</button>
           <label>
             <Search size={24} />
-            <input name="q" placeholder="חפש גן ילדים, עיר או שכונה..." defaultValue={params?.q ?? ""} />
+            <input name="q" aria-label="חיפוש גן ילדים, עיר או שכונה" placeholder="חפש גן ילדים, עיר או שכונה..." defaultValue={params?.q ?? ""} />
           </label>
-          <input name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />
-          <input name="age" placeholder="קבוצת גיל" defaultValue={params?.age ?? ""} />
+          <input name="city" aria-label="סינון לפי עיר" placeholder="עיר" defaultValue={params?.city ?? ""} />
+          <input name="age" aria-label="סינון לפי קבוצת גיל" placeholder="קבוצת גיל" defaultValue={params?.age ?? ""} />
           <select name="child" defaultValue={selectedChild?.id ?? ""} aria-label="בחירת ילד">
             {children.map((child) => <option key={child.id} value={child.id}>{cleanSyntheticLabel(child.full_name, "ילד/ה")}</option>)}
           </select>
