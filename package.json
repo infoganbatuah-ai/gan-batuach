@@ -244,7 +244,7 @@
     "framer-motion": "^12.40.0",
     "hls.js": "^1.7.1",
     "lucide-react": "1.16.0",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "resend": "^6.25.0",
@@ -261,7 +261,7 @@
     "@types/react-dom": "19.2.3",
     "braces": "file:vendor/braces",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.4.1",
+    "eslint-config-next": "16.4.5",
     "typescript": "6.0.3"
   },
   "overrides": {
