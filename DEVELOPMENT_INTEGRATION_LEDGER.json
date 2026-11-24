@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-11-16T00:08:17.990Z",
+  "updatedAt": "2026-11-24T16:37:17.000Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -18880,6 +18880,46 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Pause per owner direction. After an explicit resume, reconcile Development and qualify actual native Gan packages/device installation without touching the existing Observer QA app; continue broader Gan acceptance separately."
+    },
+    {
+      "id": "codex/gan-verified-address-20261124",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-GAN-VERIFIED-ADDRESS-20261124",
+      "title": "Verified address entry with bounded provider budget and truthful manual fallback",
+      "owner": "Scoped Gan Management executor; single Development integration owner",
+      "sourceBranch": "codex/gan-verified-address-20261124",
+      "sourceCommits": ["c36cc6fd28f00244a3b17cadb410cf5099b606ee"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/gan-verified-address-20261124@c36cc6fd28f00244a3b17cadb410cf5099b606ee"],
+        "status": "INTEGRATED_DEVELOPMENT"
+      },
+      "validation": {
+        "status": "EXACT_HEAD_SIX_CI_GATES_AND_MANAGEMENT_CONTEXT_PASS_LIVE_PROVIDER_UNVERIFIED",
+        "evidence": [
+          "PR #661 exact source c36cc6fd28f00244a3b17cadb410cf5099b606ee: Digital Observer CI run 45322270901 passed all six gates and canonical quality; Management tenant context run 45322270878 passed. Ancestry-preserving merge f86e23def775c20da4a823a482c9481ce81fab4e.",
+          "Branch-local typecheck, lint baseline without new regressions, domain 57/57, migration health, release contract, 18 focused tests and Webpack build passed. No migration, package/lock or Digital Observer core change."
+        ],
+        "classification": "GAN_MANAGEMENT_ADDRESS_SOURCE_AND_CI_ONLY",
+        "limits": "Default local Next 16.4.3 build stopped on security warning after compilation and 561 pages; local CH1 volume ownership check blocked, while exact-head CI gates passed. No live Google Places, authenticated full-stack address flow, provider-spend forecast or Production deployment has been verified. No feature-branch Vercel Preview deployment was observed."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": "f86e23def775c20da4a823a482c9481ce81fab4e",
+        "pullRequests": [661],
+        "sourceAncestryVerified": true
+      },
+      "dependencies": {
+        "status": "ISOLATED_PRODUCT_QA_AND_PROVIDER_COST_PREFLIGHT_OPEN",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "SOURCE_AND_CI_PASS_MERGED_PRODUCT_QA_PENDING",
+      "releaseEligibility": "NOT_READY_LIVE_PROVIDER_COST_SECURITY_AND_CUMULATIVE_RELEASE_GATES_OPEN",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "After ledger preservation, verify the merged Management address form and manual unverified fallback on an isolated DEVELOPMENT backend. Keep Google Places disabled until live provider, bounded spend and the all-in ₪15 ceiling are evidenced. Resolve the separate Next security warning and CH1 volume ownership finding before release; no main or Production action without owner authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
