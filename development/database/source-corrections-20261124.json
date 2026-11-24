@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "baselineId": "development-c0cf2de7-20260919-v1",
+  "baselineSourceCommit": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d",
+  "scope": "CURRENT_LOCAL_DEVELOPMENT_STATE_ONLY_NOT_HISTORICAL_REPLAY",
+  "queryFile": "scripts/development/historical-equivalence.sql",
+  "querySha256": "c080824100ca3e4fb972257011ab2b10592d6cb8034d58babf2f8de2a07e6dee",
+  "priorReadOnlyTranscriptSha256": "5baf4e0025b0aa2d8ae7ba6534dfb4740fee0624760f745c061ba5f2c46ce5e0",
+  "priorSchemaFingerprint": "7ef77c72f473f2bfbd11a6a0fe6e69184f2c322d7e14cdc1141eba1faa9f3dda",
+  "baselineFingerprint": "a8a2d1c68519c810a57cfe53a28b916b1110ee5273b314f14be8b17cfbdb9c41",
+  "expectedReadOnlyChecks": {
+    "owner_enum_exists": "true",
+    "pending_gateway_enum_exists": "true",
+    "vercel_subprocessor_rows": "0",
+    "media_backfill_base_rows": "0",
+    "media_backfill_matching_camera_rows": "0",
+    "authorized_home_site_rows": "0",
+    "authorized_ch1_source_rows": "0",
+    "authorized_home_automation_policy_rows": "0"
+  },
+  "corrections": [
+    {
+      "file": "supabase/migrations/20260523000000_initial_schema.sql",
+      "baselineBlob": "5b86065f011880840230544af4fa007385c3c6be",
+      "baselineSha256": "7bdf707568175ec06e865b8ec43cf9ea9876aca22d17728715edd517110e29ea",
+      "replayBlob": "8b6af1ed45606365a774b3a24307ee75a0dc7351",
+      "replaySha256": "6e3f591ea4aab8b62d3fb9a3a824075089b432c25d5822a2faca1ade14d910d9",
+      "checkNames": ["owner_enum_exists"]
+    },
+    {
+      "file": "supabase/migrations/20260523012000_qa_action_persistence.sql",
+      "baselineBlob": "400cfd6f0a4bfb3af8f55896260ec7ddfd7f36e7",
+      "baselineSha256": "b54cb8b1e145afc90ccd7748815b9f1f3c3c12674374532176fabc68a6b701c7",
+      "replayBlob": "55810af0fbf1612bbe8d5bb2234953427cb7ed96",
+      "replaySha256": "c0f239e2325cbb8d78f3a20444fa77ecbf088221ce6f1f08c245aa8541e4675b",
+      "checkNames": ["pending_gateway_enum_exists"]
+    },
+    {
+      "file": "supabase/migrations/20260612016600_external_legal_privacy_regulatory_review_pack.sql",
+      "baselineBlob": "e639e31be15c6e0605c66771344e46cc23e8d9b7",
+      "baselineSha256": "f258acab64283fa24496ca33feae1d4f6c610b2b917f84c180679c357d1c4828",
+      "replayBlob": "b85a114a33432b804694da809ea3fc4740e5bfdb",
+      "replaySha256": "d8d435eca2fd86e64102ba1325fa73541133f306597c4c00bca390233ed4c7fd",
+      "checkNames": ["vercel_subprocessor_rows"]
+    },
+    {
+      "file": "supabase/migrations/20260827000100_digital_observer_event_media_evidence.sql",
+      "baselineBlob": "a1145654436f5c53a60fb14ad37a5bd33f6f8ea9",
+      "baselineSha256": "088f367d6c00cbfd5d35d3d7a57147dc6ee2cd179cf485a5e6eddbfed0d46eeb",
+      "replayBlob": "e035bf153ea4d4b0589a05002a6da8427d2442cf",
+      "replaySha256": "5a7f4c8cf0cfc1229513903a7380895b57922c9189e622ad601cf530b69535ce",
+      "checkNames": ["media_backfill_base_rows", "media_backfill_matching_camera_rows"]
+    },
+    {
+      "file": "supabase/migrations/20260902033000_activate_scoped_digital_guard_camera_automation.sql",
+      "baselineBlob": "f59ef3115df4915fab69303041ff79d8950c03c2",
+      "baselineSha256": "8578292d4c399e1c16dcdce6155c10b1391b2c698014d3d1766295a8feb31ffe",
+      "replayBlob": "053193c4785aae7f150a8949bc454be21f14eb31",
+      "replaySha256": "ff3d14ec272b63e56effbbd008ddc55eae45d2ef95169d256a37fdb0c600c4ce",
+      "checkNames": ["authorized_home_site_rows", "authorized_ch1_source_rows", "authorized_home_automation_policy_rows"]
+    },
+    {
+      "file": "supabase/migrations/20260902043000_activate_channel_1_guard_lighting.sql",
+      "baselineBlob": "dfa27b3def784f442a278595837b8e6de0f90161",
+      "baselineSha256": "470a86374089e6c6388c762e1a3e0c122d7234229a019e0db3b4c4ea646d3b29",
+      "replayBlob": "5247022231a15b2c6d791274daff63dd37a86688",
+      "replaySha256": "a616725e5fdb79bf898e62e912915844ae43c9509e5412c3a1b3a2c449ec9be2",
+      "checkNames": ["authorized_home_site_rows"]
+    }
+  ]
+}

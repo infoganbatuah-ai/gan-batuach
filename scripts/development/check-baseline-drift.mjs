@@ -4,6 +4,7 @@ import {config,sql} from './local-database.mjs';
 import {sha256} from './baseline-source.mjs';
 import {schemaFingerprint} from './verify-baseline-schema.mjs';
 import {compareBaselineState} from './baseline-drift.mjs';
+import {validateSourceCorrectionManifest,parseSourceCorrectionProof} from './baseline-source-corrections.mjs';
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:'pipe',maxBuffer:8*1024*1024}).trim();
 try{
   const ledger=JSON.parse(readFileSync('DEVELOPMENT_MIGRATION_LEDGER.json','utf8'));
@@ -13,7 +14,14 @@ try{
   if(baseline.id!==config.baselineId||baseline.source_commit!==config.sourceIntegrationSha)throw Error('Wrong canonical development baseline identity');
   const post=JSON.parse(sql("select coalesce(json_agg(m order by applied_at),'[]') from development_metadata.migrations m;"));
   const expected=post.at(-1)?.schema_fingerprint||baseline.fingerprint;
-  const result=compareBaselineState({files,baseline,postMigrations:post,ledger:ledger.migrations,schemaFingerprint:{expected,actual:schemaFingerprint('postgres')}});
+  const sourceCorrections=JSON.parse(readFileSync('development/database/source-corrections-20261124.json','utf8'));
+  const proofSql=readFileSync(sourceCorrections.queryFile,'utf8');
+  const manifestErrors=validateSourceCorrectionManifest(sourceCorrections,baseline,proofSql);
+  if(manifestErrors.length)throw Error(manifestErrors.join('; '));
+  const actual=schemaFingerprint('postgres');
+  const correctionProof=parseSourceCorrectionProof(sql(proofSql),sourceCorrections,expected);
+  const result=compareBaselineState({files,baseline,postMigrations:post,ledger:ledger.migrations,
+    schemaFingerprint:{expected,actual},sourceCorrections,correctionProof});
   const report={...result,environment:config.environment,observedAt:new Date().toISOString(),integrationCommit:git('rev-parse','HEAD'),productionAccess:false};
   if(process.argv.includes('--record'))writeFileSync('development/database/drift-receipt.json',JSON.stringify(report,null,2)+'\n');
   console.log(JSON.stringify(report,null,2));
