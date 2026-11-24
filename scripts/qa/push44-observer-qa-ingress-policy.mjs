@@ -1,6 +1,5 @@
-// Dormant route policy for a distinct Observer QA origin. The caller must
-// establish owner authorization and trusted TLS independently; no server or
-// tunnel imports this module today.
+// Route policy for the dedicated Observer QA origin. The caller establishes
+// owner authorization and trusted HTTPS before checking the request target.
 export const OBSERVER_QA_HOST = "observer-qa.ganbatuach.com";
 const localOrigin = `https://${OBSERVER_QA_HOST}`;
 const exactGet = new Set([
@@ -53,15 +52,26 @@ function parsedPath(rawUrl) {
   return url;
 }
 
-export function observerQaRouteAllowed({ method, rawUrl, host, trustedHttps, ownerAuthorized }) {
+export function observerQaRouteAllowed({ method, rawUrl, host, trustedHttps, ownerAuthorized, rsc }) {
   if (host !== OBSERVER_QA_HOST || trustedHttps !== true || ownerAuthorized !== true) return false;
   const url = parsedPath(rawUrl);
   if (!url) return false;
   if (method === "POST") return exactPost.has(url.pathname) && !url.search;
   if (method !== "GET" && method !== "HEAD") return false;
+  // App Router adds a cache discriminator to same-origin page transitions.
+  // Normalize only this parameter for policy checks; forward the original target to Next.
+  if (url.searchParams.has("_rsc")) {
+    if (method !== "GET" || rsc !== "1" || !loginReturnPaths.has(url.pathname)) return false;
+    const values = url.searchParams.getAll("_rsc");
+    if (values.length !== 1 || !/^(?:[A-Za-z0-9_-]{16})?$/.test(values[0])) return false;
+    url.searchParams.delete("_rsc");
+  }
   if (url.pathname === "/auth/callback") return false; // No safe native exchange yet.
   if (url.pathname === "/digital-observer/login") return allowedLoginQuery(url);
   if (url.pathname === "/api/digital-observer/mobile/runtime") return method === "GET" && !url.search;
+  if (url.pathname === "/digital-observer/onboarding" && url.search) {
+    return url.search === "?type=home" || url.search === "?type=business";
+  }
   if (url.search) return false;
   return exactGet.has(url.pathname) || assetPrefixes.some((prefix) =>
     url.pathname.startsWith(prefix) && url.pathname.length > prefix.length);

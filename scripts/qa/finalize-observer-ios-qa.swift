@@ -8,6 +8,10 @@ guard CommandLine.arguments.count == 3 else {
 let app = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
 let template = URL(fileURLWithPath: CommandLine.arguments[2])
 let authenticated = ProcessInfo.processInfo.environment["OBSERVER_QA_AUTH_BUILD"] == "1"
+let loginMode = ProcessInfo.processInfo.environment["OBSERVER_QA_FIRST_PARTY_LOGIN"]
+let firstPartyLogin = loginMode == "1"
+guard loginMode == nil || (firstPartyLogin && authenticated) else { fatalError("OBSERVER_QA_FIRST_PARTY_LOGIN_INVALID") }
+let loginPath = "digital-observer/login"
 let statusPageName = authenticated ? "auth-unavailable.html" : "index.html"
 let statusPage = URL(fileURLWithPath: "ios/qa-observer/\(statusPageName)", relativeTo: URL(fileURLWithPath: FileManager.default.currentDirectoryPath, isDirectory: true))
 let files = FileManager.default
@@ -60,8 +64,14 @@ guard let config = try JSONSerialization.jsonObject(with: data) as? [String: Any
       !classes.contains("PushNotificationsPlugin") else {
     fatalError("OBSERVER_QA_RUNTIME_CONFIG_INVALID")
 }
+guard firstPartyLogin || server["appStartPath"] == nil else { fatalError("OBSERVER_QA_UNEXPECTED_START_PATH") }
 if authenticated {
-    guard server["url"] as? String == "https://observer-qa.ganbatuach.com/digital-observer/dashboard",
+    let expectedURL = firstPartyLogin ? "https://observer-qa.ganbatuach.com/" : "https://observer-qa.ganbatuach.com/digital-observer/dashboard"
+    if firstPartyLogin {
+        guard Set(server.keys) == ["url", "appStartPath", "cleartext", "iosScheme"],
+              server["appStartPath"] as? String == loginPath else { fatalError("OBSERVER_QA_FIRST_PARTY_LOGIN_INVALID") }
+    }
+    guard server["url"] as? String == expectedURL,
           server["cleartext"] as? Bool == false,
           ProcessInfo.processInfo.environment["OBSERVER_QA_CALLBACK"] == "observerqaapp://return/qa/device-proof" else {
         fatalError("OBSERVER_QA_AUTH_BUILD_BOUNDARY_INVALID")
@@ -77,6 +87,14 @@ guard let page = String(data: status, encoding: .utf8),
     fatalError("OBSERVER_QA_OFFLINE_PAGE_INVALID")
 }
 try status.write(to: app.appendingPathComponent("public/index.html"), options: .atomic)
+if firstPartyLogin {
+    // Capacitor requires a local resource at appStartPath before loading its server URL.
+    let publicDirectory = app.appendingPathComponent("public")
+    let resource = publicDirectory.appendingPathComponent(loginPath)
+    guard !files.fileExists(atPath: resource.path) else { fatalError("OBSERVER_QA_START_RESOURCE_EXISTS") }
+    try files.createDirectory(at: resource.deletingLastPathComponent(), withIntermediateDirectories: true)
+    try status.write(to: resource, options: .withoutOverwriting)
+}
 for name in ["sw.js", "firebase-messaging-sw.js"] {
     let worker = app.appendingPathComponent("public/\(name)")
     if files.fileExists(atPath: worker.path) { try files.removeItem(at: worker) }
