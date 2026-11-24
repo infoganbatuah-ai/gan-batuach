@@ -150,6 +150,7 @@ export function ObserverLivePlayer({
   const mobileSuspensionReasonsRef = useRef({ appInactive: false, networkOffline: false });
   const mountedRef = useRef(false);
   const mediaActiveRef = useRef(false);
+  const markUnavailableRef = useRef<(reason: string) => void>(() => undefined);
   const retryGenerationRef = useRef(0);
   const [state, setState] = useState<PlayerState>("loading");
   const [unavailableReason, setUnavailableReason] = useState("");
@@ -229,10 +230,21 @@ export function ObserverLivePlayer({
     const markUnavailable = (reason: string) => {
       if (cancelled || mobileSuspendedRef.current || recoveryScheduledRef.current) return;
       recoveryScheduledRef.current = true;
+      // A failed source must stop producing frames immediately. Otherwise a
+      // late timeupdate can turn the visible error back into a false LIVE.
+      mediaActiveRef.current = false;
+      connectionGeneration += 1;
+      invalidatePlaybackSession(observerSiteId, cameraSourceId);
+      hls?.destroy();
+      hls = null;
+      videoElement.pause();
+      videoElement.removeAttribute("src");
+      videoElement.load();
       setUnavailableReason(reason);
       setState("error");
       retry();
     };
+    markUnavailableRef.current = markUnavailable;
 
     mediaHeartbeat = setInterval(() => {
       if (cancelled || mobileSuspendedRef.current) return;
@@ -295,6 +307,7 @@ export function ObserverLivePlayer({
     });
     return () => {
       cancelled = true;
+      markUnavailableRef.current = () => undefined;
       mountedRef.current = false;
       mediaActiveRef.current = false;
       retryGenerationRef.current += 1;
@@ -339,9 +352,7 @@ export function ObserverLivePlayer({
         }}
         onError={() => {
           if (!mountedRef.current || mobileSuspendedRef.current || !mediaActiveRef.current) return;
-          setUnavailableReason("נגן הווידאו דיווח על שגיאה");
-          setState("error");
-          requestRetry();
+          markUnavailableRef.current("נגן הווידאו דיווח על שגיאה");
         }}
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
