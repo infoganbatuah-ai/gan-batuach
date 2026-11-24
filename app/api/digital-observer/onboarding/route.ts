@@ -4,8 +4,6 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { resolveObserverAddress } from "@/lib/domain/digital-observer/address-provider";
 import { getObserverSiteTemplate, observerSiteTemplateKeys } from "@/lib/domain/digital-observer/site-templates";
-import { activateControlledTrial, assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
-import { createAdminClient } from "@/lib/supabase/admin";
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
 const scheduleModes = ["24_7", "night_only", "business_hours", "custom_schedule", "event_only"] as const;
@@ -88,7 +86,10 @@ export async function POST(request: Request) {
     const payload = schema.parse(rawPayload);
     const respondFail = (message: string, status: number) => navigationSubmission ? navigationFailure(message, payload.site_type) : fail(message, status);
     if (!observerAccount) return respondFail("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.", 409);
-    const ownerType = payload.site_type === "home" ? "home_owner" : "business_owner";
+    if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
+    if (payload.observer_site_id && !await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true })) {
+      return respondFail("אין הרשאה לעדכן את האתר הזה.", 403);
+    }
     if (payload.site_type === "home" && payload.business_handles_children) return respondFail("מצב עסק המטפל בילדים זמין רק בחשבון עסקי.", 422);
     const siteTemplate = getObserverSiteTemplate(payload.site_type === "home" ? "home" : payload.site_template);
     const businessHandlesChildren = payload.site_type !== "home" && (payload.business_handles_children || siteTemplate.childPrivacyRequired);
@@ -146,95 +147,23 @@ export async function POST(request: Request) {
       }
     };
 
-    let site: any = null;
-    if (payload.observer_site_id) {
-      const allowedSite = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
-      if (!allowedSite) return respondFail("אין הרשאה לעדכן את האתר הזה.", 403);
-      const result = await supabase
-        .from("observer_sites" as any)
-        .update({ ...sitePatch, updated_at: new Date().toISOString() })
-        .eq("id", payload.observer_site_id)
-        .select("id,name,site_type,address,monitoring_enabled")
-        .single();
-      if (result.error) return respondFail("לא ניתן לשמור את פרטי האתר כרגע.", 400);
-      site = result.data;
-    } else {
-      const entitlementAdmin = createAdminClient();
-      const ownedSites = await entitlementAdmin.from("observer_sites").select("id", { count: "exact" }).eq("owner_profile_id", profile.id)
-        .is("garden_id", null).neq("site_type", "kindergarten").order("created_at", { ascending: true }).limit(1);
-      if (ownedSites.error) return respondFail("לא ניתן לאמת את מגבלת האתרים כרגע.", 503);
-      if ((ownedSites.count ?? 0) > 0 && ownedSites.data?.[0]?.id) {
-        try { await assertCommercialEntitlement(entitlementAdmin, { siteId: ownedSites.data[0].id, key: "sites", currentUsage: ownedSites.count ?? 0 }); }
-        catch (error) { return respondFail(error instanceof Error ? error.message : "SITE_ENTITLEMENT_DENIED", 403); }
-      }
-      const result = await supabase
-        .from("observer_sites" as any)
-        .insert({ ...sitePatch, owner_profile_id: profile.id, garden_id: null })
-        .select("id,name,site_type,address,monitoring_enabled")
-        .single();
-      if (result.error || !result.data) return respondFail("לא ניתן ליצור את האתר כרגע. נסו שוב או פנו לתמיכה.", 400);
-      site = result.data;
-      await supabase.from("observer_site_memberships" as any).upsert({
-        observer_site_id: site.id,
-        profile_id: profile.id,
-        member_role: "owner",
-        active: true,
-        accepted_at: new Date().toISOString(),
-        metadata: { source: "digital_observer_self_service" }
-      }, { onConflict: "observer_site_id,profile_id" });
+    // A single database command owns every write, including the trial and its audit.
+    // The review-only RPC must be installed and qualified before this route can ship.
+    const { data, error } = await supabase.rpc("save_observer_onboarding_atomic" as never, {
+      target_site: payload.observer_site_id ?? null,
+      target_package: payload.package_id,
+      site_patch: sitePatch,
+      schedule_mode_input: payload.schedule_mode,
+      monitoring_targets: payload.monitoring_targets
+    } as never);
+    if (error) {
+      if (error.code === "42501") return respondFail("אין הרשאה לשמור את האתר.", 403);
+      if (error.code === "23514") return respondFail("לא ניתן לשמור את האתר עם החבילה שנבחרה.", 422);
+      return respondFail("שמירת האתר לא אושרה. יש לבדוק את מצב האתר לפני ניסיון נוסף.", 503);
     }
-
-    const draftResult = await supabase
-      .from("observer_site_onboarding_drafts" as any)
-      .select("id")
-      .eq("profile_id", profile.id)
-      .in("status", ["draft", "submitted", "ready_for_review"])
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const existingDraft = draftResult.data as { id?: string } | null;
-    const draftPatch = {
-      profile_id: profile.id,
-      status: "activated",
-      site_name: payload.name,
-      site_type: payload.site_type,
-      owner_type: ownerType,
-      address: fullAddress,
-      timezone: "Asia/Jerusalem",
-      monitoring_schedule: { mode: payload.schedule_mode, active_days: payload.active_days, opening_time: payload.opening_time, closing_time: payload.closing_time },
-      camera_count_estimate: payload.camera_count,
-      desired_package_id: payload.package_id ?? null,
-      activated_observer_site_id: site.id,
-      submitted_at: new Date().toISOString(),
-      metadata: { monitoring_targets: payload.monitoring_targets, site_template: siteTemplate.key, branch_count: payload.site_type === "home" ? 1 : payload.branch_count, high_risk_events_are_suspicions: true, automatic_emergency_action: false, safe_readiness_only: true, address_verified: Boolean(resolvedAddress), vision_privacy_mode: privacyMode },
-      updated_at: new Date().toISOString()
-    };
-    if (existingDraft?.id) {
-      await supabase.from("observer_site_onboarding_drafts" as any).update(draftPatch).eq("id", existingDraft.id);
-    } else {
-      await supabase.from("observer_site_onboarding_drafts" as any).insert(draftPatch);
-    }
-
-    await supabase.from("observer_monitoring_schedules" as any).upsert({
-      observer_site_id: site.id,
-      schedule_mode: payload.schedule_mode,
-      timezone: "Asia/Jerusalem",
-      status: "draft",
-      schedule: { mode: payload.schedule_mode, active_days: payload.active_days, opening_time: payload.opening_time, closing_time: payload.closing_time, readiness_only: true },
-      updated_at: new Date().toISOString()
-    }, { onConflict: "observer_site_id" });
-
-    if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
-    let trial: unknown;
-    try {
-      trial = await activateControlledTrial(createAdminClient(), { siteId: site.id, actorId: profile.id, packageId: payload.package_id, durationDays: 14 });
-    } catch (error) {
-      if (!(payload.observer_site_id && error instanceof Error && error.message === "TRIAL_NOT_ELIGIBLE")) {
-        return respondFail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. נסו שוב או פנו לתמיכה.", 400);
-      }
-      trial = (await supabase.from("observer_site_subscriptions" as any).select("id,subscription_status,trial_start,trial_end").eq("observer_site_id", site.id).maybeSingle()).data;
-    }
-
+    const saved = data as { site: { id: string } | null; trial: unknown } | null;
+    if (!saved?.site?.id || !saved.trial) return respondFail("לא התקבל אישור שמירה.", 503);
+    const { site, trial } = saved;
     const next = `/digital-observer/cameras/add?site=${site.id}`;
     if (navigationSubmission) return NextResponse.redirect(new URL(next, request.url), 303);
     return ok({ site, trial, charged: false, next }, payload.observer_site_id ? 200 : 201);
