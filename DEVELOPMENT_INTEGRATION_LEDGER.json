@@ -18896,13 +18896,14 @@
         "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "EXACT_HEAD_SIX_CI_GATES_AND_MANAGEMENT_CONTEXT_PASS_LIVE_PROVIDER_UNVERIFIED",
+        "status": "EXACT_HEAD_CI_PASS_AND_FOCUSED_LOCAL_MANUAL_ADDRESS_PRODUCT_QA_PASS_LIVE_PROVIDER_UNVERIFIED",
         "evidence": [
           "PR #661 exact source c36cc6fd28f00244a3b17cadb410cf5099b606ee: Digital Observer CI run 45322270901 passed all six gates and canonical quality; Management tenant context run 45322270878 passed. Ancestry-preserving merge f86e23def775c20da4a823a482c9481ce81fab4e.",
-          "Branch-local typecheck, lint baseline without new regressions, domain 57/57, migration health, release contract, 18 focused tests and Webpack build passed. No migration, package/lock or Digital Observer core change."
+          "Branch-local typecheck, lint baseline without new regressions, domain 57/57, migration health, release contract, 18 focused tests and Webpack build passed. No migration, package/lock or Digital Observer core change.",
+          "Restricted .recovery/gbi-20261124T1848/ADDRESS_PRODUCT_QA_RECEIPT.md SHA256 c272b9625c310e616a8bbe3ed97b612e586fe89c1f5522f3585682635c2dd801: at clean integrated Development 030acf49fc1ff660ebc733c7abb4c65747a99c5f, baseline drift PASS 276 expected and 49 post-baseline applied. Existing synthetic Owner and draft Garden completed one local Product onboarding GET, authenticated manual-address PATCH 200, authenticated API GET 200, UI reload GET 200 and independent DB readback. The address was unverified with null place ID. No Google provider call."
         ],
-        "classification": "GAN_MANAGEMENT_ADDRESS_SOURCE_AND_CI_ONLY",
-        "limits": "Default local Next 16.4.3 build stopped on security warning after compilation and 561 pages; local CH1 volume ownership check blocked, while exact-head CI gates passed. No live Google Places, authenticated full-stack address flow, provider-spend forecast or Production deployment has been verified. No feature-branch Vercel Preview deployment was observed."
+        "classification": "GAN_MANAGEMENT_ADDRESS_FOCUSED_LOCAL_PRODUCT_QA",
+        "limits": "The manual-address Product journey passed only against isolated local Development and one synthetic existing draft. Default local Next 16.4.3 build earlier stopped on a security warning after compilation and 561 pages; local CH1 volume ownership check blocked, while exact-head CI gates passed. No live Google Places, verified place ID, provider-spend forecast, broad Product certification or Production deployment has been verified. No feature-branch Vercel Preview deployment was observed."
       },
       "integration": {
         "branch": "integration/development",
@@ -18911,15 +18912,15 @@
         "sourceAncestryVerified": true
       },
       "dependencies": {
-        "status": "ISOLATED_PRODUCT_QA_AND_PROVIDER_COST_PREFLIGHT_OPEN",
+        "status": "LIVE_PROVIDER_AND_RELEASE_GATES_OPEN",
         "units": []
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "SOURCE_AND_CI_PASS_MERGED_PRODUCT_QA_PENDING",
+      "localVerification": "FOCUSED_LOCAL_MANUAL_ADDRESS_PRODUCT_QA_PASS",
       "releaseEligibility": "NOT_READY_LIVE_PROVIDER_COST_SECURITY_AND_CUMULATIVE_RELEASE_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "After ledger preservation, verify the merged Management address form and manual unverified fallback on an isolated DEVELOPMENT backend. Keep Google Places disabled until live provider, bounded spend and the all-in ₪15 ceiling are evidenced. Resolve the separate Next security warning and CH1 volume ownership finding before release; no main or Production action without owner authorization."
+      "nextAction": "Preserve the focused local manual-address receipt. Keep Google Places disabled until live provider, bounded spend and the all-in ₪15 ceiling are evidenced. Resolve the separate Next security warning and CH1 volume ownership finding before release; no main or Production action without owner authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
