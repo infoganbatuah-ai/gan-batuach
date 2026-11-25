@@ -1,0 +1,8 @@
+// Explicit unsigned override for the iPhone Product pilot.
+PRODUCT_BUNDLE_IDENTIFIER = com.digitalobserver.app.pilot
+APP_DISPLAY_NAME = תצפיתן דיגיטלי פיילוט
+ASSETCATALOG_COMPILER_APPICON_NAME = ObserverQAIcon
+INFOPLIST_FILE = ../observer-product-pilot/Info.plist
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = OBSERVER_PRODUCT_PILOT
+CODE_SIGNING_ALLOWED = NO
+CODE_SIGN_ENTITLEMENTS =
