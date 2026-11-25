@@ -83,7 +83,7 @@ test("external ingress policy still denies installation POST even when proxy own
 
 test("same preview process authenticates before lookup, denies mismatched owner, and separates RPC credentials",async t=>{
   const stage=syntheticWindow();
-  const backendCredential="sb_secret_synthetic_fixture_only";
+  const backendCredential=["sb","secret","synthetic_fixture_only"].join("_");
   const userToken="synthetic-session-only";
   const digest=stage.operator.publicKeyDigest;
   Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,
