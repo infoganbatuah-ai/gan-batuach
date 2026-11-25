@@ -41,6 +41,27 @@ export function ObserverLoginForm({
 function ScopedObserverLoginForm({ initialType, nextPath, registered, verified, passwordUpdated, verificationRequired, initialError }: Parameters<typeof ObserverLoginForm>[0]) {
   const [hydrated, setHydrated] = useState(false);
   const [busy, setBusy] = useState(false);
+  const nativePostInFlight = useRef(false);
+  const [nativePending, setNativePending] = useState(false);
+  const submitting = busy || nativePending;
+  useEffect(() => {
+    if (!nativePending) return;
+    function allowRetry() {
+      nativePostInFlight.current = false;
+      setNativePending(false);
+    }
+    function onPageShow(event: PageTransitionEvent) {
+      if (event.persisted) allowRetry();
+    }
+    // A canceled WebView navigation can leave the original document visible.
+    // Restore the button without issuing a new request.
+    const timeout = window.setTimeout(allowRetry, 15_000);
+    window.addEventListener("pageshow", onPageShow);
+    return () => {
+      window.clearTimeout(timeout);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, [nativePending]);
   const [error, setError] = useState(initialError ?? "");
   const [lifecycle, setLifecycle] = useState(0);
   const ownership = useRef({ active: false, operation: 0, busy: false, lifecycle: 0, resetBusy: false });
@@ -64,7 +85,14 @@ function ScopedObserverLoginForm({ initialType, nextPath, registered, verified, 
     if (!owner.active || owner.lifecycle !== lifecycle) return;
     // Native WebViews use the server form flow so Supabase credentials remain in
     // HttpOnly cookies. The bearer token is never copied into JavaScript storage.
-    if (Capacitor.isNativePlatform()) return;
+    if (Capacitor.isNativePlatform()) {
+      if (nativePostInFlight.current) event.preventDefault();
+      else {
+        nativePostInFlight.current = true;
+        setNativePending(true);
+      }
+      return;
+    }
     event.preventDefault();
     if (owner.busy) return;
     owner.busy = true;
@@ -159,7 +187,7 @@ function ScopedObserverLoginForm({ initialType, nextPath, registered, verified, 
       <label className="do-field"><span>דוא״ל</span><input name="email" type="email" autoComplete="email" required disabled={busy} /></label>
       <label className="do-field"><span>סיסמה</span><input name="password" type="password" autoComplete="current-password" required disabled={busy} /></label>
       <Link className="do-auth-password-help" href="/digital-observer/forgot-password">שכחתי סיסמה</Link>
-      <button className="do-button primary full" type="submit" disabled={busy || !hydrated}>{busy ? <LoaderCircle className="do-spin" /> : null}{busy ? "מתחברים..." : "התחברות"}</button>
+      <button className="do-button primary full" type="submit" disabled={submitting || !hydrated}>{submitting ? <LoaderCircle className="do-spin" /> : null}{submitting ? "מתחברים..." : "התחברות"}</button>
       <button
         className="do-auth-google"
         type="button"
