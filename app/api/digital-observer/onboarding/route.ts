@@ -1,3 +1,4 @@
+import { qaSiteWriterMode } from "@/lib/domain/digital-observer/qa-site-writer-mode";
 import { z } from "zod";
 import { NextResponse } from "next/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
@@ -40,6 +41,12 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const mode = qaSiteWriterMode();
+  if (mode === "closed") return fail("שמירת אתר בחלון הבדיקה סגורה.", 403);
+  if (mode === "local-atomic") {
+    const { POST: saveQaSite } = await import("@/lib/domain/digital-observer/qa-site-save-handler");
+    return saveQaSite(request);
+  }
   const contentType = request.headers.get("content-type") ?? "";
   const navigationSubmission = contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data");
   const navigationFailure = (message: string, type: string = "home") => {

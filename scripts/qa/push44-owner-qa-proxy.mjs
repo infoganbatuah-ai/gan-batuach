@@ -45,6 +45,14 @@ const readOnlyApi = new Set([
   "/api/digital-observer/access-settings"
 ]);
 
+// Limit this cookie policy to the first-party hosted QA Auth cookies (including SSR chunks).
+export function protectQaCookie(cookie, observer) {
+  const secure = /(?:^|;)\s*secure(?:;|$)/i.test(cookie) ? cookie : cookie + "; Secure";
+  if (!observer || !/^sb-qrkodgtccyzmshitowdt-auth-token(?:\.[0-9]+)?=/.test(cookie)) return secure;
+  if (/(?:^|;)\s*domain=/i.test(cookie)) throw new Error("QA cookie domain");
+  return /(?:^|;)\s*httponly(?:;|$)/i.test(cookie) ? secure : secure + "; HttpOnly";
+}
+
 export function allowedQaRequest(method, rawUrl) {
   if (!rawUrl?.startsWith("/") || rawUrl.startsWith("//")) return false;
   let url;
@@ -194,8 +202,9 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
       }
       if (observer) safeHeaders["referrer-policy"] = "same-origin";
       if (safeHeaders["set-cookie"]) {
-        safeHeaders["set-cookie"] = safeHeaders["set-cookie"].map((cookie) =>
-          /(?:^|;)\s*secure(?:;|$)/i.test(cookie) ? cookie : `${cookie}; Secure`);
+        try {
+          safeHeaders["set-cookie"] = safeHeaders["set-cookie"].map(cookie => protectQaCookie(cookie, observer));
+        } catch { source.destroy(); outgoing.writeHead(502).end(); return; }
       }
       if (safeHeaders.location) {
         const location = observer ? observerOriginRedirect(safeHeaders.location, upstream, gate) : safeQaRedirect(safeHeaders.location, incoming.headers.host ?? "");
