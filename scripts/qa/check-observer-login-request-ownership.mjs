@@ -90,9 +90,13 @@ function harness({ native = false, autoPassive = true } = {}) {
     constructor(form) { formBuilds++; maybeThrow('form'); this.form = form; form.builds = (form.builds || 0) + 1; }
     get(name) { this.form.reads.push(name); return this.form.values[name] ?? null; }
   }
+  const events = new EventTarget(), timers = new Map();
   const exported = {};
   const context = vm.createContext({ exports: exported, FormData: FakeFormData,
-    window: { location: { assign(destination) { navigations.push(destination); maybeThrow('assign'); onAssign?.(); } } },
+    window: { addEventListener: events.addEventListener.bind(events), removeEventListener: events.removeEventListener.bind(events),
+      setTimeout(callback, ms) { const id = Symbol(); timers.set(id, { callback, ms }); return id; },
+      clearTimeout(id) { timers.delete(id); },
+      location: { assign(destination) { navigations.push(destination); maybeThrow('assign'); onAssign?.(); } } },
     require(name) {
       if (name === 'react') return react;
       if (name === 'react/jsx-runtime') return { jsx, jsxs: jsx };
@@ -144,6 +148,9 @@ function harness({ native = false, autoPassive = true } = {}) {
   function poison() { const reads = []; return { reads, value: new Proxy({}, { get(_, field) { if (field === 'then') return undefined; reads.push(String(field)); throw Error('obsolete result'); } }) }; }
   render();
   return { render, nodes, form, button, submit, cleanup, reconnect, poison, attempts, stored, navigations,
+    pageShow(persisted) { events.dispatchEvent(Object.assign(new Event('pageshow'), { persisted })); },
+    fireNativeTimeout() { assert.equal(timers.size, 1); const [id, timer] = [...timers][0]; assert.equal(timer.ms, 15000); timers.delete(id); timer.callback(); },
+    timerCount() { return timers.size; },
     text: () => textOf(tree), snapshot: () => ({ writes, creates, formBuilds, attempts: attempts.length, rpc: attempts.reduce((n, a) => n + a.calls.filter(c => c[0] === 'rpc').length, 0), reads: attempts.reduce((n, a) => n + a.calls.filter(c => c[0] === 'from').length, 0), signouts: attempts.reduce((n, a) => n + a.calls.filter(c => c[0] === 'signOut').length, 0), stored: stored.length, navigations: navigations.length }),
     passive() { flush('passive'); render(); },
     fail(point) { failOnce = point; }, callbacks(values) { onCreate = values.create; onRemember = values.remember; onAssign = values.assign; },
@@ -173,10 +180,32 @@ test('hydration, server form contract, hidden fields, labels and disabled Google
   const google = h.nodes(node => node.props?.className === 'do-auth-google')[0]; assert.equal(google.props.disabled, true); assert.equal(google.props.type, 'button');
   assert.match(h.text(), /לא זמין בסביבת הבדיקה/); assert.equal(h.attempts.length, 0);
 });
-test('native progressive enhancement never prevents default, reads form or starts browser SDK', async () => {
+test('first native submission uses the server POST without reading credentials or copying a bearer token', async () => {
   const h = harness({ native: true }), poison = h.poison(); let prevented = 0;
+  assert.equal(h.form().props.action, '/api/digital-observer/auth/login');
+  assert.equal(h.form().props.method, 'post');
   await h.form().props.onSubmit({ preventDefault() { prevented++; }, get currentTarget() { return poison.value; } });
   assert.equal(prevented, 0); assert.deepEqual(poison.reads, []); assert.equal(h.snapshot().creates, 0); assert.equal(h.snapshot().formBuilds, 0); assert.equal(h.stored.length, 0); assert.equal(h.navigations.length, 0);
+});
+for (const recovery of ['restore', 'timeout']) test(`native form permits one POST while navigation is pending and allows retry on ${recovery}`, async () => {
+  const h = harness({ native: true });
+  assert.equal(h.submit().event.prevented, 0);
+  assert.equal(h.submit().event.prevented, 1, 'duplicate POST must be canceled before the next render');
+  h.render();
+  assert.equal(h.button().props.disabled, true);
+  const fields = h.nodes(node => node.type === 'input' && ['email', 'password'].includes(node.props.name));
+  assert.equal(fields.length, 2);
+  assert.ok(fields.every(node => !node.props.disabled), 'native form data must include both credentials');
+  h.pageShow(false);
+  assert.equal(h.submit().event.prevented, 1);
+  if (recovery === 'restore') h.pageShow(true); else h.fireNativeTimeout();
+  h.render();
+  assert.equal(h.timerCount(), 0);
+  assert.equal(h.button().props.disabled, false);
+  assert.equal(h.submit().event.prevented, 0);
+  assert.equal(h.snapshot().creates, 0);
+  h.render(); h.cleanup();
+  assert.equal(h.timerCount(), 0);
 });
 test('duplicate current submit prevents default before form/client and captures synthetic raw fields', async () => {
   const h = harness(); const handler = h.form().props.onSubmit, first = h.submit(); const poison = h.poison(); let prevented = 0;
