@@ -1,9 +1,11 @@
+import { readPrivateWindow } from "@/lib/domain/digital-observer/qa-installation/private-reader";
+import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
 import { stagedQaWindow } from "@/lib/domain/digital-observer/qa-installation/window";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { qaProject } from "@/lib/domain/digital-observer/qa-installation/pending";
 import { preparePendingOnProductServer } from "@/lib/domain/digital-observer/qa-installation/server";
-import { handle, type Services } from "@/lib/domain/digital-observer/qa-installation/control";
+import { handle, rejectsControlOrigin, type Services } from "@/lib/domain/digital-observer/qa-installation/control";
 
 export const runtime = "nodejs";
 const services: Services = {
@@ -29,5 +31,16 @@ const services: Services = {
   }
 };
 export async function POST(request: Request) {
-  return handle(request, await stagedQaWindow(), services);
+  const closed = () => handle(request,null,services);
+  if (process.env.OBSERVER_QA_INSTALLATION_PROOF !== "1" || process.env.VERCEL_ENV !== "preview" ||
+      process.env.NEXT_PUBLIC_SUPABASE_URL !== qaProject || rejectsControlOrigin(request)) return closed();
+  try {
+    const token = await services.session();
+    if (!token) return closed();
+    const auth = await getDigitalObserverApiUser(new Request(request.url,{headers:{authorization:"Bearer "+token}}));
+    if (!auth || auth.user.email_confirmed_at == null || auth.profile.active !== true) return closed();
+    const window = await stagedQaWindow(readPrivateWindow);
+    if (!window || window.operator.ownerSubject !== auth.user.id) return closed();
+    return handle(request,window,{...services,session:async()=>token});
+  } catch { return closed(); }
 }

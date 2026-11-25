@@ -39,13 +39,16 @@ async function readBody(request: Request) {
     return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(Buffer.concat(parts)));
   } finally { reader.releaseLock(); }
 }
+export function rejectsControlOrigin(request: Request) {
+  return request.url !== origin+path || request.method !== "POST" ||
+        request.headers.get("host") !== "observer-qa.ganbatuach.com" ||
+        request.headers.get("origin") !== origin || request.headers.get("sec-fetch-site") !== "same-origin" ||
+        request.headers.has("authorization");
+}
 export async function handle(request: Request, window: Window | null, services: Services) {
   if (!window) return reply(404);
   try {
-    if (request.url !== origin+path || request.method !== "POST" ||
-        request.headers.get("host") !== "observer-qa.ganbatuach.com" ||
-        request.headers.get("origin") !== origin || request.headers.get("sec-fetch-site") !== "same-origin" ||
-        request.headers.has("authorization") || !/^[0-9a-f]{64}$/.test(window.receiptSecret) ||
+    if (rejectsControlOrigin(request) || !/^[0-9a-f]{64}$/.test(window.receiptSecret) ||
         Date.now() < window.operator.issuedAt || Date.now() >= window.operator.expiresAt) return reply(403);
     const b = await readBody(request);
     const begin = b?.op === "begin";

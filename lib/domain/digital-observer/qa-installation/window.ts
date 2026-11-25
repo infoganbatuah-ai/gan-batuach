@@ -13,7 +13,7 @@ const windowSchema = z.object({
   }).strict()
 }).strict();
 
-// No trusted staging reader has been qualified for the Preview. This dependency
+// This dependency
 // is server-owned, takes no HTTP input, and must retrieve only the single
 // authorized window on each call. Never cache the ticket across requests.
 type ReadPrivateWindow = () => Promise<unknown>;

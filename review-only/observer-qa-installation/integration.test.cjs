@@ -80,3 +80,67 @@ test("external ingress policy still denies installation POST even when proxy own
   assert.equal(observerQaRouteAllowed({method:"POST",rawUrl:"/api/digital-observer/qa/installation-proof",
     host:"observer-qa.ganbatuach.com",trustedHttps:true,ownerAuthorized:true}),false);
 });
+
+test("same preview process authenticates before lookup, denies mismatched owner, and separates RPC credentials",async t=>{
+  const stage=syntheticWindow();
+  const backendCredential="sb_secret_synthetic_fixture_only";
+  const userToken="synthetic-session-only";
+  const digest=stage.operator.publicKeyDigest;
+  Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,
+    OBSERVER_QA_INSTALLATION_PROOF:"1",SUPABASE_SERVICE_ROLE_KEY:backendCredential,
+    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:"fixture-publishable"});
+  t.after(()=>{delete process.env.SUPABASE_SERVICE_ROLE_KEY;delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;});
+  const supabase=fromRoot("lib/supabase/server.ts"),access=fromRoot("lib/domain/digital-observer/access.ts");
+  const pending=fromRoot("lib/domain/digital-observer/qa-installation/server.ts");
+  t.mock.method(supabase,"createClient",async()=>({auth:{getSession:async()=>({data:{session:{access_token:userToken}}})}}));
+  let who=null,staged=null,reads=0,stores=0;
+  t.mock.method(access,"getDigitalObserverApiUser",async req=>{
+    assert.ok(req.headers.get("authorization")==="Bearer "+userToken);
+    return who && {user:{id:who,email_confirmed_at:"confirmed"},profile:{active:true}};
+  });
+  t.mock.method(pending,"preparePendingOnProductServer",async()=>({status:"PENDING",grantsAccess:false,
+    requestId:stage.operator.requestId,siteId:stage.operator.siteId,sourceId:stage.operator.sourceId,
+    spkiSha256:digest,expiresAt:stage.operator.expiresAt}));
+  t.mock.method(global,"fetch",async(url,options)=>{
+    assert.equal(options.redirect,"error");assert.equal(options.cache,"no-store");
+    if(url===qaProject+"/rest/v1/rpc/qa_observer_read_window"){
+      assert.ok(options.headers.apikey===backendCredential && !options.headers.authorization);
+      assert.equal(options.body,"{}");reads++;
+      return Response.json(staged);
+    }
+    assert.equal(url,qaProject+"/rest/v1/rpc/qa_observer_pending_proof");stores++;
+    assert.ok(options.headers.authorization==="Bearer "+userToken && options.headers.apikey!==backendCredential);
+    const payload=JSON.parse(options.body);
+    assert.ok(payload.ticket===stage.receiptSecret && !options.body.includes(backendCredential));
+    return Response.json(payload.nonce_hex);
+  });
+  // Bind the adapter after installing the Product verifier double.
+  const modulePath=require.resolve(path.join(root,"app/api/digital-observer/qa/installation-proof/route.ts"));
+  const originalModule=require.cache[modulePath];
+  delete require.cache[modulePath];
+  const isolatedRoute=require(modulePath);
+  t.after(()=>{require.cache[modulePath]=originalModule;});
+  const post=()=>isolatedRoute.POST(new Request(request().url,{method:"POST",headers:{host:"observer-qa.ganbatuach.com",
+    origin:"https://observer-qa.ganbatuach.com","sec-fetch-site":"same-origin","content-type":"application/json"},
+    body:JSON.stringify({op:"begin",spki:"A".repeat(124)})}));
+  assert.equal((await post()).status,404);assert.equal(reads,0);
+  who=stage.operator.ownerSubject;assert.equal((await post()).status,404);
+  staged=stage;who=randomUUID();assert.equal((await post()).status,404);assert.equal(stores,0);
+  who=stage.operator.ownerSubject;
+  const r=await post();assert.equal(r.status,200);
+  const raw=await r.text();
+  for(const value of [backendCredential,userToken,stage.receiptSecret,who])assert.ok(!raw.includes(value));
+  assert.deepEqual(Object.keys(JSON.parse(raw)).sort(),["nonce","status"]);
+  staged=null;assert.equal((await post()).status,404);assert.equal(stores,1);
+});
+
+
+test("private reader rejects a mismatched legacy project before transmission",async t=>{
+  const reader=fromRoot("lib/domain/digital-observer/qa-installation/private-reader.ts");
+  const claims={role:"service_role",ref:"different-project",exp:Math.floor(Date.now()/1000)+120};
+  Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,OBSERVER_QA_INSTALLATION_PROOF:"1",
+    SUPABASE_SERVICE_ROLE_KEY:"fixture."+Buffer.from(JSON.stringify(claims)).toString("base64url")+".fixture"});
+  t.after(()=>delete process.env.SUPABASE_SERVICE_ROLE_KEY);
+  let calls=0;t.mock.method(global,"fetch",async()=>{calls++;return Response.json(null);});
+  assert.equal(await reader.readPrivateWindow(),null);assert.equal(calls,0);
+});
