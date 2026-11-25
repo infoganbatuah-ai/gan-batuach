@@ -238,3 +238,79 @@ test("Observer QA explains failed push revocation and remains signed in", async 
   assert.ok(messages.some((message) => message.includes("נשארת מחובר/ת") &&
     message.includes("נסה להתנתק שוב") && message.includes("פנה לתמיכה")));
 });
+
+function iosLogoutDevice({ appId, savedSite = "old-site" }) {
+  const helper = readFileSync(new URL("../../lib/domain/digital-observer/native-push-logout.ts", import.meta.url), "utf8");
+  const js = ts.transpileModule(helper, { compilerOptions: {
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS
+  } }).outputText;
+  const reads = [];
+  const values = {
+    digital_observer_native_push_site_v1: savedSite,
+    digital_observer_native_device_reference_v1: deviceId
+  };
+  const modules = {
+    "@capacitor/core": { Capacitor: { isNativePlatform: () => true, getPlatform: () => "ios" } },
+    "@capacitor/app": { App: { getInfo: async () => {
+      if (appId === undefined) throw new Error("Native app identity unavailable");
+      return { id: appId };
+    } } },
+    "@capacitor/preferences": { Preferences: { get: async ({ key }) => {
+      reads.push(key);
+      assert.ok(Object.hasOwn(values, key), key);
+      return { value: values[key] };
+    } } }
+  };
+  const exports = {};
+  vm.runInNewContext(js, { exports, require: (name) => {
+    assert.ok(Object.hasOwn(modules, name), name);
+    return modules[name];
+  } });
+  return { resolve: exports.currentNativePushDeviceId, reads };
+}
+
+test("Observer iOS QA logs out without revoking a device named by stale native preferences", async () => {
+  const client = iosLogoutDevice({ appId: "com.digitalobserver.app.qa" });
+  const component = readFileSync(new URL("../../components/logout-button.tsx", import.meta.url), "utf8");
+  const js = ts.transpileModule(component, { compilerOptions: {
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX
+  } }).outputText;
+  const server = route();
+  const navigations = [];
+  const jsx = (type, props) => ({ type, props });
+  const modules = {
+    react: { useState: (initial) => [initial, () => {}] },
+    "react/jsx-runtime": { jsx, jsxs: jsx, Fragment: "Fragment" },
+    "lucide-react": { LogOut: () => null },
+    "next/navigation": { useRouter: () => ({ replace: (url) => navigations.push(url), refresh: () => {} }) },
+    "@/lib/domain/digital-observer/native-push-logout": { currentNativePushDeviceId: client.resolve,
+      currentNativePushOwnerId: () => assert.fail("QA logout must not look up a token owner") }
+  };
+  const exports = {};
+  vm.runInNewContext(js, {
+    exports, require: (name) => { assert.ok(Object.hasOwn(modules, name), name); return modules[name]; },
+    fetch: async (url, init) => {
+      assert.equal(url, "/api/auth/logout");
+      assert.equal(init.method, "POST");
+      assert.equal(init.body, undefined);
+      return server.post();
+    },
+    window: { sessionStorage: { removeItem: () => {} } }
+  });
+  const tree = exports.LogoutButton({ redirectTo: "/digital-observer/login" });
+  await tree.props.children[0].props.onClick();
+  assert.deepEqual(navigations, ["/digital-observer/login"]);
+  assert.ok(!client.reads.includes("digital_observer_native_device_reference_v1"));
+  assert.deepEqual(server.calls, ["signOut"]);
+});
+
+test("supported iOS installations retain device cleanup when a registration exists", async () => {
+  for (const appId of ["com.digitalobserver.app", "com.ganbatuach.app"]) {
+    assert.equal(await iosLogoutDevice({ appId }).resolve(), deviceId);
+  }
+});
+
+test("an iOS identity lookup failure cannot turn a pending cleanup into an unscoped logout", async () => {
+  await assert.rejects(iosLogoutDevice({}).resolve());
+  assert.equal(await iosLogoutDevice({ savedSite: null }).resolve(), null);
+});
