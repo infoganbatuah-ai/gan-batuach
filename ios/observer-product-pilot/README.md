@@ -30,6 +30,32 @@ Future qualification, after authorization:
 4. To roll back, sign out of the pilot and remove only its bundle from the
    iPhone. The separate bundle ID lets the previous app remain available.
 
-Source tests use temporary generated bundles and plists. They do not compile,
-sign, install, or access the Product host. Run them on macOS with
-`node --test scripts/qa/check-observer-ios-product-pilot.mjs`.
+Run these source checks from the repository root on macOS. Set
+`OBSERVER_PILOT_TEST_ROOT` to an existing writable directory on
+`/Volumes/DIGITAL_OBSERVER`. The fixtures are removed when each test ends.
+
+```sh
+OBSERVER_PILOT_TEST_ROOT="$PWD" node --test scripts/qa/check-observer-ios-product-pilot.mjs
+```
+
+With the locked Capacitor dependencies and Swift packages already available
+on the development drive, inspect the effective Xcode settings without a build.
+Use an unused result-bundle path for each invocation.
+
+```sh
+PILOT_SETTINGS_ROOT="$PWD/.source-settings"
+PILOT_SWIFT_PACKAGES="/Volumes/DIGITAL_OBSERVER/XcodeStorage/DigitalObserver/SwiftPackages"
+mkdir -p "$PILOT_SETTINGS_ROOT/tmp" "$PILOT_SETTINGS_ROOT/cache"
+TMPDIR="$PILOT_SETTINGS_ROOT/tmp" xcodebuild \
+  -project ios/App/App.xcodeproj -target App -configuration PersonalTeamQA -sdk iphoneos \
+  -xcconfig ios/observer-product-pilot/ObserverProductPilot.xcconfig \
+  -clonedSourcePackagesDirPath "$PILOT_SWIFT_PACKAGES/Clones" \
+  -packageCachePath "$PILOT_SETTINGS_ROOT/cache" \
+  -resultBundlePath "$PILOT_SETTINGS_ROOT/target.xcresult" \
+  -disableAutomaticPackageResolution -skipPackageUpdates -showBuildSettings
+```
+
+Check that the effective target settings include `com.digitalobserver.app.pilot`,
+`OBSERVER_PRODUCT_PILOT`, and `CODE_SIGNING_ALLOWED = NO`. The effective
+`INFOPLIST_FILE` resolves from `ios/App` to
+`ios/observer-product-pilot/Info.plist`.

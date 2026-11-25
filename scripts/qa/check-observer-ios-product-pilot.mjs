@@ -1,14 +1,24 @@
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { isAbsolute, join, relative, sep } from "node:path";
 import test from "node:test";
 import { finalizeProductPilot } from "./finalize-observer-ios-product-pilot.mjs";
+
+const disk = "/Volumes/DIGITAL_OBSERVER";
+const requestedRoot = process.env.OBSERVER_PILOT_TEST_ROOT;
+if (!requestedRoot || !isAbsolute(requestedRoot)) {
+  throw new Error("OBSERVER_PILOT_TEST_ROOT must be an existing absolute directory under " + disk);
+}
+const testRoot = realpathSync(requestedRoot);
+const relativeRoot = relative(disk, testRoot);
+if (!relativeRoot || relativeRoot === ".." || relativeRoot.startsWith(".." + sep) || isAbsolute(relativeRoot)) {
+  throw new Error("OBSERVER_PILOT_TEST_ROOT must resolve beneath " + disk);
+}
 
 const appId = "com.digitalobserver.app.pilot";
 const template = readFileSync(new URL("../../ios/observer-product-pilot/Info.plist", import.meta.url), "utf8");
 function bundle(t, id = appId, extraInfo = "") {
-  const root = mkdtempSync(join(tmpdir(), "observer-pilot-source-"));
+  const root = mkdtempSync(join(testRoot, "observer-pilot-source-"));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const app = join(root, "App.app");
   mkdirSync(join(app, "public"), { recursive: true });
