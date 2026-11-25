@@ -180,8 +180,10 @@ test('hydration, server form contract, hidden fields, labels and disabled Google
   const google = h.nodes(node => node.props?.className === 'do-auth-google')[0]; assert.equal(google.props.disabled, true); assert.equal(google.props.type, 'button');
   assert.match(h.text(), /לא זמין בסביבת הבדיקה/); assert.equal(h.attempts.length, 0);
 });
-test('native progressive enhancement never prevents default, reads form or starts browser SDK', async () => {
+test('first native submission uses the server POST without reading credentials or copying a bearer token', async () => {
   const h = harness({ native: true }), poison = h.poison(); let prevented = 0;
+  assert.equal(h.form().props.action, '/api/digital-observer/auth/login');
+  assert.equal(h.form().props.method, 'post');
   await h.form().props.onSubmit({ preventDefault() { prevented++; }, get currentTarget() { return poison.value; } });
   assert.equal(prevented, 0); assert.deepEqual(poison.reads, []); assert.equal(h.snapshot().creates, 0); assert.equal(h.snapshot().formBuilds, 0); assert.equal(h.stored.length, 0); assert.equal(h.navigations.length, 0);
 });

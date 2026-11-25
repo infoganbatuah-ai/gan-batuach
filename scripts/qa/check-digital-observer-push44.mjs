@@ -26,7 +26,6 @@ const contract = await import("../../lib/domain/digital-observer/mobile-runtime.
 const runtime = readFileSync(new URL("../../components/digital-observer/observer-mobile-runtime.tsx", import.meta.url), "utf8");
 const runtimeRoute = readFileSync(new URL("../../app/api/digital-observer/mobile/runtime/route.ts", import.meta.url), "utf8");
 const player = readFileSync(new URL("../../components/digital-observer/observer-live-player.tsx", import.meta.url), "utf8");
-const login = readFileSync(new URL("../../components/digital-observer/observer-login-form.tsx", import.meta.url), "utf8");
 const loginPage = readFileSync(new URL("../../app/digital-observer/login/page.tsx", import.meta.url), "utf8");
 assert.match(loginPage, /if \(!params\?\.error && await getDigitalObserverApiUser\(\)\) redirect\("\/digital-observer\/dashboard"\)/);
 assert.ok(loginPage.indexOf("await getDigitalObserverApiUser()") < loginPage.indexOf("<ObserverLoginForm"), "resume requires canonical server session and Observer authorization before rendering");
@@ -101,8 +100,10 @@ assert(runtimeRoute.includes("getObserverSiteAccess"));
 assert(runtimeRoute.includes('.eq("observer_site_id", link.observerSiteId)'));
 assert(runtimeRoute.includes('sms_authentication: "disabled"'));
 assert(player.includes("digital-observer:mobile-offline") && player.includes("digital-observer:mobile-resume"));
-assert(login.includes("Capacitor.isNativePlatform()"));
-assert(login.includes("HttpOnly cookies"));
+// Exercise the actual form handler, including native POST and bearer-token custody.
+execFileSync(process.execPath, [
+  "--test", fileURLToPath(new URL("./check-observer-login-request-ownership.mjs", import.meta.url))
+], { stdio: "inherit" });
 
 assert(android.includes("android.permission.POST_NOTIFICATIONS"));
 assert(android.includes('android:scheme="${mobileCallbackScheme}"'));
@@ -132,4 +133,4 @@ for (const preserved of [
   assert(readFileSync(new URL(preserved, import.meta.url), "utf8").length > 1_000, `missing preserved contract ${preserved}`);
 }
 
-console.log("PUSH 44 deterministic QA passed: native lifecycle/network handling, server-authorized deep links, native push token lifecycle, iOS Development/Release APNs signing entitlement, privacy-minimized previews, HttpOnly native authentication, bounded non-sensitive offline recovery, playback suspend/reconnect, iOS/Android URL and notification contracts, SMS-auth disablement and PUSH 39-43 preservation.");
+console.log("PUSH 44 deterministic QA passed: native lifecycle/network handling, server-authorized deep links, native push token lifecycle, iOS Development/Release APNs signing entitlement, privacy-minimized previews, native server-form submission and token custody, bounded non-sensitive offline recovery, playback suspend/reconnect, iOS/Android URL and notification contracts, SMS-auth disablement and PUSH 39-43 preservation.");
