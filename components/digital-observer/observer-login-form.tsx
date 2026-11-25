@@ -83,8 +83,8 @@ function ScopedObserverLoginForm({ initialType, nextPath, registered, verified, 
   async function submit(event: FormEvent<HTMLFormElement>) {
     const owner = ownership.current;
     if (!owner.active || owner.lifecycle !== lifecycle) return;
-    // Native WebViews use the server form flow so Supabase credentials remain in
-    // HttpOnly cookies. The bearer token is never copied into JavaScript storage.
+    // Native WebViews submit the server form without explicitly copying the
+    // bearer token into JavaScript storage.
     if (Capacitor.isNativePlatform()) {
       if (nativePostInFlight.current) event.preventDefault();
       else {
