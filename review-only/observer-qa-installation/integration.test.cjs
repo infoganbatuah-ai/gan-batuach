@@ -26,29 +26,42 @@ const flags=["OBSERVER_QA_ATOMIC_SITE_SAVE","OBSERVER_QA_INSTALLATION_PROOF","OB
   "VERCEL_ENV","NEXT_PUBLIC_SUPABASE_URL"];
 test.beforeEach(()=>{for(const f of flags) delete process.env[f];});
 const request=()=>new Request("https://observer-qa.ganbatuach.com/api/digital-observer/qa/installation-proof",{method:"POST"});
-test("mounted enrollment POST gives 404 with no flag, no staged window, or malformed staging",async()=>{
-  assert.equal((await route.POST(request())).status,404);
-  Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,OBSERVER_QA_INSTALLATION_PROOF:"1"});
-  assert.equal((await route.POST(request())).status,404);
-  process.env.OBSERVER_QA_INSTALLATION_WINDOW="invalid";
-  assert.equal((await route.POST(request())).status,404);
-});
-test("staging is accepted only for the exact preview project and bounded operator lifetime",async()=>{
+function syntheticWindow() {
   const now=Date.now();
-  const window={receiptSecret:"a".repeat(64),operator:{requestId:randomUUID(),ownerSubject:randomUUID(),
+  return {receiptSecret:"a".repeat(64),operator:{requestId:randomUUID(),ownerSubject:randomUUID(),
     siteId:randomUUID(),sourceId:randomUUID(),publicKeyDigest:"b".repeat(64),issuedAt:now,expiresAt:now+200000}};
-  Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,OBSERVER_QA_INSTALLATION_PROOF:"1",
-    OBSERVER_QA_INSTALLATION_WINDOW:JSON.stringify(window)});
-  assert.deepEqual(stagedQaWindow(),window);
-  // Same valid window, request lacks exact Host and Origin. No session lookup.
-  assert.equal((await route.POST(request())).status,403);
+}
+test("mounted route stays closed with a valid obsolete env window and browser-supplied window",async()=>{
+  const window=syntheticWindow();
+  Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,
+    OBSERVER_QA_INSTALLATION_PROOF:"1",OBSERVER_QA_INSTALLATION_WINDOW:JSON.stringify(window)});
+  const r = new Request(request().url,{method:"POST",headers:{
+    host:"observer-qa.ganbatuach.com",origin:"https://observer-qa.ganbatuach.com","sec-fetch-site":"same-origin",
+    "content-type":"application/json",cookie:"synthetic=1"
+  },body:JSON.stringify(window)});
+  const result=await route.POST(r);
+  assert.equal(result.status,404);
+  assert.deepEqual(await result.json(),{});
+  assert.equal(await stagedQaWindow(),null);
+});
+test("reader contract checks fresh server-only staging per request and fails closed on loss or expiry",async()=>{
+  Object.assign(process.env,{VERCEL_ENV:"preview",NEXT_PUBLIC_SUPABASE_URL:qaProject,OBSERVER_QA_INSTALLATION_PROOF:"1"});
+  let staged=syntheticWindow(), reads=0;
+  // In-memory contract fixture only. No reader is wired into the deployed route.
+  const read=async(...args)=>{assert.equal(args.length,0);reads++;return staged;};
+  assert.deepEqual(await stagedQaWindow(read),staged);
+  staged=null;
+  assert.equal(await stagedQaWindow(read),null);
+  staged=syntheticWindow();staged.operator.expiresAt=staged.operator.issuedAt+300001;
+  assert.equal(await stagedQaWindow(read),null);
+  staged.operator.expiresAt=Date.now()-1;
+  assert.equal(await stagedQaWindow(read),null);
+  assert.equal(await stagedQaWindow(async()=>{throw Error("unavailable");}),null);
   for(const [key,value] of [["VERCEL_ENV","production"],["NEXT_PUBLIC_SUPABASE_URL","https://different.invalid"],
       ["OBSERVER_QA_INSTALLATION_PROOF","0"]]){
-    const prior=process.env[key];process.env[key]=value;assert.equal(stagedQaWindow(),null);process.env[key]=prior;
+    const prior=process.env[key];process.env[key]=value;assert.equal(await stagedQaWindow(read),null);process.env[key]=prior;
   }
-  window.operator.expiresAt=now+300001;
-  process.env.OBSERVER_QA_INSTALLATION_WINDOW=JSON.stringify(window);
-  assert.equal(stagedQaWindow(),null);
+  assert.equal(reads,4);
 });
 test("ordinary Product keeps its handler; hosted QA Site save is closed; only explicit standalone q669 selects #669",async()=>{
   assert.equal(qaSiteWriterMode(),"product");

@@ -29,5 +29,5 @@ const services: Services = {
   }
 };
 export async function POST(request: Request) {
-  return handle(request, stagedQaWindow(), services);
+  return handle(request, await stagedQaWindow(), services);
 }

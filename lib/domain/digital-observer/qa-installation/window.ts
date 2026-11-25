@@ -13,15 +13,16 @@ const windowSchema = z.object({
   }).strict()
 }).strict();
 
-// Private process configuration only. No request, cookie or user metadata can
-// supply the operator record. Invalid configuration never starts a session read.
-export function stagedQaWindow(): Window | null {
-  if (process.env.OBSERVER_QA_INSTALLATION_PROOF !== "1" || process.env.VERCEL_ENV !== "preview" ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL !== qaProject) return null;
-  const raw = process.env.OBSERVER_QA_INSTALLATION_WINDOW;
-  if (!raw || raw.length > 1024) return null;
+// No trusted staging reader has been qualified for the Preview. This dependency
+// is server-owned, takes no HTTP input, and must retrieve only the single
+// authorized window on each call. Never cache the ticket across requests.
+type ReadPrivateWindow = () => Promise<unknown>;
+
+export async function stagedQaWindow(read: ReadPrivateWindow | null = null): Promise<Window | null> {
+  if (read === null || process.env.OBSERVER_QA_INSTALLATION_PROOF !== "1" ||
+      process.env.VERCEL_ENV !== "preview" || process.env.NEXT_PUBLIC_SUPABASE_URL !== qaProject) return null;
   try {
-    const parsed = windowSchema.safeParse(JSON.parse(raw));
+    const parsed = windowSchema.safeParse(await read());
     if (!parsed.success) return null;
     const {issuedAt,expiresAt} = parsed.data.operator;
     const now = Date.now();
