@@ -248,7 +248,7 @@ end
 $pair$;
 alter function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text) owner to observer_site_save_executor;
 revoke all on function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text)
-  from public,anon,authenticated,service_role;
+  from public,anon,authenticated,service_role,postgres;
 grant execute on function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text) to observer_site_save_caller;
 select observer_site_save_private.check_pair_acl(true);
 commit;
