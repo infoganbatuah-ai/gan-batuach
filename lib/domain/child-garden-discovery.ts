@@ -1,7 +1,17 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { kindergartenAgeGroups, type KindergartenAgeGroupKey } from "@/lib/domain/kindergarten-onboarding";
 import { guardianCanAccessChild } from "@/lib/management/family-link";
 
-export type DiscoveryFilters = { city?: string | null; query?: string | null; evaluationDate?: string | null };
+export type DiscoveryFilters = {
+  city?: string | null;
+  query?: string | null;
+  ageGroup?: KindergartenAgeGroupKey;
+  evaluationDate?: string | null;
+};
+
+export function discoveryAgeGroup(value: unknown): KindergartenAgeGroupKey | undefined {
+  return kindergartenAgeGroups.find(({ key }) => key === value)?.key;
+}
 
 /** Canonical GB-M14 matching boundary. It does not mutate capacity or enrollment state. */
 export async function findEligibleGardensForChild(
@@ -23,5 +33,14 @@ export async function findEligibleGardensForChild(
     return { kind: "birth_date_required" as const, matches: [] };
   }
   if (result.error) return { kind: "error" as const, error: result.error, matches: [] };
-  return { kind: "ok" as const, matches: (result.data ?? []) as Array<Record<string, unknown>> };
+  const matches = (result.data ?? []) as Array<Record<string, unknown>>;
+  const ageGroup = filters.ageGroup;
+  // Narrow the Garden list using classrooms already matched to this Child.
+  // The canonical Garden status, capacity and enrollment context still apply.
+  return {
+    kind: "ok" as const,
+    matches: ageGroup ? matches.filter(({ matching_classrooms }) =>
+      Array.isArray(matching_classrooms) && matching_classrooms.some((room) => room?.age_group_key === ageGroup)
+    ) : matches
+  };
 }
