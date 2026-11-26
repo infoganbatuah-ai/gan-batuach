@@ -12,6 +12,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private var captureShieldView: UIView?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        #if OBSERVER_PRODUCT_PILOT
+        let pilotWindow = UIWindow(frame: UIScreen.main.bounds)
+        pilotWindow.rootViewController = CAPBridgeViewController(nibName: nil, bundle: nil)
+        window = pilotWindow
+        #endif
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenCaptureStateChanged),
@@ -19,6 +24,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             object: nil
         )
         updateCaptureShield()
+        #if OBSERVER_PRODUCT_PILOT
+        pilotWindow.makeKeyAndVisible()
+        #endif
         return true
     }
 

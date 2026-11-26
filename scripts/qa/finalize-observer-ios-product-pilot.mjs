@@ -18,7 +18,8 @@ export function finalizeProductPilot(app) {
   const info = JSON.parse(execFileSync("/usr/bin/plutil",
     ["-convert", "json", "-o", "-", join(app, "Info.plist")], { encoding: "utf8" }));
   if (info.CFBundleIdentifier !== appId || info.CFBundleDisplayName !== appName
-    || ["CFBundleURLTypes", "aps-environment", "com.apple.developer.associated-domains",
+    || !info.UILaunchScreen || typeof info.UILaunchScreen !== "object" || Array.isArray(info.UILaunchScreen)
+    || ["UIMainStoryboardFile", "UILaunchStoryboardName", "UIApplicationSceneManifest", "CFBundleURLTypes", "aps-environment", "com.apple.developer.associated-domains",
       "NSAppTransportSecurity", "UIBackgroundModes"].some(key => Object.hasOwn(info, key))) {
     throw new Error("PRODUCT_PILOT_IDENTITY_OR_CAPABILITIES_INVALID");
   }

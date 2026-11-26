@@ -56,7 +56,8 @@ test("QA and Gan package identities are rejected before resources change", t => 
 });
 
 test("callback, transport exception and signature assets block finalization", t => {
-  for (const key of ["CFBundleURLTypes", "NSAppTransportSecurity", "aps-environment"]) {
+  for (const key of ["CFBundleURLTypes", "NSAppTransportSecurity", "aps-environment",
+    "UIMainStoryboardFile", "UILaunchStoryboardName", "UIApplicationSceneManifest"]) {
     assert.throws(() => finalizeProductPilot(bundle(t, appId, "<key>" + key + "</key><true/>")),
       /PRODUCT_PILOT_IDENTITY_OR_CAPABILITIES_INVALID/);
   }
@@ -75,4 +76,21 @@ test("Product override excludes QA Swift bridges without changing the QA origin 
   const qaFinalizer = readFileSync(new URL("./finalize-observer-ios-qa.swift", import.meta.url), "utf8");
   assert.doesNotMatch(qaFinalizer, /gan-batuach\.vercel\.app/);
   assert.match(qaFinalizer, /observer-qa\.ganbatuach\.com/);
+});
+
+test("only the Product override excludes storyboards and initializes a native window", () => {
+  const config = readFileSync(new URL("../../ios/observer-product-pilot/ObserverProductPilot.xcconfig", import.meta.url), "utf8");
+  assert.match(config, /^EXCLUDED_SOURCE_FILE_NAMES = .*Main\.storyboard LaunchScreen\.storyboard$/m);
+  assert.match(template, /<key>UILaunchScreen<\/key>\s*<dict\/>/);
+  assert.doesNotMatch(template, /UIMainStoryboardFile|UILaunchStoryboardName/);
+
+  const appDelegate = readFileSync(new URL("../../ios/App/App/AppDelegate.swift", import.meta.url), "utf8");
+  assert.match(appDelegate, /#if OBSERVER_PRODUCT_PILOT\s+let pilotWindow = UIWindow[^\n]*\n\s*pilotWindow\.rootViewController = CAPBridgeViewController[^\n]*\n\s*window = pilotWindow\s+#endif/);
+  assert.match(appDelegate, /updateCaptureShield\(\)\s+#if OBSERVER_PRODUCT_PILOT\s+pilotWindow\.makeKeyAndVisible\(\)\s+#endif/);
+
+  for (const relativePath of ["ios/App/App/Info.plist", "ios/qa-observer/Info.plist",
+    "ios/qa-personal-team/Info-off.plist"]) {
+    const otherProfile = readFileSync(new URL("../../" + relativePath, import.meta.url), "utf8");
+    assert.match(otherProfile, /<key>UIMainStoryboardFile<\/key>\s*<string>Main<\/string>/);
+  }
 });
