@@ -20,7 +20,8 @@ const heartbeatSchema = z.object({
     software_version: z.string().trim().min(1).max(80),
     build_sha: z.string().trim().min(1).max(80),
     outbound_only: z.literal(true),
-    arbitrary_shell_commands: z.literal(false)
+    arbitrary_shell_commands: z.literal(false),
+    operation_mode: z.enum(["STANDARD", "MEDIA_ONLY"]).default("STANDARD")
   }).passthrough(),
   health: z.object({
     status: z.enum(["HEALTHY", "DEGRADED", "OFFLINE", "NO_FRAMES", "HIGH_LATENCY", "UNSTABLE"]),
@@ -61,6 +62,8 @@ export async function POST(request: Request) {
       || request.headers.get("x-video-gateway-id") !== device.gateway_id) {
       return fail("Connector heartbeat scope mismatch.", 403);
     }
+    const commandsEnabled = payload.runtime.operation_mode === "STANDARD" && gatewayDeviceSessionAllows(device, "COMMAND_POLL");
+    if (!commandsEnabled && payload.command_results.length) return fail("Command results are disabled for this heartbeat.", 403);
     const observedAt = Date.parse(payload.observed_at);
     if (!Number.isFinite(observedAt) || Math.abs(Date.now() - observedAt) > 5 * 60_000) return fail("Connector heartbeat is stale.", 401);
 
@@ -122,6 +125,7 @@ export async function POST(request: Request) {
       known_good_version: payload.runtime.known_good_version,
       offline_buffer: payload.runtime.offline_buffer,
       runtime_contract: payload.runtime.contract,
+      operation_mode: payload.runtime.operation_mode,
       outbound_only: true,
       arbitrary_shell_commands: false,
       last_heartbeat_id: payload.heartbeat_id,
@@ -134,7 +138,9 @@ export async function POST(request: Request) {
       .eq("id", enrollment.data.id).eq("status", "delivered").select("id").maybeSingle();
     if (updated.error || !updated.data) throw new Error("CONNECTOR_HEARTBEAT_WRITE_FAILED");
 
-    const pendingCommands = await admin.rpc("claim_observer_edge_fleet_commands" as any, { p_enrollment: enrollment.data.id, p_limit: 20 });
+    const pendingCommands = commandsEnabled
+      ? await admin.rpc("claim_observer_edge_fleet_commands" as any, { p_enrollment: enrollment.data.id, p_limit: 20 })
+      : { data: [], error: null };
     // Heartbeat/config availability must not fail after the authenticated
     // health write solely because a rolling deployment has not exposed the
     // Fleet command RPC yet. Fail closed with zero commands for only the exact
@@ -151,7 +157,7 @@ export async function POST(request: Request) {
         cameras: [],
         sampling_policy: { mode: "cloud_managed" }
       },
-      command_delivery_state: commandContractUnavailable ? "CONTRACT_UNAVAILABLE_NO_COMMANDS" : "READY",
+      command_delivery_state: !commandsEnabled ? "DISABLED_BY_RUNTIME_POLICY" : commandContractUnavailable ? "CONTRACT_UNAVAILABLE_NO_COMMANDS" : "READY",
       commands: (commandContractUnavailable ? [] : pendingCommands.data ?? []).map((command: any) => ({
         id: command.id, command: command.command, parameters: command.safe_parameters,
         issued_at: command.requested_at, expires_at: command.expires_at
