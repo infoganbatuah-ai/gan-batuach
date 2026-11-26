@@ -1,11 +1,14 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, lstatSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { extname, join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const appId = "com.digitalobserver.app.pilot";
 const appName = "תצפיתן דיגיטלי פיילוט";
 const startPath = "digital-observer/login";
+const iconName = "ObserverPilotIcon.png";
+const iconSource = new URL("../../ios/App/App/Assets.xcassets/ObserverQAIcon.appiconset/ObserverQAIcon.png",
+  import.meta.url);
 const fallback = "<!doctype html><html lang=\"he\" dir=\"rtl\"><meta charset=\"utf-8\">"
   + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
   + "<title>תצפיתן דיגיטלי</title><p>החיבור לתצפיתן אינו זמין כרגע.</p></html>";
@@ -17,12 +20,20 @@ export function finalizeProductPilot(app) {
   }
   const info = JSON.parse(execFileSync("/usr/bin/plutil",
     ["-convert", "json", "-o", "-", join(app, "Info.plist")], { encoding: "utf8" }));
+  const primaryIcon = info.CFBundleIcons?.CFBundlePrimaryIcon;
+  const iconFiles = primaryIcon?.CFBundleIconFiles;
   if (info.CFBundleIdentifier !== appId || info.CFBundleDisplayName !== appName
+    || !Array.isArray(iconFiles) || iconFiles.length !== 1 || iconFiles[0] !== iconName
+    || primaryIcon.CFBundleIconName !== undefined || existsSync(join(app, "Assets.car"))
     || !info.UILaunchScreen || typeof info.UILaunchScreen !== "object" || Array.isArray(info.UILaunchScreen)
     || ["UIMainStoryboardFile", "UILaunchStoryboardName", "UIApplicationSceneManifest", "CFBundleURLTypes", "aps-environment", "com.apple.developer.associated-domains",
       "NSAppTransportSecurity", "UIBackgroundModes"].some(key => Object.hasOwn(info, key))) {
     throw new Error("PRODUCT_PILOT_IDENTITY_OR_CAPABILITIES_INVALID");
   }
+
+  const iconPath = join(app, iconName);
+  rmSync(iconPath, { force: true });
+  copyFileSync(fileURLToPath(iconSource), iconPath);
 
   // Replace only generated WebView resources in the unsigned pilot bundle.
   const publicDir = join(app, "public");

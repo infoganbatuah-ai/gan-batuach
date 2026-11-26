@@ -80,7 +80,7 @@ test("Product override excludes QA Swift bridges without changing the QA origin 
 
 test("only the Product override excludes storyboards and initializes a native window", () => {
   const config = readFileSync(new URL("../../ios/observer-product-pilot/ObserverProductPilot.xcconfig", import.meta.url), "utf8");
-  assert.match(config, /^EXCLUDED_SOURCE_FILE_NAMES = .*Main\.storyboard LaunchScreen\.storyboard$/m);
+  assert.match(config, /^EXCLUDED_SOURCE_FILE_NAMES = .*Main\.storyboard LaunchScreen\.storyboard Assets\.xcassets$/m);
   assert.match(template, /<key>UILaunchScreen<\/key>\s*<dict\/>/);
   assert.doesNotMatch(template, /UIMainStoryboardFile|UILaunchStoryboardName/);
 
@@ -93,4 +93,17 @@ test("only the Product override excludes storyboards and initializes a native wi
     const otherProfile = readFileSync(new URL("../../" + relativePath, import.meta.url), "utf8");
     assert.match(otherProfile, /<key>UIMainStoryboardFile<\/key>\s*<string>Main<\/string>/);
   }
+});
+
+test("pilot bundles the existing icon byte-for-byte and rejects a generated catalog", t => {
+  const source = new URL("../../ios/App/App/Assets.xcassets/ObserverQAIcon.appiconset/ObserverQAIcon.png",
+    import.meta.url);
+  const app = bundle(t);
+  finalizeProductPilot(app);
+  assert.deepEqual(readFileSync(join(app, "ObserverPilotIcon.png")), readFileSync(source));
+
+  const staleBundle = bundle(t);
+  writeFileSync(join(staleBundle, "Assets.car"), "stale generated catalog");
+  assert.throws(() => finalizeProductPilot(staleBundle), /PRODUCT_PILOT_IDENTITY_OR_CAPABILITIES_INVALID/);
+  assert.equal(existsSync(join(staleBundle, "ObserverPilotIcon.png")), false);
 });
