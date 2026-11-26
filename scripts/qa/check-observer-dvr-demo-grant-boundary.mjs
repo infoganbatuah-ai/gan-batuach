@@ -6,6 +6,7 @@ import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import * as health from "../../lib/domain/digital-observer/camera-live-status.ts";
 
 // Actual route module under a closed VM. No database, gateway, secret or network.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -25,6 +26,14 @@ const output = ts.transpileModule(readFileSync(file, "utf8"), {
 const errors = (output.diagnostics ?? []).filter((item) => item.category === ts.DiagnosticCategory.Error);
 assert.equal(errors.length, 0, errors.map((item) => ts.flattenDiagnosticMessageText(item.messageText, "\n")).join("\n"));
 const script = new vm.Script(output.outputText, { filename: file });
+const binding = {};
+const bindingSource = readFileSync(resolve(root, "lib/domain/digital-observer/edge-playback-source.ts"), "utf8");
+vm.runInNewContext(ts.transpileModule(bindingSource, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS }
+}).outputText, { exports: binding, require: (name) => {
+  assert.equal(name, "@/lib/domain/digital-observer/camera-live-status");
+  return health;
+} });
 const SITE = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
 const CAMERA = "6fddc732-13df-4268-9f32-3357262ea997";
 const plain = (value) => JSON.parse(JSON.stringify(value));
@@ -34,7 +43,7 @@ function fixture({ sourceMode = "demo", connected = true, access = true, poisonM
   const calls = { sourceSelect: [], sourceEq: [], admin: 0, grant: 0, secret: 0, siteAccess: 0 };
   const metadata = poisonMetadata ? poison : { gateway_stream_id: "SYNTHETIC_STREAM", gateway_id: "SYNTHETIC_GATEWAY" };
   const source = { id: CAMERA, observer_site_id: SITE, source_mode: sourceMode,
-    status: connected ? "connected" : "offline", health_status: connected ? "healthy" : "offline", metadata };
+    status: connected ? "connected" : "offline", health_status: connected ? "healthy" : "offline", last_seen_at: new Date().toISOString(), metadata };
   const sourceBuilder = {
     select(value) { calls.sourceSelect.push(value); return this; },
     eq(field, value) { calls.sourceEq.push([field, value]); return this; },
@@ -64,7 +73,7 @@ function fixture({ sourceMode = "demo", connected = true, access = true, poisonM
       buildDvrGatewayStatus: () => { assert.fail("GET not allowed in this test"); },
       createDvrPlaybackSession: () => { assert.fail("legacy channel route not allowed"); }
     },
-    "@/lib/domain/digital-observer/camera-live-status": { digitalObserverCameraIsConnected: (row) => row.status === "connected" && row.health_status === "healthy" },
+    "@/lib/domain/digital-observer/edge-playback-source": binding,
     "@/lib/domain/gateway-device-enrollment": { issueGatewayPlaybackGrant: (claim, secret) => {
       calls.grant++; assert.equal(secret, "SYNTHETIC_SECRET");
       assert.equal(claim.camera_source_id, CAMERA); return "SYNTHETIC_GRANT";

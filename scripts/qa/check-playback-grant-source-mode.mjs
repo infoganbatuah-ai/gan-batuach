@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
+import * as health from "../../lib/domain/digital-observer/camera-live-status.ts";
 
 // Closed actual-route harness: synthetic credentials and rows, no Gateway/media/DB/network.
 const localRequire = createRequire(new URL("../../package.json", import.meta.url));
@@ -10,6 +11,14 @@ const route = new URL("../../app/api/video-gateway/playback-grant/route.ts", imp
 const code = ts.transpileModule(readFileSync(route, "utf8"), {
   fileName: route.pathname, compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
 }).outputText;
+const binding = {};
+const bindingSource = readFileSync(new URL("../../lib/domain/digital-observer/edge-playback-source.ts", import.meta.url), "utf8");
+vm.runInNewContext(ts.transpileModule(bindingSource, {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS }
+}).outputText, { exports: binding, require: (name) => {
+  assert.equal(name, "@/lib/domain/digital-observer/camera-live-status");
+  return health;
+} });
 const siteId = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
 const cameraId = "6fddc732-13df-4268-9f32-3357262ea997";
 const gatewayId = "synthetic-gateway";
@@ -21,10 +30,10 @@ function load(mode, options = {}) {
     let selected = "";
     const query = { select(value) { selected = value; return query; }, eq() { return query; },
       async maybeSingle() {
-        if (table === "video_gateway_device_enrollments") return { data: { id: "synthetic-device", lifecycle_state: "ACTIVE", credential_version: 1, deployment_profile: "qa" }, error: null };
+        if (table === "video_gateway_device_enrollments") return { data: { id: "synthetic-device", lifecycle_state: "ACTIVE", credential_version: 1, deployment_profile: "PHYSICAL_GATEWAY" }, error: null };
         if (table === "digital_observer_camera_sources") {
           assert.ok(selected.split(",").includes("source_mode"));
-          return { data: { id: cameraId, observer_site_id: siteId, source_mode: mode,
+          return { data: { id: cameraId, observer_site_id: siteId, source_mode: mode, status: "connected", health_status: "healthy", last_seen_at: new Date().toISOString(),
             metadata: { gateway_id: gatewayId, gateway_stream_id: options.mismatch ? "wrong-stream" : streamId } }, error: null };
         }
         throw Error(`Unexpected table ${table}`);
@@ -37,9 +46,10 @@ function load(mode, options = {}) {
   const imports = {
     zod: localRequire("zod"),
     "@/lib/api": { fail: (message, status) => ({ ok: false, message, status }), ok: (data) => ({ ok: true, data }), handleRouteError: (error) => { throw error; } },
+    "@/lib/domain/digital-observer/edge-playback-source": binding,
     "@/lib/domain/gateway-device-enrollment": {
       gatewayDeviceSessionAllows: () => true,
-      verifyGatewayDeviceAccessToken: () => ({ gateway_id: gatewayId, observer_site_id: siteId, device_id: "synthetic-device", version: 2, credential_version: 1, deployment_profile: "qa" }),
+      verifyGatewayDeviceAccessToken: () => ({ gateway_id: gatewayId, observer_site_id: siteId, device_id: "synthetic-device", version: 2, credential_version: 1, deployment_profile: "PHYSICAL_GATEWAY" }),
       verifyGatewayPlaybackGrant: () => ({ gateway_id: gatewayId, observer_site_id: siteId, camera_source_id: cameraId, gateway_stream_id: streamId, nonce: "synthetic-nonce" }) },
     "@/lib/supabase/admin": { createAdminClient: () => admin }
   };

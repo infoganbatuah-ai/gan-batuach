@@ -980,7 +980,7 @@
 }
 .do-dashboard-camera-card > .do-camera-observer-presence { inset-block-end: 8px; }
 
-.do-dashboard-camera-copy { display: none; }
+.do-dashboard-camera-copy { display: none; overflow-wrap: anywhere; }
 
 .do-dashboard-business .do-dashboard-camera-copy {
   display: grid;
@@ -3204,7 +3204,6 @@
   .do-plan-chip { display: none; }
   .do-home-cameras-head { padding: 11px 10px 8px; }
   .do-home-dashboard-frame > .do-camera-grid { gap: 7px; padding: 0 10px 10px; }
-  .do-home-camera-view-actions > .do-link,
   .do-home-camera-view-actions > .do-icon-button { display: none; }
   .do-home-camera-view-toggle { display: inline-flex; align-items: center; gap: 6px; }
   .do-home-camera-view-toggle a { width: 34px; height: 34px; display: grid; place-items: center; color: var(--do-ink); background: #f3f7f8; border: 1px solid var(--do-line); border-radius: 6px; }
@@ -5192,12 +5191,19 @@
   .do-top-actions .logout-button { display: none; }
   .do-flow-shell .do-live-dot { display: none; }
   .do-dashboard-home .do-camera-footnote,
-  .do-dashboard-home .do-camera-status,
   .do-camera-workspace-home .do-camera-footnote,
   .do-camera-workspace-home .do-camera-status,
   .do-timeline-detail-panel .do-camera-footnote,
   .do-timeline-detail-panel .do-camera-status {
     display: none;
+  }
+  .do-dashboard-home .do-dashboard-camera-card .do-camera-name {
+    inset: auto 9px 9px;
+    width: fit-content;
+    max-width: calc(100% - 18px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .do-camera-test-step > .do-section-head { display: none; }
   .do-camera-target-step > h2,

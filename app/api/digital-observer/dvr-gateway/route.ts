@@ -2,7 +2,9 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
-import { digitalObserverCameraIsConnected } from "@/lib/domain/digital-observer/camera-live-status";
+import {
+  EDGE_PLAYBACK_SOURCE_COLUMNS, resolveEdgePlaybackSource, type EdgePlaybackSourceRow,
+} from "@/lib/domain/digital-observer/edge-playback-source";
 import { issueGatewayPlaybackGrant } from "@/lib/domain/gateway-device-enrollment";
 import { edgePlaybackOrigin, localPlaybackAllowed } from "@/lib/domain/digital-observer/edge-playback-origin";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -21,14 +23,7 @@ type ObserverRouteDatabase = Database & {
   public: {
     Tables: {
       observer_intelligence_signals: ObserverRouteTable<DvrGatewayEventRow & { observer_site_id: string }>;
-      digital_observer_camera_sources: ObserverRouteTable<{
-        id: string;
-        observer_site_id: string;
-        source_mode: string | null;
-        status: string | null;
-        health_status: string | null;
-        metadata: Record<string, unknown> | null;
-      }>;
+      digital_observer_camera_sources: ObserverRouteTable<EdgePlaybackSourceRow>;
     };
   };
 };
@@ -91,27 +86,26 @@ export async function POST(request: Request) {
       if (!access.session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
       const { data: source, error } = await (access.session.supabase as unknown as ObserverRouteClient)
         .from("digital_observer_camera_sources")
-        .select("id,observer_site_id,source_mode,status,health_status,metadata")
+        .select(EDGE_PLAYBACK_SOURCE_COLUMNS)
         .eq("id", payload.camera_source_id)
         .eq("observer_site_id", payload.observer_site_id)
         .single();
       if (error || !source) return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
-      if (source.source_mode === "demo") return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
-      if (!digitalObserverCameraIsConnected(source)) return fail("ערוץ ה-DVR אינו מחובר כרגע.", 409);
-      const gatewayStreamId = String(source.metadata?.gateway_stream_id || "").trim();
-      if (!gatewayStreamId) return fail("למקור המצלמה עדיין אין מזהה Gateway.", 409);
-      const gatewayId = String(source.metadata?.gateway_id || "").trim();
+      const binding = resolveEdgePlaybackSource(source);
+      if (binding.status === "mode_denied") return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
+      if (binding.status === "not_online") return fail("מקור המצלמה אינו זמין לצפייה כרגע.", 409);
+      if (binding.status === "stream_unmapped") return fail("מיפוי השידור של מקור המצלמה אינו תואם.", 409);
+      if (binding.status === "profile_unmapped") return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
       const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
-      if (!gatewayId || !secret) return fail("זהות ה-Gateway המקומי אינה זמינה.", 503);
+      if (binding.status === "gateway_unmapped" || !secret) return fail("זהות רכיב ה־Edge אינה זמינה.", 503);
+      const { gatewayId, streamId, profile } = binding;
       const enrollment = await createAdminClient().from("video_gateway_device_enrollments")
         .select("id,observer_site_id,gateway_id,status,lifecycle_state,deployment_profile")
         .eq("gateway_id", gatewayId).eq("observer_site_id", payload.observer_site_id)
         .eq("status", "delivered").maybeSingle();
       if (enrollment.error || !enrollment.data || enrollment.data.lifecycle_state !== "ACTIVE")
         return fail("שיוך ה־Gateway לאתר אינו פעיל.", 409);
-      const expectedProfile = source.metadata?.connector_device_type === "SOFTWARE_CONNECTOR"
-        ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY";
-      if (enrollment.data.deployment_profile !== expectedProfile)
+      if (enrollment.data.deployment_profile !== profile)
         return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
       const remoteOrigin = edgePlaybackOrigin(gatewayId, process.env.OBSERVER_PLAYBACK_EDGE_ORIGINS_JSON);
       const localAllowed = localPlaybackAllowed(request.url, process.env.NODE_ENV);
@@ -120,10 +114,10 @@ export async function POST(request: Request) {
         gateway_id: gatewayId,
         observer_site_id: payload.observer_site_id,
         camera_source_id: source.id,
-        gateway_stream_id: gatewayStreamId
+        gateway_stream_id: streamId
       }, secret);
       const requestedLocalPort = Number(source.metadata?.connector_local_port);
-      const localPlaybackPort = source.metadata?.connector_device_type === "SOFTWARE_CONNECTOR"
+      const localPlaybackPort = profile === "SOFTWARE_CONNECTOR"
         ? Number.isInteger(requestedLocalPort) && requestedLocalPort >= 1024 && requestedLocalPort <= 65535 ? requestedLocalPort : 18083
         : 18082;
       return ok({
