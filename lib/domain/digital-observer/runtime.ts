@@ -335,6 +335,7 @@ export async function loadObserverRuntime(profileId: string) {
     sites,
     packages: packages.data,
     cameras: normalizedCameras,
+    cameraHealthReadAt,
     signals: journal.events,
     spatiallyRejectedSignals: journal.spatialMismatches,
     subscriptions: subscriptions.data,

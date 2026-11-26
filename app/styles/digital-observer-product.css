@@ -720,6 +720,11 @@
   border: 1px solid var(--do-line);
   border-radius: 7px;
 }
+@media (min-width: 761px) {
+  .do-camera-workspace-home .do-camera-filter-strip {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 10rem) minmax(0, 10rem) auto;
+  }
+}
 .do-camera-filter-strip label {
   min-height: 42px;
   display: flex;

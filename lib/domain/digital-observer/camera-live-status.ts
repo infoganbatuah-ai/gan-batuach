@@ -62,7 +62,7 @@ export function digitalObserverCameraOperationalState(
     if (age <= (options.recoveryMs ?? DIGITAL_OBSERVER_CAMERA_RECOVERY_MS)) return "RECOVERING";
     return "OFFLINE";
   }
-  return ["connecting", "reconnecting", "readiness", "ready_to_test", "testing"].includes(status)
+  return ["connecting", "reconnecting", "recovering", "readiness", "ready_to_test", "testing"].includes(status)
     ? "RECOVERING"
     : "OFFLINE";
 }
@@ -76,8 +76,9 @@ export function digitalObserverCameraHealthProjection(camera: CameraStatusInput,
   return { operationalState, status: "offline", healthStatus: "offline", live: false };
 }
 
-export function digitalObserverCameraHasLiveStream(camera: CameraStatusInput) {
-  return Boolean(camera.source_mode !== "demo" && digitalObserverCameraStreamReference(camera) && digitalObserverCameraOperationalState(camera) === "ONLINE");
+export function digitalObserverCameraHasLiveStream(camera: CameraStatusInput, options: { now?: number } = {}) {
+  return Boolean(camera.source_mode !== "demo" && digitalObserverCameraStreamReference(camera)
+    && digitalObserverCameraOperationalState(camera, options) === "ONLINE");
 }
 
 // Compatibility alias for callers written before the vendor-agnostic source contract.
