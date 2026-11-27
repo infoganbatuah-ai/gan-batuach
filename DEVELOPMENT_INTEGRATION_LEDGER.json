@@ -38,6 +38,53 @@
   ],
   "units": [
     {
+      "id": "gan-stage-2-management-product-qa-20261128",
+      "taskId": "GAN-STAGE-2-MANAGEMENT-PRODUCT-QA",
+      "project": "Gan Batuach Management",
+      "title": "Stage 2 isolated Development core Management journeys",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "integration/development",
+      "sourceCommits": [
+        "2f09db077eb29bcce444467957fb5b444af133d1"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "status": "EVIDENCE_ONLY",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/integration/development@2f09db077eb29bcce444467957fb5b444af133d1"
+        ]
+      },
+      "validation": {
+        "status": "SCOPED_LOCAL_MANAGEMENT_JOURNEYS_VERIFIED",
+        "evidence": [
+          "Ten journey groups across Owner, Manager, Parent, Staff, Inspector and Admin. Fresh reports 27/27, six browser views, eleven persisted-state checks, four linked comparisons. Initial API readback 20/21 included one wrong expectation on the operator complaints route. The reporter endpoint, public fields and role separation passed five follow-up checks.",
+          "Seventeen historical receipts verified by checksum with current route and role evidence. No new business fixture or Product source change.",
+          "Restricted external .recovery/gan-stage-2-management/ACCEPTANCE.md SHA256 667ad0e3c2e829d6a991427cc21667c3e6ae576dc17c906dfe8d282e1a3fc67a; SHA256SUMS SHA256 e0e35a6fe67d47caca1878b8fbfbd2b90979fff1d3ffa558afacf4602cc80137."
+        ],
+        "limits": "Local scoped Product qualification. Live providers, hardware, owner visual acceptance, exhaustive security, supplier economics and release qualification remain open."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "testedProductCommit": "2f09db077eb29bcce444467957fb5b444af133d1",
+        "scope": "Evidence only"
+      },
+      "dependencies": {
+        "units": [
+          "codex/gb-parent-discovery-age-filter-20261127",
+          "codex/gb-m39-parent-discovery-accessibility-20261124"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_SCOPED_STAGE_2_CORE_MANAGEMENT",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "External owner decides when to start Stage 3."
+    },
+    {
       "id": "backup/active-observer-engine-20260831",
       "project": "Digital Observer / shared",
       "title": "feat: connect verified camera gateway adapter",
