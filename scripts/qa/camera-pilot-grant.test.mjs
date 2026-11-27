@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -282,4 +282,45 @@ test("issue uses the private authenticated empty-body contract and validates the
   assert.ok(await requestCameraPilotPlayback(request));
   responseGarden = "garden-b";
   assert.equal(await requestCameraPilotPlayback(request), null);
+});
+
+test("window blocks repeat signaling and propagates an authorized stop", async () => {
+  const context = {
+    sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+    camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+  };
+  const handle = "h".repeat(43);
+  const operations = [];
+  const window = createCameraPilotWindow({
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    resolveContext: async () => context,
+    now: () => 10_000,
+    transport: {
+      async issue(assertion) {
+        operations.push("issue");
+        const proof = verifyEnvelope(assertion);
+        return { ...proof.binding, version: 1, environment: "development", capability: "live_playback",
+          operation: "issue", recording: false, handle, expiresAtMs: 15_000 };
+      },
+      async signal(assertion) {
+        operations.push("signal");
+        assert.equal(verifyEnvelope(assertion).handle, handle);
+        return "v=0\r\n";
+      },
+      async revoke(revokedHandle) {
+        operations.push("revoke");
+        assert.equal(revokedHandle, handle);
+        return true;
+      }
+    }
+  });
+  const offer = () => new Request("http://127.0.0.1/pilot", {
+    method: "POST", headers: { "content-type": "application/sdp" },
+    body: "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n"
+  });
+  const answers = await Promise.all([window.start(offer()), window.start(offer())]);
+  assert.deepEqual(answers, ["v=0\r\n", null]);
+  assert.equal(await window.stop(context.sessionId), true);
+  assert.equal(await window.start(offer()), null);
+  assert.deepEqual(operations, ["issue", "signal", "revoke"]);
 });
