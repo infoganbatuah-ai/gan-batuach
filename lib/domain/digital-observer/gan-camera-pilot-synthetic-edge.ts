@@ -126,15 +126,18 @@ export function openGanCameraPilotSyntheticEdge({ databasePath, windowId, scope,
         return { scope: requestedScope, handle, expiresAtMs: grant.expires };
       });
     },
-    async revoke(handle) {
-      if (!handlePattern.test(handle)) return;
-      transaction(() => {
-        const key = digest(handle);
-        db.prepare("UPDATE pilot_grants SET revoked = 1 WHERE handle = ?").run(key);
-        if (read()?.lease === key) stop("REVOKED");
-      });
-    }
+    async revoke(handle) { revokeKnownHandle(handle); }
   };
+
+  function revokeKnownHandle(handle: string) {
+    if (!handlePattern.test(handle)) return false;
+    return transaction(() => {
+      const key = digest(handle);
+      const result = db.prepare("UPDATE pilot_grants SET revoked = 1 WHERE handle = ?").run(key);
+      if (read()?.lease === key) stop("REVOKED");
+      return result.changes === 1;
+    });
+  }
 
   function transportAllowed(handle: string, requestedScope: GanCameraPilotScope) {
     if (!handlePattern.test(handle) || scopeHash(requestedScope) !== expectedScope) return false;
@@ -226,5 +229,5 @@ export function openGanCameraPilotSyntheticEdge({ databasePath, windowId, scope,
     return `${payload}.${sign(null, Buffer.from(payload), key).toString("base64url")}`;
   }
 
-  return { store, transportAllowed, reserveTransportBytes, deliverSyntheticChunk, signSyntheticEvidence, close: () => db.close() };
+  return { store, revokeKnownHandle, transportAllowed, reserveTransportBytes, deliverSyntheticChunk, signSyntheticEvidence, close: () => db.close() };
 }

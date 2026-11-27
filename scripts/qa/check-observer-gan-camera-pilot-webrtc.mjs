@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { once } from "node:events";
 import { mkdtempSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
@@ -9,11 +10,16 @@ import { loadTs } from "./digital-guard-test-loader.mjs";
 
 const { openGanCameraPilotSyntheticEdge } = loadTs("lib/domain/digital-observer/gan-camera-pilot-synthetic-edge.ts");
 const { startGanCameraPilotWebRtc } = loadTs("lib/domain/digital-observer/gan-camera-pilot-webrtc.ts", { fetch: globalThis.fetch });
+const { createGanCameraPilotHostAuthorization } = loadTs("lib/domain/digital-observer/gan-camera-pilot-grant.ts");
 const scope = { viewerId: "qa-viewer", role: "parent", gardenId: "qa-garden", siteId: "qa-site", cameraId: "qa-camera",
   protocol: "WebRTC", tenantId: "qa-tenant", sessionId: "qa-session", sourceId: "synthetic", gatewayId: "loopback", streamId: "pattern" };
 const handle = "h".repeat(43);
 const offer = "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n";
 const loopback = "127.0.0.1";
+const service = "s".repeat(43);
+const { publicKey, privateKey } = generateKeyPairSync("ed25519");
+const { viewerId, role, gardenId, siteId, cameraId, protocol, sessionId } = scope;
+const binding = { viewerId, role, gardenId, siteId, cameraId, protocol };
 const readPassword = "r".repeat(43);
 const readAuth = `Basic ${Buffer.from(`do-pilot-reader:${readPassword}`).toString("base64")}`;
 
@@ -41,7 +47,10 @@ async function fixture(t) {
   signaling.listen(0, loopback);
   await once(signaling, "listening");
   assert.equal(await edge.store.issue({ handle, scope, expiresAtMs: 50_000 }, "j".repeat(32)), true);
-  const gate = await startGanCameraPilotWebRtc({ environment: "development", edge,
+  const host = createGanCameraPilotHostAuthorization({ environment: "development", qaGardenId: scope.gardenId,
+    ganPublicKey: publicKey, ganServiceBearerSha256: createHash("sha256").update(service).digest("hex"), store: edge.store,
+    now: () => at, resolveScope: async () => scope });
+  const gate = await startGanCameraPilotWebRtc({ environment: "development", edge, issue: host.issue,
     upstream: { httpPort: signaling.address().port, iceTcpPort, readPassword },
     authenticateService: (request) => request.headers.authorization === "Bearer synthetic-control-service",
     async authorize(request) {
@@ -83,6 +92,32 @@ async function fixture(t) {
   });
   return { edge, gate, request, open, direct, revoke, advance: (value) => { at = value; }, get requests() { return requests; } };
 }
+
+test("the private issue endpoint returns a signed-scope handle that can be revoked before opening media", async (t) => {
+  const h = await fixture(t);
+  const issue = (overrides = {}, requestOptions = {}) => {
+    const payload = Buffer.from(JSON.stringify({ version: 1, operation: "issue", issuer: "gan_batuach",
+      audience: "digital_observer:gan_camera_pilot", environment: "development", binding, sessionId,
+      jti: "i".repeat(32), issuedAtMs: 10_000, expiresAtMs: 50_000, ...overrides })).toString("base64url");
+    const proof = `${payload}.${sign(null, Buffer.from(payload), privateKey).toString("base64url")}`;
+    return fetch(new URL("/pilot/issue", h.gate.endpoint), { method: "POST",
+      headers: { Authorization: `Bearer ${service}`, "X-Gan-Pilot-Assertion": proof }, ...requestOptions });
+  };
+  assert.equal((await issue({}, { headers: {} })).status, 403);
+  assert.equal((await issue({}, { body: "{}" })).status, 400);
+  assert.equal((await issue({ binding: { ...binding, gardenId: "other-garden" } })).status, 403);
+  const response = await issue();
+  assert.equal(response.status, 201);
+  assert.equal(response.headers.get("cache-control"), "private, no-store");
+  const receipt = await response.json();
+  assert.deepEqual(receipt, { ...binding, version: 1, environment: "development", capability: "live_playback",
+    recording: false, operation: "issue", handle: receipt.handle, expiresAtMs: 50_000 });
+  assert.match(receipt.handle, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal((await issue()).status, 403);
+  assert.equal((await h.revoke(receipt.handle)).status, 204);
+  assert.equal(await h.edge.store.consume(receipt.handle, scope, 50_000), null);
+  assert.equal(h.requests, 0);
+});
 
 test("authenticated signaling rejects external candidates, binds one receiver and disconnects on revocation", async (t) => {
   const h = await fixture(t);

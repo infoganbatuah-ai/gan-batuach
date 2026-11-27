@@ -147,12 +147,26 @@ export function createGanCameraPilotHostAuthorization(options: HostOptions) {
     const credential = typeof authorization === "string" ? /^Bearer ([A-Za-z0-9_-]{43,128})$/.exec(authorization)?.[1] : null;
     return typeof credential === "string" && timingSafeEqual(createHash("sha256").update(credential).digest(), expectedCredential);
   }
-  async function redeem(request: RequestHeaders) {
+  function trustedAssertion(request: RequestHeaders) {
     const signedAssertion = request.headers["x-gan-pilot-assertion"];
     if (!authenticateService(request) || typeof signedAssertion !== "string") return null;
+    const assertion = verifyAssertion(signedAssertion, ganPublicKey, now());
+    return assertion ? { assertion, signedAssertion } : null;
+  }
+  async function issue(request: RequestHeaders) {
     try {
-      const assertion = verifyAssertion(signedAssertion, ganPublicKey, now());
-      if (!assertion || assertion.operation !== "redeem") return null;
+      const verified = trustedAssertion(request);
+      if (verified?.assertion.operation !== "issue") return null;
+      return createGanCameraPilotGrantProvider({ ...options, signedAssertion: verified.signedAssertion }).issue(verified.assertion.binding);
+    } catch {
+      return null;
+    }
+  }
+  async function redeem(request: RequestHeaders) {
+    try {
+      const verified = trustedAssertion(request);
+      if (verified?.assertion.operation !== "redeem") return null;
+      const { assertion, signedAssertion } = verified;
       const resolved: { current: GanCameraPilotScope | null } = { current: null };
       const provider = createGanCameraPilotGrantProvider({ ...options, signedAssertion,
         async resolveScope(binding, sessionId) {
@@ -166,5 +180,5 @@ export function createGanCameraPilotHostAuthorization(options: HostOptions) {
       return null;
     }
   }
-  return { redeem, authenticateService };
+  return { issue, redeem, authenticateService };
 }

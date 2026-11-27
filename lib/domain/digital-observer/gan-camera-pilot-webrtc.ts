@@ -2,12 +2,13 @@ import "server-only";
 import { createServer, type IncomingMessage } from "node:http";
 import { connect, createServer as createRelay, type Socket } from "node:net";
 import type { AddressInfo } from "node:net";
-import type { GanCameraPilotScope } from "./gan-camera-pilot-grant";
+import type { createGanCameraPilotHostAuthorization, GanCameraPilotScope } from "./gan-camera-pilot-grant";
 import type { openGanCameraPilotSyntheticEdge } from "./gan-camera-pilot-synthetic-edge";
 
 const loopback = "127.0.0.1";
 const offerPath = "/pilot/whep";
 const revokePath = "/pilot/revoke";
+const issuePath = "/pilot/issue";
 const sdpBytes = 16 * 1024;
 const maxChunkBytes = 64 * 1024;
 type Lease = { handle: string; scope: GanCameraPilotScope };
@@ -48,16 +49,17 @@ async function readOffer(request: IncomingMessage) {
 type Options = {
   environment: string;
   upstream: { httpPort: number; iceTcpPort: number; readPassword: string };
-  edge: Pick<ReturnType<typeof openGanCameraPilotSyntheticEdge>, "transportAllowed" | "reserveTransportBytes" | "store">;
+  edge: Pick<ReturnType<typeof openGanCameraPilotSyntheticEdge>, "transportAllowed" | "reserveTransportBytes" | "revokeKnownHandle" | "store">;
   // The caller must authenticate the QA session and redeem a signed Gan grant
   // for the exact bound scope via the same edge store. It must not trust headers
   // for viewer/role/site. The resulting lease is never sent to the browser.
   authorize: (request: IncomingMessage) => Promise<Lease | null>;
+  issue: ReturnType<typeof createGanCameraPilotHostAuthorization>["issue"];
   authenticateService: (request: IncomingMessage) => boolean;
 };
 
 /** Single-host synthetic fixture. Do not mount in the product or expose the upstream. */
-export async function startGanCameraPilotWebRtc({ environment, upstream, edge, authorize, authenticateService }: Options) {
+export async function startGanCameraPilotWebRtc({ environment, upstream, edge, authorize, issue, authenticateService }: Options) {
   if (environment !== "development" || ![upstream.httpPort, upstream.iceTcpPort].every(
     (port) => Number.isInteger(port) && port > 0 && port <= 65535) ||
     !/^[A-Za-z0-9_-]{43,128}$/.test(upstream.readPassword)) throw Error("INVALID_SYNTHETIC_WEBRTC_TARGET");
@@ -106,6 +108,19 @@ export async function startGanCameraPilotWebRtc({ environment, upstream, edge, a
     if (request.headers.host !== host || (request.headers.origin !== undefined && request.headers.origin !== `http://${host}`)) {
       response.writeHead(403).end(); return;
     }
+    if (request.url === issuePath && request.method === "POST") {
+      // The signed assertion is the entire issue request. There is no JSON or
+      // SDP body in which a caller can offer different identifiers.
+      if ((request.headers["content-length"] ?? "0") !== "0" || request.headers["transfer-encoding"]) {
+        response.writeHead(400).end(); return;
+      }
+      try {
+        const receipt = !stopped && await issue(request);
+        if (!receipt || stopped) { response.writeHead(403).end(); return; }
+        response.writeHead(201, { "Content-Type": "application/json" }).end(JSON.stringify(receipt));
+      } catch { response.writeHead(503).end(); }
+      return;
+    }
     if (request.url === revokePath && request.method === "POST") {
       try {
         if (!authenticateService(request)) { response.writeHead(403).end(); return; }
@@ -114,8 +129,8 @@ export async function startGanCameraPilotWebRtc({ environment, upstream, edge, a
         const body: unknown = raw && JSON.parse(raw);
         if (!body || typeof body !== "object" || Object.keys(body).length !== 1 || !("handle" in body) ||
             typeof body.handle !== "string") { response.writeHead(400).end(); return; }
-        if (!lease || lease.handle !== body.handle) { response.writeHead(403).end(); return; }
-        await revoke();
+        if (lease?.handle === body.handle) await revoke();
+        else if (!edge.revokeKnownHandle(body.handle)) { response.writeHead(403).end(); return; }
         response.writeHead(204).end();
       } catch (error) {
         response.writeHead(error instanceof SyntaxError ? 400 : 503).end();
