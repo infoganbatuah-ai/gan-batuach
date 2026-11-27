@@ -71,13 +71,17 @@ export function UniversalCameraOnboarding({ sites, initialSiteId, initialIntent 
       const started = await fetch("/api/digital-observer/mobile-camera-setup", { method: "POST", credentials: "same-origin", cache: "no-store", headers,
         body: JSON.stringify({ action: "start", observer_site_id: siteId }) });
       const startBody = await started.json(); if (!started.ok) throw new Error("MOBILE_SETUP_UNAVAILABLE");
+      const { state, session_id: sessionId } = startBody?.data ?? {};
       const bridge = (window as typeof window & { DigitalObserverCameraDiscovery?: NativeDiscoveryBridge }).DigitalObserverCameraDiscovery;
-      if (!bridge) { setMobileMessage("איתור מקומי בטלפון עדיין אינו זמין בגרסה הזו. אפשר להמשיך לפי שם האפליקציה או היצרן."); return; }
-      const receipt = await bridge.discoverLocalCameras({ sessionId: startBody.data.session_id, siteId });
+      if (!bridge || state !== "WAITING_FOR_PERMISSION" || typeof sessionId !== "string" || !sessionId.trim()) {
+        setMobileMessage("איתור מקומי בטלפון עדיין אינו זמין. אפשר להמשיך לפי שם האפליקציה או היצרן.");
+        return;
+      }
+      const receipt = await bridge.discoverLocalCameras({ sessionId, siteId });
       const submitted = await fetch("/api/digital-observer/mobile-camera-setup", { method: "POST", credentials: "same-origin", cache: "no-store", headers,
-        body: JSON.stringify({ action: "submit", observer_site_id: siteId, session_id: startBody.data.session_id, receipt }) });
+        body: JSON.stringify({ action: "submit", observer_site_id: siteId, session_id: sessionId, receipt }) });
       const submitBody = await submitted.json(); if (!submitted.ok) throw new Error("MOBILE_DISCOVERY_REJECTED");
-      setResult({ plan: submitBody.data.plan, diagnostic_id: startBody.data.session_id, connector_online: false, installer_delivery: "PLATFORM_CHECK_REQUIRED" });
+      setResult({ plan: submitBody.data.plan, diagnostic_id: sessionId, connector_online: false, installer_delivery: "PLATFORM_CHECK_REQUIRED" });
     } catch { void reportFailure("LOCAL_PERMISSION_DENIED"); setError("לא ניתן להשלים חיפוש מקומי בטלפון. אפשר להמשיך לפי שם האפליקציה או היצרן."); }
     finally { setBusy(false); }
   }
