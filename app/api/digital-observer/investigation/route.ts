@@ -5,6 +5,7 @@ import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@
 import { guardHistoryPrivacyRestricted } from "@/lib/domain/event-engine/guard-journal-search";
 import { compileInvestigationQuery, validateInvestigationQuery, type InvestigationCameraResource } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
+import { buildInvestigationRecordingTimeline } from "@/lib/domain/digital-observer/investigation-recording-timeline";
 import type { InvestigationSource } from "@/lib/domain/digital-observer/investigation-results";
 import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -108,11 +109,16 @@ export async function POST(request: Request) {
       location_label: camera.location_label,
       camera_stream_id: camera.camera_stream_id
     }));
-    const result = await searchDigitalObserverInvestigation({ db: dataClient, query: validation.query, sources });
+    const now = new Date();
+    const result = await searchDigitalObserverInvestigation({ db: dataClient, query: validation.query, sources, now });
+    const recordingTimeline = buildInvestigationRecordingTimeline({
+      result, siteId: payload.observer_site_id, sources, historyAllowed: true, now
+    });
     return ok({
       status: "READY",
       compilation,
       result,
+      recordingTimeline,
       debug: observerAdmin ? {
         question: payload.question,
         compiler: compilation.compilerVersion,

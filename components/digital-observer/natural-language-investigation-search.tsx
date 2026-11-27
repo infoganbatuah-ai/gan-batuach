@@ -4,6 +4,8 @@ import { useState } from "react";
 import { AlertTriangle, Braces, CalendarClock, Camera, CheckCircle2, Clock3, FileVideo2, ListTree, LoaderCircle, Search, ShieldCheck } from "lucide-react";
 import type { InvestigationSearchResult } from "@/lib/domain/digital-observer/investigation-results";
 
+import type { InvestigationRecordingTimeline } from "@/lib/domain/digital-observer/investigation-recording-timeline";
+
 type Compilation = {
   status: string;
   compilerVersion: string;
@@ -16,6 +18,7 @@ type ApiPayload = {
   status: string;
   compilation: Compilation;
   result: (InvestigationSearchResult & { queryLatencyMs: number }) | null;
+  recordingTimeline?: InvestigationRecordingTimeline;
   debug: Record<string, unknown> | null;
 };
 
@@ -33,13 +36,14 @@ const evidenceLabels: Record<string, string> = {
   UNAVAILABLE: "ראיה אינה זמינה"
 };
 
-function localTime(value: string, timeZone: string) {
-  return new Intl.DateTimeFormat("he-IL", { timeZone, dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+function localTime(value: string, timeZone: string, withSeconds = false) {
+  return new Intl.DateTimeFormat("he-IL", { timeZone, dateStyle: "short", timeStyle: withSeconds ? "medium" : "short" }).format(new Date(value));
 }
 
 export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, adminMode = false }: { observerSiteId: string; siteName: string; adminMode?: boolean }) {
   const [question, setQuestion] = useState(examples[0]);
   const [payload, setPayload] = useState<ApiPayload | null>(null);
+  const [timelineSource, setTimelineSource] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +60,7 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
       const body = await response.json() as { data?: ApiPayload; error?: string };
       if (!response.ok || !body.data) throw new Error(body.error || "לא ניתן לבצע את החיפוש כרגע");
       setPayload(body.data);
+      setTimelineSource("");
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "לא ניתן לבצע את החיפוש כרגע");
     } finally {
@@ -65,6 +70,11 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
 
   const result = payload?.result;
   const timeZone = result?.query.timeZone ?? "Asia/Jerusalem";
+
+  const timeline = payload?.recordingTimeline ?? [];
+  const timelineSources = new Map(timeline.map((row) => [row.sourceId, row.sourceLabel]));
+  const eventsById = new Map(result?.events.map((event) => [event.id, event]) ?? []);
+  const visibleTimeline = timelineSource ? timeline.filter((row) => row.sourceId === timelineSource) : timeline;
 
   return <div className="do-page-stack" id="natural-language-investigation">
     <section className="do-panel">
@@ -104,6 +114,26 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
         <article className="do-metric"><Clock3 /><strong>{result.queryLatencyMs}ms</strong><span>זמן שאילתה</span></article>
       </section>
 
+      {timeline.length ? <section className="do-panel">
+        <div className="do-section-head"><div><h2>ציר זמן לפי מצלמה</h2><p>האירועים בתוצאות מסודרים מזמן מוקדם למאוחר. שליפה מארכיון המקליט עדיין אינה זמינה.</p></div><CalendarClock /></div>
+        {timelineSources.size > 1 ? <label className="do-field"><span>מצלמה בתוצאות העמוד</span>
+          <select value={timelineSource} onChange={(event) => setTimelineSource(event.target.value)}>
+            <option value="">כל המצלמות בתוצאות</option>
+            {Array.from(timelineSources, ([id, label]) => <option key={id} value={id}>{label}</option>)}
+          </select>
+        </label> : null}
+        <ol className="do-row-list">{visibleTimeline.map((row) => {
+          const event = eventsById.get(row.eventId);
+          return <li className="do-row" key={row.eventId}>
+            <Clock3 /><span className="do-row-main"><strong>{row.label} · {row.sourceLabel}</strong>
+              <small>{localTime(row.occurredAt, timeZone)} · {evidenceLabels[row.evidenceState]}{event?.confidence == null ? "" : ` · ${Math.round(event.confidence * 100)}% ביטחון זיהוי`}</small>
+              {row.candidate ? <small>טווח לבדיקה בארכיון · {localTime(row.candidate.fromInclusive, timeZone, true)} עד {localTime(row.candidate.toExclusive, timeZone, true)}</small> : null}
+            </span>
+            {event?.evidence.playbackPath ? <span className="do-row-meta"><a className="do-link" href={event.evidence.playbackPath} target="_blank" rel="noreferrer">פתיחת ראיית אירוע</a></span> : null}
+          </li>;
+        })}</ol>
+      </section> : null}
+
       {result.incidents.map((incident) => <article className="do-panel" key={incident.id}>
         <div className="do-section-head"><div><h2>{incident.title}</h2><p>{incident.summary}</p></div><span className="do-badge info">{incident.status}</span></div>
         <div className="do-summary-list">
@@ -118,7 +148,7 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
         <div className="do-button-row"><a className="do-button secondary" href={`/digital-observer/incidents?site=${incident.siteId}&incident=${incident.id}`}>פתיחת התקרית</a>{incident.evidence.playbackPaths[0] ? <a className="do-button primary" href={incident.evidence.playbackPaths[0]} target="_blank" rel="noreferrer"><FileVideo2 /> פתיחת ראיה מורשית</a> : null}</div>
       </article>)}
 
-      {result.events.length ? <section className="do-panel"><div className="do-section-head"><div><h2>אירועים עובדתיים</h2><p>Track הוא רצף תצפיות ואינו זהות של אדם.</p></div><CalendarClock /></div><div className="do-row-list">{result.events.map((event) => <div className="do-row" key={event.id}><Camera /><span className="do-row-main"><strong>{event.label} · {event.cameraName}</strong><small>{localTime(event.occurredAt, timeZone)} · {event.confidence == null ? "ללא ציון ביטחון" : `${Math.round(event.confidence * 100)}% ביטחון זיהוי`} · {evidenceLabels[event.evidence.state]}</small></span><span className="do-row-meta">{event.evidence.playbackPath ? <a className="do-link" href={event.evidence.playbackPath} target="_blank" rel="noreferrer">פתיחת ראיה</a> : null}</span></div>)}</div></section> : null}
+      {!timeline.length && result.events.length ? <section className="do-panel"><div className="do-section-head"><div><h2>אירועים עובדתיים</h2><p>Track הוא רצף תצפיות ואינו זהות של אדם.</p></div><CalendarClock /></div><div className="do-row-list">{result.events.map((event) => <div className="do-row" key={event.id}><Camera /><span className="do-row-main"><strong>{event.label} · {event.cameraName}</strong><small>{localTime(event.occurredAt, timeZone)} · {event.confidence == null ? "ללא ציון ביטחון" : `${Math.round(event.confidence * 100)}% ביטחון זיהוי`} · {evidenceLabels[event.evidence.state]}</small></span><span className="do-row-meta">{event.evidence.playbackPath ? <a className="do-link" href={event.evidence.playbackPath} target="_blank" rel="noreferrer">פתיחת ראיה</a> : null}</span></div>)}</div></section> : null}
 
       {result.coverage.scanCapReached ? <div className="do-notice warn"><AlertTriangle /><span>החיפוש הגיע לתקרת הסריקה. מומלץ לצמצם את טווח הזמן או לבחור מצלמה.</span></div> : null}
       {result.pagination.nextCursor != null ? <button className="do-button secondary" type="button" disabled={busy} onClick={() => void run({ cursor: result.pagination.nextCursor! })}>העמוד הבא</button> : null}
