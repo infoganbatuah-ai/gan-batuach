@@ -30,7 +30,7 @@ function response(body: unknown, status = 200) {
 
 function codeFor(error: unknown) {
   const message = error instanceof Error ? error.message : "EXTERNAL_API_FAILED";
-  if (/AUTH_REQUIRED|CREDENTIAL_INVALID|SIGNATURE|TIMESTAMP|NONCE/.test(message)) return [401, message] as const;
+  if (/AUTH_REQUIRED|CREDENTIAL_INVALID|SERVICE_ACCOUNT_INACTIVE|SIGNATURE|TIMESTAMP|NONCE/.test(message)) return [401, message] as const;
   if (/PERMISSION|SITE_SCOPE|ENTITLEMENT/.test(message)) return [403, message] as const;
   if (/REPLAY|IDEMPOTENCY/.test(message)) return [409, message] as const;
   if (/RATE_LIMITED/.test(message)) return [429, message] as const;
@@ -339,7 +339,10 @@ async function dispatch(request: Request, context: Context) {
   if (request.method === "POST" && path === "integrations/deep-links") return integrationDeepLink(request, body);
   if (request.method === "POST" && path === "federation/query") return federation(request, body);
   if (request.method === "GET" && path === "gan-batuach/contract") return ganBatuachContract(request, body);
-  if (request.method === "GET" && segments[0] === "evidence" && segments[1]) return evidence(request, body, segments[1], segments[2] === "media");
+  if (request.method === "GET" && segments[0] === "evidence" && segments[1] &&
+    (segments.length === 2 || (segments.length === 3 && segments[2] === "media"))) {
+    return evidence(request, body, segments[1], segments[2] === "media");
+  }
   return response(externalApiError("EXTERNAL_API_ROUTE_NOT_FOUND", request.headers.get("x-request-id") ?? "unknown"), 404);
 }
 

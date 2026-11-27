@@ -81,14 +81,15 @@ export async function authenticateExternalApiRequest(request: Request, body: str
   const credentialResult = await (admin as any).from("digital_observer_service_account_credentials")
     .select("id,service_account_id,expires_at,revoked_at")
     .eq("credential_hash", hash).is("revoked_at", null).maybeSingle();
-  if (credentialResult.error || !credentialResult.data || new Date(credentialResult.data.expires_at).getTime() <= Date.now()) {
+  if (credentialResult.error || !credentialResult.data || credentialResult.data.revoked_at ||
+    !(Date.parse(credentialResult.data.expires_at) > Date.now())) {
     throw new Error("EXTERNAL_API_CREDENTIAL_INVALID");
   }
   const accountResult = await (admin as any).from("digital_observer_service_accounts")
     .select("id,organization_id,account_status,permissions,all_sites,expires_at,revoked_at")
     .eq("id", credentialResult.data.service_account_id).maybeSingle();
   const account = accountResult.data;
-  if (accountResult.error || !account || account.account_status !== "active" || account.revoked_at || new Date(account.expires_at).getTime() <= Date.now()) {
+  if (accountResult.error || !account || account.account_status !== "active" || account.revoked_at || !(Date.parse(account.expires_at) > Date.now())) {
     throw new Error("EXTERNAL_API_SERVICE_ACCOUNT_INACTIVE");
   }
   const sites = account.all_sites ? { data: [], error: null } : await (admin as any).from("digital_observer_service_account_sites")
@@ -160,14 +161,15 @@ export async function authorizeExternalApiSite(admin: Admin, actor: ExternalApiA
   const ownSite = await (admin as any).from("observer_sites")
     .select("id,name,owner_profile_id,site_type,garden_id,digital_observer_organization_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
     .eq("id", input.siteId).eq("digital_observer_organization_id", actor.organizationId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
-  let site = ownSite.data;
+  let site = ownSite.error ? null : ownSite.data;
   if (!site) {
-    const delegated = await authorizePartnerDelegatedSite(admin, { serviceAccountId: actor.serviceAccountId, siteId: input.siteId });
-    if (delegated) {
+    const customerOrganizationId = await authorizePartnerDelegatedSite(admin, { serviceAccountId: actor.serviceAccountId, organizationId: actor.organizationId, siteId: input.siteId });
+    if (customerOrganizationId) {
       const delegatedSite = await (admin as any).from("observer_sites")
         .select("id,name,owner_profile_id,site_type,garden_id,digital_observer_organization_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
-        .eq("id", input.siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
-      site = delegatedSite.data;
+        .eq("id", input.siteId).eq("digital_observer_organization_id", customerOrganizationId)
+        .is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
+      site = delegatedSite.error ? null : delegatedSite.data;
     }
   }
   if (!site) throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
@@ -196,8 +198,10 @@ export async function assertExternalApiRateLimit(admin: Admin, actor: ExternalAp
   if (recent.error) throw new Error("EXTERNAL_API_RATE_STATE_UNAVAILABLE");
   if ((recent.count ?? 0) > 120) throw new Error("EXTERNAL_API_RATE_LIMITED");
   const site = await (admin as any).from("observer_sites").select("id,digital_observer_organization_id").eq("id", siteId).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
-  if (!site.data || (site.data.digital_observer_organization_id !== actor.organizationId
-    && !(await authorizePartnerDelegatedSite(admin, { serviceAccountId: actor.serviceAccountId, siteId })))) {
+  if (site.error || !site.data) throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
+  if (site.data.digital_observer_organization_id === actor.organizationId) return;
+  const customerOrganizationId = await authorizePartnerDelegatedSite(admin, { serviceAccountId: actor.serviceAccountId, organizationId: actor.organizationId, siteId });
+  if (!customerOrganizationId || site.data.digital_observer_organization_id !== customerOrganizationId) {
     throw new Error("EXTERNAL_API_SITE_SCOPE_DENIED");
   }
 }

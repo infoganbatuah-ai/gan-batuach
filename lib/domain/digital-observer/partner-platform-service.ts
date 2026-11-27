@@ -151,15 +151,18 @@ export async function linkPartnerServiceAccount(admin: Admin, input: { partnerId
   return mapping.data;
 }
 
-export async function authorizePartnerDelegatedSite(admin: Admin, input: { serviceAccountId: string; siteId: string }) {
+export async function authorizePartnerDelegatedSite(admin: Admin, input: { serviceAccountId: string; organizationId: string; siteId: string }): Promise<string | null> {
   const mapping = await (admin as any).from("digital_observer_partner_service_accounts")
-    .select("partner_customer_id,access_kind,digital_observer_partner_customers!inner(id,customer_status,partner_id,digital_observer_partners!inner(partner_status))")
+    .select("partner_id,partner_customer_id,access_kind,digital_observer_partner_customers!inner(id,customer_organization_id,customer_status,partner_id,digital_observer_partners!inner(organization_id,partner_status))")
     .eq("service_account_id", input.serviceAccountId).eq("access_kind", "customer_resources").maybeSingle();
   const customer = (mapping.data as any)?.digital_observer_partner_customers;
-  if (!customer || customer.customer_status !== "active" || customer.digital_observer_partners.partner_status !== "sandbox") return false;
+  if (mapping.error || !customer || customer.customer_status !== "active" ||
+    customer.partner_id !== mapping.data.partner_id ||
+    customer.digital_observer_partners?.partner_status !== "sandbox" ||
+    customer.digital_observer_partners?.organization_id !== input.organizationId || !customer.customer_organization_id) return null;
   const linked = await (admin as any).from("digital_observer_partner_customer_sites").select("observer_site_id")
     .eq("partner_customer_id", mapping.data.partner_customer_id).eq("observer_site_id", input.siteId).maybeSingle();
-  return Boolean(linked.data);
+  return !linked.error && linked.data ? customer.customer_organization_id : null;
 }
 
 export async function authenticateEmbeddedSession(admin: Admin, input: { token: string; origin: string | null; audience: string; requiredScope: EmbeddedScope }) {

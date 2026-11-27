@@ -91,3 +91,11 @@ On the isolated Chrome loopback page, the existing `ObserverLivePlayer` showed a
 Run `node --test scripts/qa/check-source-recording-flow.mjs` for the end-to-end contract cases. These cover cross-Tenant/Site/source/actor denial, missing Event, expired session and receipt, mismatched archive anchor despite matching time, one-time receipt, failed audit and revocation.
 
 Before a Stage 3 archive API or permission can be exposed, verify the canonical schema and grants in an isolated Development database, qualify a trusted recorder link and durable single-use registrar, and prove acknowledged audit and range-limited authorized transport. Exercise negative Site/source authorization, expiry and revocation on that actual runtime. Real DVR retrieval remains unverified.
+
+## Service-account route qualification
+
+The existing signed SDK was exercised against the actual v1 route and authorization services with an in-memory PostgREST/application-boundary fixture. The flow checks expiry and revocation on each request. Invalid expiry also denies access. Partner delegation now checks the account's current partner organization, the mapping's partner/customer identity, the active sandbox customer, the exact linked Site and the Site's current customer organization. The authorization and subsequent rate-limit gate independently enforce the current organization. A stale link after Site reassignment cannot authorize reads.
+
+The signed SDK's camera filter narrows the results inside an already authorized Site. It does not grant or revoke access to an individual camera. Existing Evidence metadata has its own permission. The route accepts only the exact Evidence metadata and media route shapes. Extra path segments and unknown archive paths return 404. No archive endpoint, source entitlement or media signer was added or opened.
+
+`node --test scripts/qa/check-external-service-account-route.mjs` covers the real handler, signed SDK, synthetic persistence, revoked/expired/invalid-expiry credentials and accounts, direct and delegated Tenant/Site denials, stale mapping, camera filtration, independent Evidence scope and rejected archive paths. Production or hosted authorization, deployed RLS, real partner enrollment and archive retrieval remain unverified.
