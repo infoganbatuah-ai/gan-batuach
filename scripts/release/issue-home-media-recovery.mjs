@@ -4,7 +4,7 @@ import { compareSemanticVersions, evaluateEdgeUpdateEligibility, validateEdgeUpd
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath, EDGE_RELEASE_R2_BUCKET } from "../../services/video-gateway/edge-release-object.mjs";
 import { signRemoteEdgeDocument, validateRemoteSignerConfig } from "./remote-ed25519-signer.mjs";
 
-export const CLIENT_SOURCE = "a605ea6834f9537d5526cfa5ea0d0db2b003992d";
+export const CLIENT_SOURCE = "37f76e5ea79320fcd7a850546e58e8bef0ba3b28";
 export const BACKEND_SOURCE = "b9a2001cfd1fab3d24966083a785734f147657e8";
 const repository = "infoganbatuah-ai/gan-batuach";
 const ref = "refs/heads/codex/push-38-aws-signing";
@@ -13,12 +13,12 @@ const keyId = "observer-kms-release-v1";
 const placeholder = Buffer.alloc(64).toString("base64url");
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 const targets = Object.freeze({
-  PHYSICAL_GATEWAY: Object.freeze({ baseline: "0.2.101-p38-health", version: "0.2.102-media-recovery", configVersion: 1,
+  PHYSICAL_GATEWAY: Object.freeze({ baseline: "0.2.101-p38-health", version: "0.2.103-product-identity", configVersion: 1,
     baselineReleaseDigest: "d6e5ff7a8aac6a612c46516ebb1d370a3436f4c8a1c63f62ce7ae316f737e988",
-    artifactDigest: "0f0c1c0d4faef88b310a2b90358e886e2a19b778bf2fe40ca78be2543f5f984d", size: 135905379 }),
-  SOFTWARE_CONNECTOR: Object.freeze({ baseline: "0.2.40-p38-health", version: "0.2.41-media-recovery", configVersion: 4,
+    artifactDigest: "bf05eba88f1dcdd0499e67524ff9832c9588ea93f792e9beebbadc4a9a56b8c1", size: 135883624 }),
+  SOFTWARE_CONNECTOR: Object.freeze({ baseline: "0.2.40-p38-health", version: "0.2.42-product-identity", configVersion: 4,
     baselineReleaseDigest: "fd87c2590f85146fbdfc8738f397227f2c5fe58f6efc1f79e47b533dac2793f0",
-    artifactDigest: "26382c996cba2ed4371a0aaf1e4e6a37a89e011903a0aea6d86fa7cca424e54e", size: 147512070 })
+    artifactDigest: "318f46432ad2fd0a3e6f6ddc905762252e99eb73a1b542761ff14b65c31beb79", size: 147479760 })
 });
 
 export function preparePinnedHomeMediaRecovery({ profile, baselineRelease, trustedPublicKeys, releasedAt }) {

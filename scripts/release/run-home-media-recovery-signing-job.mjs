@@ -12,7 +12,7 @@ const repo = "infoganbatuah-ai/gan-batuach";
 const ref = "refs/heads/codex/push-38-aws-signing";
 const keyId = "observer-kms-release-v1";
 const profiles = ["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"];
-const sizes = { SOFTWARE_CONNECTOR: 147512070, PHYSICAL_GATEWAY: 135905379 };
+const sizes = { SOFTWARE_CONNECTOR: 147479760, PHYSICAL_GATEWAY: 135883624 };
 const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 
 function readInput(root, name, maxBytes) {
