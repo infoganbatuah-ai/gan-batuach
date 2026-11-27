@@ -31,14 +31,14 @@ const assertionSchema = z.discriminatedUnion("operation", [
 
 type Binding = z.infer<typeof bindingSchema>;
 type Assertion = z.infer<typeof assertionSchema>;
-type VerifiedScope = Binding & {
+export type GanCameraPilotScope = Binding & {
   sessionId: string;
   tenantId: string;
   sourceId: string;
   gatewayId: string;
   streamId: string;
 };
-type GrantRecord = { scope: VerifiedScope; handle: string; expiresAtMs: number };
+export type GanCameraPilotGrantRecord = { scope: GanCameraPilotScope; handle: string; expiresAtMs: number };
 
 export const ganCameraPilotLimits = Object.freeze({
   durationSeconds: 300,
@@ -53,8 +53,8 @@ export const ganCameraPilotLimits = Object.freeze({
 // the entire scope and check the expiry/revocation at commit time before
 // consuming the handle once. The trusted owner can revoke via the same store.
 export type GanCameraPilotGrantStore = {
-  issue(record: GrantRecord, assertionId: string): Promise<boolean>;
-  consume(handle: string, scope: VerifiedScope, assertionExpiresAtMs: number): Promise<GrantRecord | null>;
+  issue(record: GanCameraPilotGrantRecord, assertionId: string): Promise<boolean>;
+  consume(handle: string, scope: GanCameraPilotScope, assertionExpiresAtMs: number): Promise<GanCameraPilotGrantRecord | null>;
   revoke(handle: string): Promise<void>;
 };
 
@@ -75,7 +75,7 @@ function sameBinding(left: Binding, right: Binding) {
   return Object.keys(bindingSchema.shape).every((key) => left[key as keyof Binding] === right[key as keyof Binding]);
 }
 
-function sameScope(left: VerifiedScope, right: VerifiedScope) {
+function sameScope(left: GanCameraPilotScope, right: GanCameraPilotScope) {
   return sameBinding(left, right) && left.sessionId === right.sessionId && left.tenantId === right.tenantId &&
     left.sourceId === right.sourceId && left.gatewayId === right.gatewayId && left.streamId === right.streamId;
 }
@@ -87,7 +87,7 @@ type ProviderOptions = {
   ganPublicKey: KeyObject;
   // Resolve from authoritative QA mappings plus current viewer/session access.
   // Missing, revoked, unverified or out-of-domain relationships must return null.
-  resolveScope: (binding: Binding, sessionId: string) => Promise<VerifiedScope | null>;
+  resolveScope: (binding: Binding, sessionId: string) => Promise<GanCameraPilotScope | null>;
   store: GanCameraPilotGrantStore;
   now?: () => number;
 };
@@ -109,7 +109,7 @@ export function createGanCameraPilotGrantProvider({ environment, qaGardenId, sig
       const scope = { ...binding.data, tenantId, sourceId, gatewayId, streamId, sessionId };
       if (now() >= assertion.expiresAtMs) return null;
 
-      let record: GrantRecord | null;
+      let record: GanCameraPilotGrantRecord | null;
       if (assertion.operation === "issue") {
         record = { scope, handle: randomBytes(32).toString("base64url"), expiresAtMs: assertion.expiresAtMs };
         if (!await store.issue(record, assertion.jti)) return null;
