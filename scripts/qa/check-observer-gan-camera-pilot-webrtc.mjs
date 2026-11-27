@@ -14,6 +14,8 @@ const scope = { viewerId: "qa-viewer", role: "parent", gardenId: "qa-garden", si
 const handle = "h".repeat(43);
 const offer = "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n";
 const loopback = "127.0.0.1";
+const readPassword = "r".repeat(43);
+const readAuth = `Basic ${Buffer.from(`do-pilot-reader:${readPassword}`).toString("base64")}`;
 
 async function fixture(t) {
   const folder = mkdtempSync(resolve(".gan-pilot-tcp-"));
@@ -28,15 +30,20 @@ async function fixture(t) {
   const iceTcpPort = media.address().port;
   const signaling = createServer((request, response) => {
     assert.equal(request.url, "/qa-pattern/whep");
-    requests++;
     request.resume();
+    if (request.headers.authorization !== readAuth) {
+      response.writeHead(401).end();
+      return;
+    }
+    requests++;
     response.writeHead(201).end(`v=0\r\na=candidate:udp 1 udp 1 127.0.0.1 9000 typ host\r\na=candidate:tcp 1 tcp 1 127.0.0.1 ${iceTcpPort} typ host tcptype passive\r\n`);
   });
   signaling.listen(0, loopback);
   await once(signaling, "listening");
   assert.equal(await edge.store.issue({ handle, scope, expiresAtMs: 50_000 }, "j".repeat(32)), true);
   const gate = await startGanCameraPilotWebRtc({ environment: "development", edge,
-    upstream: { httpPort: signaling.address().port, iceTcpPort },
+    upstream: { httpPort: signaling.address().port, iceTcpPort, readPassword },
+    authenticateService: (request) => request.headers.authorization === "Bearer synthetic-control-service",
     async authorize(request) {
       if (request.headers.authorization !== "Bearer synthetic-verified-owner") return null;
       return edge.store.consume(handle, scope, 50_000);
@@ -49,13 +56,16 @@ async function fixture(t) {
     edge.close();
     rmSync(folder, { recursive: true, force: true });
   });
-  function request({ auth = true, sdp = offer } = {}) {
+  function request({ auth = true, sdp = offer, origin } = {}) {
     return fetch(gate.endpoint, { method: "POST", body: sdp,
-      headers: { "Content-Type": "application/sdp", ...(auth ? { Authorization: "Bearer synthetic-verified-owner" } : {}) } });
+      headers: { "Content-Type": "application/sdp", ...(auth ? { Authorization: "Bearer synthetic-verified-owner" } : {}),
+        ...(origin ? { Origin: origin } : {}) } });
   }
   async function open() {
     const result = await request();
     assert.equal(result.status, 201);
+    assert.equal(result.headers.get("authorization"), null);
+    assert.equal(result.headers.get("location"), null);
     const answer = await result.text();
     assert.doesNotMatch(answer, /candidate:udp| 9000 /);
     const relayPort = Number(/127\.0\.0\.1 (\d+) typ host tcptype passive/.exec(answer)[1]);
@@ -66,12 +76,19 @@ async function fixture(t) {
     await Promise.all([once(socket, "connect"), connection]);
     return { socket, relayPort, upstream: upstreamSocket };
   }
-  return { edge, gate, request, open, advance: (value) => { at = value; }, get requests() { return requests; } };
+  const direct = `http://${loopback}:${signaling.address().port}/qa-pattern/whep`;
+  const revoke = (target, authorized = true) => fetch(new URL("/pilot/revoke", gate.endpoint), {
+    method: "POST", headers: { "Content-Type": "application/json",
+      ...(authorized ? { Authorization: "Bearer synthetic-control-service" } : {}) }, body: JSON.stringify({ handle: target })
+  });
+  return { edge, gate, request, open, direct, revoke, advance: (value) => { at = value; }, get requests() { return requests; } };
 }
 
 test("authenticated signaling rejects external candidates, binds one receiver and disconnects on revocation", async (t) => {
   const h = await fixture(t);
   assert.equal((await h.request({ auth: false })).status, 403);
+  assert.equal((await h.request({ origin: "http://foreign.invalid" })).status, 403);
+  assert.equal((await fetch(h.direct, { method: "POST", body: offer, headers: { "Content-Type": "application/sdp" } })).status, 401);
   assert.equal((await h.request({ sdp: offer + "a=candidate:abc 1 udp 1 192.0.2.1 9000 typ host\r\n" })).status, 400);
   assert.equal(h.requests, 0);
   const { socket, upstream, relayPort } = await h.open();
@@ -82,8 +99,10 @@ test("authenticated signaling rejects external candidates, binds one receiver an
   upstream.write("encrypted-example");
   assert.equal(String((await received)[0]), "encrypted-example");
   socket.resume();
+  assert.equal((await h.revoke(handle, false)).status, 403);
+  assert.equal((await h.revoke("wrong")).status, 403);
   const ended = once(socket, "close");
-  await h.gate.revoke();
+  assert.equal((await h.revoke(handle)).status, 204);
   await ended;
   assert.equal(h.edge.reserveTransportBytes(handle, scope, 1), false);
 });

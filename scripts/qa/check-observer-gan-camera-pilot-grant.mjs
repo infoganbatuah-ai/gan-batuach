@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
-import { generateKeyPairSync, sign } from "node:crypto";
+import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { loadTs } from "./digital-guard-test-loader.mjs";
 
-const { createGanCameraPilotGrantProvider, ganCameraPilotLimits } = loadTs("lib/domain/digital-observer/gan-camera-pilot-grant.ts");
+const { createGanCameraPilotGrantProvider, createGanCameraPilotHostAuthorization, ganCameraPilotLimits } = loadTs("lib/domain/digital-observer/gan-camera-pilot-grant.ts");
 const { publicKey, privateKey } = generateKeyPairSync("ed25519");
 const foreignKey = generateKeyPairSync("ed25519").privateKey;
 const binding = { viewerId: "viewer-a", role: "parent", gardenId: "garden-a", siteId: "site-a", cameraId: "camera-a", protocol: "WebRTC" };
@@ -135,6 +135,23 @@ test("a lookup that runs past assertion expiry cannot create a handle", async ()
   });
   assert.equal(await provider.issue(binding), null);
   assert.equal(writes, 0);
+});
+
+test("the host requires both the Gan server credential and the signed viewer assertion", async () => {
+  const h = fixture();
+  const issued = await h.provider().issue(binding);
+  const service = "s".repeat(43);
+  const authorization = `Bearer ${service}`;
+  const proof = h.signed({ operation: "redeem", handle: issued.handle });
+  const { redeem: authorize } = createGanCameraPilotHostAuthorization({ environment: "development", qaGardenId: binding.gardenId,
+    ganPublicKey: publicKey, ganServiceBearerSha256: createHash("sha256").update(service).digest("hex"),
+    store: h.store, now: h.now, resolveScope: async () => ({ ...binding, ...mapping }) });
+  assert.equal(await authorize({ headers: { "x-gan-pilot-assertion": proof } }), null);
+  assert.equal(await authorize({ headers: { authorization, "x-gan-pilot-assertion": [proof] } }), null);
+  assert.equal(await authorize({ headers: { authorization, "x-gan-pilot-assertion": h.signed({ operation: "redeem", handle: issued.handle }, foreignKey) } }), null);
+  assert.deepEqual(await authorize({ headers: { authorization, "x-gan-pilot-assertion": proof } }),
+    { handle: issued.handle, scope: { ...binding, ...mapping } });
+  assert.equal(await authorize({ headers: { authorization, "x-gan-pilot-assertion": proof } }), null);
 });
 
 if (process.env.GAN_PILOT_CONTRACT_PATH) {

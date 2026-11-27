@@ -7,6 +7,7 @@ import type { openGanCameraPilotSyntheticEdge } from "./gan-camera-pilot-synthet
 
 const loopback = "127.0.0.1";
 const offerPath = "/pilot/whep";
+const revokePath = "/pilot/revoke";
 const sdpBytes = 16 * 1024;
 const maxChunkBytes = 64 * 1024;
 type Lease = { handle: string; scope: GanCameraPilotScope };
@@ -24,36 +25,42 @@ function chooseRelayCandidate(answer: string, upstreamPort: number, relayPort: n
   return replaced ? lines.join("\r\n") : null;
 }
 
-async function readOffer(request: IncomingMessage) {
+async function readBody(request: IncomingMessage, maxBytes: number) {
   const chunks: Buffer[] = [];
   let length = 0;
   for await (const chunk of request) {
     length += chunk.length;
-    if (length > sdpBytes) return null;
+    if (length > maxBytes) return null;
     chunks.push(chunk);
   }
-  const offer = Buffer.concat(chunks).toString("utf8");
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+async function readOffer(request: IncomingMessage) {
+  const offer = await readBody(request, sdpBytes);
   // The test receiver is non-trickle. Keep the upstream from dialing any
   // browser-supplied candidate or negotiating an extra track or data channel.
-  if (!offer.startsWith("v=0") || /^a=(?:candidate|remote-candidates):/m.test(offer) ||
+  if (!offer?.startsWith("v=0") || /^a=(?:candidate|remote-candidates):/m.test(offer) ||
       !/^a=recvonly\r?$/m.test(offer) || !/^m=video /m.test(offer) || (offer.match(/^m=/gm) ?? []).length !== 1) return null;
   return offer;
 }
 
 type Options = {
   environment: string;
-  upstream: { httpPort: number; iceTcpPort: number };
+  upstream: { httpPort: number; iceTcpPort: number; readPassword: string };
   edge: Pick<ReturnType<typeof openGanCameraPilotSyntheticEdge>, "transportAllowed" | "reserveTransportBytes" | "store">;
   // The caller must authenticate the QA session and redeem a signed Gan grant
   // for the exact bound scope via the same edge store. It must not trust headers
   // for viewer/role/site. The resulting lease is never sent to the browser.
   authorize: (request: IncomingMessage) => Promise<Lease | null>;
+  authenticateService: (request: IncomingMessage) => boolean;
 };
 
 /** Single-host synthetic fixture. Do not mount in the product or expose the upstream. */
-export async function startGanCameraPilotWebRtc({ environment, upstream, edge, authorize }: Options) {
+export async function startGanCameraPilotWebRtc({ environment, upstream, edge, authorize, authenticateService }: Options) {
   if (environment !== "development" || ![upstream.httpPort, upstream.iceTcpPort].every(
-    (port) => Number.isInteger(port) && port > 0 && port <= 65535)) throw Error("INVALID_SYNTHETIC_WEBRTC_TARGET");
+    (port) => Number.isInteger(port) && port > 0 && port <= 65535) ||
+    !/^[A-Za-z0-9_-]{43,128}$/.test(upstream.readPassword)) throw Error("INVALID_SYNTHETIC_WEBRTC_TARGET");
   let lease: Lease | null = null;
   let admitting = false;
   let admitted = false;
@@ -63,6 +70,11 @@ export async function startGanCameraPilotWebRtc({ environment, upstream, edge, a
   let source: Socket | null = null;
   const allowed = () => !stopped && lease !== null && edge.transportAllowed(lease.handle, lease.scope);
   const disconnect = () => { viewer?.destroy(); source?.destroy(); };
+  async function revoke() {
+    stopped = true;
+    disconnect();
+    if (lease) await edge.store.revoke(lease.handle);
+  }
   const relay = createRelay({ pauseOnConnect: true }, (socket) => {
     if (!admitted || mediaUsed || !allowed() || socket.remoteAddress !== loopback) { socket.destroy(); return; }
     mediaUsed = true;
@@ -87,8 +99,29 @@ export async function startGanCameraPilotWebRtc({ environment, upstream, edge, a
   });
   await new Promise<void>((resolve, reject) => { relay.once("error", reject); relay.listen(0, loopback, resolve); });
   const relayPort = (relay.address() as AddressInfo).port;
+  const upstreamAuthorization = `Basic ${Buffer.from(`do-pilot-reader:${upstream.readPassword}`).toString("base64")}`;
   const control = createServer({ requestTimeout: 3000, headersTimeout: 3000 }, async (request, response) => {
     response.setHeader("Cache-Control", "private, no-store");
+    const host = `${loopback}:${(control.address() as AddressInfo).port}`;
+    if (request.headers.host !== host || (request.headers.origin !== undefined && request.headers.origin !== `http://${host}`)) {
+      response.writeHead(403).end(); return;
+    }
+    if (request.url === revokePath && request.method === "POST") {
+      try {
+        if (!authenticateService(request)) { response.writeHead(403).end(); return; }
+        if (request.headers["content-type"] !== "application/json") { response.writeHead(415).end(); return; }
+        const raw = await readBody(request, 256);
+        const body: unknown = raw && JSON.parse(raw);
+        if (!body || typeof body !== "object" || Object.keys(body).length !== 1 || !("handle" in body) ||
+            typeof body.handle !== "string") { response.writeHead(400).end(); return; }
+        if (!lease || lease.handle !== body.handle) { response.writeHead(403).end(); return; }
+        await revoke();
+        response.writeHead(204).end();
+      } catch (error) {
+        response.writeHead(error instanceof SyntaxError ? 400 : 503).end();
+      }
+      return;
+    }
     if (request.url !== offerPath) {
       response.writeHead(404).end(); return;
     }
@@ -106,7 +139,7 @@ export async function startGanCameraPilotWebRtc({ environment, upstream, edge, a
       lease = await authorize(request);
       if (!allowed()) { response.writeHead(403).end(); return; }
       const answer = await fetch(`http://${loopback}:${upstream.httpPort}/qa-pattern/whep`, {
-        method: "POST", body: offer, headers: { "Content-Type": "application/sdp" },
+        method: "POST", body: offer, headers: { "Content-Type": "application/sdp", Authorization: upstreamAuthorization },
         signal: AbortSignal.timeout(3000), redirect: "error"
       });
       const sdp = await answer.text();
@@ -127,11 +160,7 @@ export async function startGanCameraPilotWebRtc({ environment, upstream, edge, a
   const timer = setInterval(() => { if (viewer && !allowed()) disconnect(); }, 20);
   return {
     endpoint: `http://${loopback}:${(control.address() as AddressInfo).port}${offerPath}`,
-    async revoke() {
-      stopped = true;
-      disconnect();
-      if (lease) await edge.store.revoke(lease.handle);
-    },
+    revoke,
     async close() {
       stopped = true;
       clearInterval(timer);
