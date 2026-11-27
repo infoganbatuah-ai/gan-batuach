@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -119,4 +119,54 @@ test("refuses to sign outside the configured QA garden and trusted session shape
     { environment: "production" }, { qaGardenId: "garden-b" }, { sessionId: "" },
     { privateKey: publicKey }, { operation: "redeem" }, { handle: "a".repeat(48) }
   ]) assert.equal(signCameraPilotAssertion({ ...signingInput, ...patch }), null);
+});
+
+test("adapter proves current session access before signing each operation", async () => {
+  const events = [];
+  const handle = "a".repeat(48);
+  let authorized = true;
+  const request = {
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    context: {
+      sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+      camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+    },
+    operation: "issue", now: () => 10_000,
+    authorize: async ({ binding, sessionId }) => {
+      events.push("authorize");
+      assert.deepEqual(binding, signingInput.binding);
+      assert.equal(sessionId, signingInput.sessionId);
+      return authorized;
+    },
+    transport: async ({ operation, assertion, signal }) => {
+      events.push("transport");
+      assert.equal(signal.aborted, false);
+      const proof = verifyEnvelope(assertion);
+      assert.equal(proof.operation, operation);
+      assert.equal(proof.sessionId, "session-a");
+      if (operation === "redeem") assert.equal(proof.handle, handle);
+      return {
+        ...proof.binding, version: 1, environment: "development", capability: "live_playback",
+        recording: false, operation, handle, expiresAtMs: 15_000
+      };
+    }
+  };
+  assert.ok(await requestCameraPilotPlayback(request));
+  assert.ok(await requestCameraPilotPlayback({ ...request, operation: "redeem", handle }));
+  authorized = false;
+  assert.equal(await requestCameraPilotPlayback({ ...request, operation: "redeem", handle }), null);
+  assert.deepEqual(events, ["authorize", "transport", "authorize", "transport", "authorize"]);
+});
+
+test("adapter skips authorization and transport when the pilot is unavailable", async () => {
+  let calls = 0;
+  const request = {
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    context: { sessionId: "session-a", camera: { gardenId: "garden-b" } },
+    operation: "issue", authorize: async () => { calls += 1; },
+    transport: async () => { calls += 1; }
+  };
+  assert.equal(await requestCameraPilotPlayback(request), null);
+  assert.equal(await requestCameraPilotPlayback({ ...request, transport: undefined }), null);
+  assert.equal(calls, 0);
 });
