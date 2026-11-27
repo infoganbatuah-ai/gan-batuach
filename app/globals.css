@@ -16118,7 +16118,8 @@ textarea {
 }
 
 .parent-discovery-search label,
-.parent-discovery-search > input {
+.parent-discovery-search > input,
+.parent-discovery-search > .parent-discovery-age {
   align-items: center;
   background: rgba(255, 255, 255, 0.96);
   border: 1px solid #e1e9f7;
@@ -16549,6 +16550,7 @@ textarea {
 
   .parent-discovery-search label,
   .parent-discovery-search > input,
+  .parent-discovery-search > .parent-discovery-age,
   .parent-filter-button,
   .parent-search-submit {
     min-height: 56px;

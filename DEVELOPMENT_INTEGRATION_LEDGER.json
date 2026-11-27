@@ -18921,6 +18921,101 @@
       "releaseEligibility": "NOT_READY_LIVE_PROVIDER_COST_SECURITY_AND_CUMULATIVE_RELEASE_GATES_OPEN",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Preserve the focused local manual-address receipt. Keep Google Places disabled until live provider, bounded spend and the all-in ₪15 ceiling are evidenced. Resolve the separate Next security warning and CH1 volume ownership finding before release; no main or Production action without owner authorization."
+    },
+    {
+      "id": "codex/gb-m39-parent-discovery-accessibility-20261124",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-M39-PARENT-DISCOVERY-ACCESSIBILITY-20261124",
+      "title": "Accessible Parent garden discovery filter names",
+      "owner": "Gan Management executor under the exclusive Development integration window",
+      "sourceBranch": "codex/gb-m39-parent-discovery-accessibility-20261124",
+      "sourceCommits": [
+        "efbc9fb8ee63e1ec073788eace1defba97ae33bc"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m39-parent-discovery-accessibility-20261124@efbc9fb8ee63e1ec073788eace1defba97ae33bc"
+        ],
+        "status": "PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "SCOPED_8_OF_8_PASS_COMBINED_CI_AND_PRODUCT_QA_PENDING",
+        "evidence": [
+          "Original PR #662 and remote source efbc9fb8ee63e1ec073788eace1defba97ae33bc. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks."
+        ],
+        "limits": "Combined candidate CI and authenticated Desktop/Mobile Development QA require verification."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": null,
+        "pullRequests": [
+          662,
+          676
+        ],
+        "candidateSource": "a918ebc3179bf591c188763b8c4676f40aa07d97",
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "COMBINED_STAGE_1_CANDIDATE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FOCUSED_SOURCE_TESTS_ONLY",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify combined candidate CI and the ancestry-preserving Development merge, then run isolated authenticated Parent discovery Desktop and Mobile QA and record the results."
+    },
+    {
+      "id": "codex/gb-parent-discovery-age-filter-20261127",
+      "project": "Gan Batuach Management",
+      "taskId": "GB-PARENT-DISCOVERY-AGE-FILTER-20261127",
+      "title": "Filter authorized Parent garden matches by classroom age group",
+      "owner": "Gan Management executor under the exclusive Development integration window",
+      "sourceBranch": "codex/gb-parent-discovery-age-filter-20261127",
+      "sourceCommits": [
+        "4a48f68eae06efc8d16d0f7c95951b07b9ff1b40"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-parent-discovery-age-filter-20261127@4a48f68eae06efc8d16d0f7c95951b07b9ff1b40"
+        ],
+        "status": "PRESERVED_PENDING_INTEGRATION"
+      },
+      "validation": {
+        "status": "SCOPED_8_OF_8_PASS_COMBINED_CI_AND_PRODUCT_QA_PENDING",
+        "evidence": [
+          "Original PR #676 and remote source 4a48f68eae06efc8d16d0f7c95951b07b9ff1b40. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks."
+        ],
+        "limits": "Combined candidate CI and authenticated Desktop/Mobile Development QA require verification."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "commit": null,
+        "pullRequests": [
+          676
+        ],
+        "candidateSource": "a918ebc3179bf591c188763b8c4676f40aa07d97",
+        "sourceAncestryVerified": false
+      },
+      "dependencies": {
+        "status": "COMBINED_STAGE_1_CANDIDATE",
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "FOCUSED_SOURCE_TESTS_ONLY",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify combined candidate CI and the ancestry-preserving Development merge, then run isolated authenticated Parent discovery Desktop and Mobile QA and record the results."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
