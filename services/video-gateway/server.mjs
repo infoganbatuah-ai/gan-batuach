@@ -4,11 +4,15 @@ import { spawn } from "node:child_process";
 import { closeSync, constants as fsConstants, createReadStream, existsSync, fstatSync, mkdirSync, openSync, readFileSync, readSync, statSync, writeFileSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
+import { monitorEventLoopDelay } from "node:perf_hooks";
 import { extname, join, normalize } from "node:path";
 import { objectInference } from "./object-inference-client.mjs";
 import { createEventEvidenceStore } from "./event-evidence-store.mjs";
 import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
+import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
+import { reuseMatchingPrivateNvrSession, shouldRefreshPrivateNvrSession } from "./private-nvr-session-policy.mjs";
+import { classifyRelayExit, safeInputCode } from "./relay-failure-reason.mjs";
 import { parseEventClipPlaylist } from "./event-clip-window.mjs";
 import { decodeAnchoredFrame } from "./anchored-frame-decoder.mjs";
 import { computeActivityMetrics } from "./activity-insights.mjs";
@@ -27,6 +31,8 @@ import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
 import { createEdgeSupervisor, EDGE_RECOVERY_ACTION } from "./edge-supervision.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
+const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
+eventLoopDelay.enable();
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
 const PROBE_TIMEOUT_MS = Number(process.env.DVR_PROBE_TIMEOUT_MS || 3500);
 const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 16);
@@ -44,6 +50,7 @@ const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
 const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
 const privateNvrSessions = new Map();
+const privateNvrSessionLifecycle = { login_attempts: 0, login_succeeded: 0, rotations: 0, last_rotation_at: null, last_rotation_reason: null };
 const privateNvrHeartbeat = createPrivateNvrHeartbeat({ sessions: () => privateNvrSessions.values() });
 const hardwareTranscoder = createHardwareTranscoder();
 setInterval(() => { void privateNvrHeartbeat.tick(); }, 10_000).unref();
@@ -57,6 +64,7 @@ let activeEventCaptures = 0;
 let eventManifestRequestRevision = 0;
 const relayStarts = new Map();
 const relayRecovery = new Map();
+const relayDiagnostics = new Map();
 const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0, inputAborted: 0, inputOtherError: 0 };
 const edgeSupervisor = createEdgeSupervisor({ adapters: {
@@ -73,7 +81,7 @@ const edgeSupervisor = createEdgeSupervisor({ adapters: {
   [EDGE_RECOVERY_ACTION.RENEW_DVR_SESSION]: async ({ resourceId }) => {
     const source = streamSources.get(resourceId);
     const session = source?.sessionKey ? privateNvrSessions.get(source.sessionKey) : null;
-    const refreshed = source?.sessionKey && session ? await refreshPrivateNvrSession(source.sessionKey, session.token) : null;
+    const refreshed = source?.sessionKey && session ? await refreshPrivateNvrSession(source.sessionKey, session.token, "watchdog_session_recovery") : null;
     return { healthy: Boolean(refreshed) };
   }
 } });
@@ -198,7 +206,7 @@ async function initializePrivateNvrCommandRuntime() {
     sessionForSource: async (source) => privateNvrSessions.get(source.sessionKey) ?? null,
     refreshSourceSession: async (session) => {
       const match = [...privateNvrSessions.entries()].find(([, current]) => current === session || current.token === session?.token);
-      return match ? refreshPrivateNvrSession(match[0], session?.token) : null;
+      return match ? refreshPrivateNvrSession(match[0], session?.token, "command_session_recovery") : null;
     }
   });
   privateNvrCommandRuntimeState = privateNvrCommandRuntime.status();
@@ -527,6 +535,7 @@ function digestHex(algorithm, value) {
 async function privateNvrLogin(input) {
   const baseUrl = privateNvrBaseUrl(input);
   if (!baseUrl || !input.username || !input.password) return null;
+  privateNvrSessionLifecycle.login_attempts++;
   const uri = "/API/Web/Login";
   const body = JSON.stringify({ data: { remote_terminal_info: "GATEWAY" } });
   const common = {
@@ -568,13 +577,21 @@ async function privateNvrLogin(input) {
   const token = String(response.headers.get("x-csrftoken") || "").split(",")[0].trim();
   const cookie = String(response.headers.get("set-cookie") || "").split(";")[0].trim();
   if (!token) return null;
+  privateNvrSessionLifecycle.login_succeeded++;
   return { baseUrl, token, cookie };
 }
 
-function rememberPrivateNvrSession(input, session) {
+function rememberPrivateNvrSession(input, session, reason = "initial_discovery") {
   const key = privateNvrSessionKey(input);
+  const previous = privateNvrSessions.get(key);
+  if (previous) {
+    privateNvrSessionLifecycle.rotations++;
+    privateNvrSessionLifecycle.last_rotation_at = new Date().toISOString();
+    privateNvrSessionLifecycle.last_rotation_reason = reason;
+  }
   privateNvrSessions.set(key, {
     ...session,
+    epoch: (previous?.epoch || 0) + 1,
     input,
     updatedAt: Date.now(),
     refreshPromise: null
@@ -582,7 +599,7 @@ function rememberPrivateNvrSession(input, session) {
   return key;
 }
 
-async function refreshPrivateNvrSession(sessionKey, failedToken = null) {
+async function refreshPrivateNvrSession(sessionKey, failedToken = null, reason = "authorized_recovery") {
   const current = privateNvrSessions.get(sessionKey);
   if (!current) return null;
   if (failedToken && current.token !== failedToken) return current;
@@ -592,7 +609,10 @@ async function refreshPrivateNvrSession(sessionKey, failedToken = null) {
   const refreshPromise = (async () => {
     const session = await privateNvrLogin(current.input);
     if (!session) return current;
-    const refreshed = { ...current, ...session, updatedAt: Date.now(), refreshPromise: null };
+    const refreshed = { ...current, ...session, epoch: (current.epoch || 0) + 1, updatedAt: Date.now(), refreshPromise: null };
+    privateNvrSessionLifecycle.rotations++;
+    privateNvrSessionLifecycle.last_rotation_at = new Date().toISOString();
+    privateNvrSessionLifecycle.last_rotation_reason = reason;
     privateNvrSessions.set(sessionKey, refreshed);
     return refreshed;
   })().finally(() => {
@@ -657,9 +677,15 @@ async function privateNvrStreamResponse(url, token, cookie, signal, reportFailur
       ...(cookie ? { cookie } : {})
     },
     signal: signal ? AbortSignal.any([signal, headerDeadline.signal]) : headerDeadline.signal
-  }).catch(() => null).finally(() => clearTimeout(timer));
+  }).catch((error) => {
+    reportFailure(error?.name === "AbortError" || error?.name === "TimeoutError" ? "source_timeout"
+      : error?.cause?.code === "ENETUNREACH" ? "host_network_unreachable"
+      : error?.cause?.code === "ECONNREFUSED" ? "source_connection_refused"
+      : error?.cause?.code === "UND_ERR_SOCKET" ? "upstream_socket_closed" : "source_transport_error");
+    return null;
+  }).finally(() => clearTimeout(timer));
   if (!response || (response.status !== 200 && response.status !== 400) || !response.body) {
-    reportFailure(response?.status === 401 || response?.status === 403 ? "authentication_rejected" : "source_unavailable");
+    if (response) reportFailure(response.status === 401 || response.status === 403 ? "authentication_rejected" : "source_http_error");
     headerDeadline.abort();
     return null;
   }
@@ -763,12 +789,6 @@ async function probePrivateNvrStream(url, token, cookie) {
   });
 }
 
-function privateNvrSessionHasLiveRelay(sessionKey) {
-  return [...relays.entries()].some(([id, relay]) => streamSources.get(id)?.sessionKey === sessionKey
-    && relayBelongsToCurrentSession(relay, streamSources.get(id))
-    && relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS);
-}
-
 function relayBelongsToCurrentSession(relay, source) {
   if (source?.kind !== "private_nvr_http_mp4") return true;
   const session = source.sessionKey ? privateNvrSessions.get(source.sessionKey) : null;
@@ -783,12 +803,13 @@ async function discoverPrivateNvr(payload, channelCount) {
   if (!vendor.includes("private") && !vendor.includes("er")) return null;
   const existingKey = privateNvrSessionKey(payload);
   const existing = privateNvrSessions.get(existingKey);
-  const reuse = Boolean(existing?.input && existing.input.password === payload.password
-    && (existing.input.stream_quality || "sub") === (payload.stream_quality || "sub")
-    && privateNvrSessionHasLiveRelay(existingKey));
+  // A synchronized ten-channel native stream end is not a credential failure.
+  // Reuse the existing shared login; an actual auth rejection on relay start
+  // owns the bounded refresh path.
+  const reuse = reuseMatchingPrivateNvrSession(existing, payload);
   const session = reuse ? existing : await privateNvrLogin(payload);
   if (!session) return null;
-  const sessionKey = reuse ? existingKey : rememberPrivateNvrSession(payload, session);
+  const sessionKey = reuse ? existingKey : rememberPrivateNvrSession(payload, session, existing ? "discovery_configuration_changed" : "initial_discovery");
   const channels = [];
   const requestedChannels = Array.isArray(payload.metadata?.channel_filter)
     ? [...new Set(payload.metadata.channel_filter.filter((value) => Number.isInteger(value) && value >= 1 && value <= channelCount))]
@@ -855,11 +876,6 @@ async function discoverPrivateNvr(payload, channelCount) {
   }).catch(() => new Map());
   for (const channel of channels) {
     channel.capabilities = mergePrivateNvrCapabilityEvidence(channel.capabilities, controlEvidence.get(channel.channel));
-  }
-  // A full probe may consume a recorder's native stream sequence. Never rotate
-  // the shared login while any relay proves it is still delivering live media.
-  if (!privateNvrSessionHasLiveRelay(sessionKey)) {
-    await refreshPrivateNvrSession(sessionKey, (privateNvrSessions.get(sessionKey) ?? session).token);
   }
   return channels;
 }
@@ -1024,28 +1040,24 @@ function relayDirectory(streamId) {
   return join(HLS_ROOT, streamId.replace(/[^a-z0-9_-]/gi, "_"));
 }
 
-async function privateNvrRelayResponse(source) {
+async function privateNvrRelayResponse(source, reportFailure = () => {}) {
   let session = privateNvrSessions.get(source.sessionKey);
   if (!session) return null;
   if (session.refreshPromise) session = await session.refreshPromise;
   const url = privateNvrLiveUrl(session, source.channel, session.input.stream_quality);
   const controller = new AbortController();
   let failure = "source_unavailable";
-  let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal, (reason) => { failure = reason; });
+  let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal, (reason) => { failure = reason; reportFailure(reason); });
   if (response) return { response, controller, sessionToken: session.token };
   controller.abort();
-  // A transport/codec failure is not proof that the shared login expired.
-  // Re-authenticating one unavailable channel can disconnect every healthy
-  // stream on recorders that allow only one active session for the account.
-  const anotherStreamIsHealthy = [...relays.entries()].some(([id, relay]) =>
-    streamSources.get(id)?.sessionKey === source.sessionKey && relayIsProgressing(relay)
-      && Date.now() - relay.lastInputAt < RELAY_STALE_MS);
-  if (failure !== "authentication_rejected" && anotherStreamIsHealthy) return null;
-  const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token);
+  // Even if every native stream ended together, transport failure does not
+  // authorize a new login that may invalidate all recorder channels.
+  if (!shouldRefreshPrivateNvrSession(failure)) return null;
+  const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token, `source_${failure}`);
   if (!refreshed) return null;
   const retryController = new AbortController();
   const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);
-  response = await privateNvrStreamResponse(retryUrl, refreshed.token, refreshed.cookie, retryController.signal);
+  response = await privateNvrStreamResponse(retryUrl, refreshed.token, refreshed.cookie, retryController.signal, reportFailure);
   return response ? { response, controller: retryController, sessionToken: refreshed.token } : null;
 }
 
@@ -1053,7 +1065,13 @@ async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
   const source = streamSources.get(streamId);
   if (existing && relayIsRunning(existing) && relayBelongsToCurrentSession(existing, source)
-    && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) return existing;
+    && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) {
+    if (relayIsProgressing(existing) && relayRecoveryIsStable(existing)) relayRecovery.delete(streamId);
+    return existing;
+  }
+  // Requests, including HLS and AI sampling, may not bypass the bounded
+  // recovery delay set by the child-exit path. Report temporary unavailability.
+  if (relayRetryDelayMs(relayRecovery.get(streamId)) > 0) return null;
   if (existing) {
     relayLifecycle.staleOnRequest += 1;
     stopRelay(streamId, existing);
@@ -1078,7 +1096,23 @@ function relayIsProgressing(relay) {
   }
 }
 
-function stopRelay(streamId, relay) {
+function observeLocalResources() {
+  for (const [streamId, source] of streamSources) {
+    const relay = relays.get(streamId);
+    edgeSupervisor.observe({ resourceId: streamId, assignment: source?.status === "unassigned" ? "CHANNEL_EMPTY" : "ASSIGNED",
+      processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
+      sourceAvailable: source?.status !== "unavailable", relayRunning: relay ? relayIsRunning(relay) : false,
+      frameProgressing: relay ? relayIsProgressing(relay) : false, lastFrameAt: relay?.lastInputAt, dimension: "relay" });
+    if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) relayRecovery.delete(streamId);
+  }
+  for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
+    edgeSupervisor.observe({ resourceId: `unassigned-slot-${index + 1}`, assignment: "CHANNEL_EMPTY" });
+  }
+}
+setInterval(observeLocalResources, 2_000).unref();
+
+function stopRelay(streamId, relay, reason = "REQUESTED_STOP") {
+  relay.stopReason ||= reason;
   relay.monitor && clearInterval(relay.monitor);
   relay.drainTimer && clearTimeout(relay.drainTimer);
   relay.controller?.abort();
@@ -1136,14 +1170,19 @@ async function startRelay(streamId) {
     "-hls_segment_filename", join(directory, "segment-%06d.ts"),
     playlist
   ];
-  const relaySource = source.kind === "private_nvr_http_mp4" ? await privateNvrRelayResponse(source) : null;
-  if (!relaySource && !directRtsp) return null;
+  let startFailure = "SOURCE_OPEN_FAILED";
+  const relaySource = source.kind === "private_nvr_http_mp4" ? await privateNvrRelayResponse(source, reason => { startFailure = reason; }) : null;
+  if (!relaySource && !directRtsp) {
+    relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), last_failure_reason: startFailure, last_failure_at: new Date().toISOString() });
+    return null;
+  }
   const response = relaySource?.response;
   const controller = relaySource?.controller;
   const sessionToken = relaySource?.sessionToken;
   const child = spawn("ffmpeg", args, { stdio: [directRtsp ? "ignore" : "pipe", "ignore", "pipe"] });
-  const relay = { process: child, playlist, generation: randomUUID(), firstEvidenceSequence, startedAt: Date.now(), lastInputAt: Date.now(), lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(), encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264", controller, errorSummary: "", sessionToken, monitor: null };
+  const relay = { process: child, playlist, generation: randomUUID(), firstEvidenceSequence, startedAt: Date.now(), lastInputAt: Date.now(), lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(), encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264", controller, errorSummary: "", sessionToken, sessionEpoch: source.sessionKey ? privateNvrSessions.get(source.sessionKey)?.epoch ?? null : null, monitor: null };
   relayLifecycle.starts += 1;
+  relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), starts: (relayDiagnostics.get(streamId)?.starts || 0) + 1, last_start_at: new Date(relay.startedAt).toISOString() });
   relays.set(streamId, relay);
   if (response?.body && child.stdin) {
     void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
@@ -1152,6 +1191,7 @@ async function startRelay(streamId) {
       relay.inputMetrics.observe(value);
     }).catch((error) => {
       const code = error?.cause?.code || error?.code;
+      relay.lastInputErrorCode = safeInputCode(error);
       relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
       if (child.exitCode !== null || child.killed) return;
       // The pipe's finally block ended stdin. Allow the decoder/muxer to flush
@@ -1176,7 +1216,7 @@ async function startRelay(streamId) {
     if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) {
       if (hardwareVideo && (!relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
       relayLifecycle[Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "staleInput" : "stalePlaylist"] += 1;
-      stopRelay(streamId, relay);
+      stopRelay(streamId, relay, Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "STALE_INPUT" : "STALE_PLAYLIST");
     }
   }, 2000);
   relay.monitor.unref();
@@ -1188,6 +1228,10 @@ async function startRelay(streamId) {
     if (hardwareVideo && code !== null && code !== 0 && !relay.inputFailed) hardwareTranscoder.failed(streamId);
     if (code === 0) relayLifecycle.upstreamEnded += 1;
     else if (code !== null) relayLifecycle.upstreamFailed += 1;
+    const exitReason = classifyRelayExit({ stopReason: relay.stopReason, inputErrorCode: relay.lastInputErrorCode, stderr: relay.errorSummary, code });
+    relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), exits: (relayDiagnostics.get(streamId)?.exits || 0) + 1,
+      last_failure_reason: exitReason, last_failure_at: new Date().toISOString(), last_runtime_ms: Date.now() - relay.startedAt,
+      last_exit_code: Number.isInteger(code) ? code : null, session_epoch: relay.sessionEpoch });
     clearInterval(relay.monitor);
     controller?.abort();
     if (code && relay.errorSummary) {
@@ -1199,9 +1243,8 @@ async function startRelay(streamId) {
     if (relays.get(streamId) === relay) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
-    const failures = code === 0 ? 0 : Math.min(8, (relayRecovery.get(streamId)?.failures || 0) + 1);
-    const retryMs = Math.min(60_000, 500 * (2 ** Math.max(0, failures - 1)));
-    relayRecovery.set(streamId, { failures, next_retry_at: Date.now() + retryMs });
+    const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
+    relayRecovery.set(streamId, recovery);
     const resume = setTimeout(() => {
       if ([...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now())) {
         void ensureRelay(streamId).catch(() => undefined);
@@ -1502,36 +1545,36 @@ async function handle(request, response) {
     response.end();
     return;
   }
+  if (request.url === "/health/live" && request.method === "GET") {
+    json(response, 200, { contract: "observer-edge-liveness-v1", ok: true, observed_at: new Date().toISOString(), uptime_ms: Math.round(process.uptime() * 1_000) });
+    return;
+  }
   if (request.method === "GET" && request.url?.startsWith("/hls/")) {
     await serveHls(request, response);
     return;
   }
   if (request.url === "/health" && request.method === "GET") {
+    const healthObservedAt = new Date().toISOString();
     const edge = localEdgeReadiness();
-    for (const [streamId, source] of streamSources) {
-      const relay = relays.get(streamId);
-      edgeSupervisor.observe({ resourceId: streamId, assignment: source?.status === "unassigned" ? "CHANNEL_EMPTY" : "ASSIGNED",
-        processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
-        sourceAvailable: source?.status !== "unavailable", relayRunning: relay ? relayIsRunning(relay) : false,
-        frameProgressing: relay ? relayIsProgressing(relay) : false, lastFrameAt: relay?.lastInputAt, dimension: "relay" });
-      if (relay && relayIsProgressing(relay)) relayRecovery.delete(streamId);
-    }
-    for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
-      edgeSupervisor.observe({ resourceId: `unassigned-slot-${index + 1}`, assignment: "CHANNEL_EMPTY" });
-    }
     const supervision = edgeSupervisor.snapshot();
     json(response, 200, {
+      contract: "observer-edge-health-v1",
+      observed_at: healthObservedAt,
       ok: true,
       status: supervision.state === "HEALTHY" ? "healthy" : supervision.state === "RECOVERING" ? "recovering" : "degraded",
       provider: "custom",
       edgeRuntime: edgeRuntimeIdentity,
       httpRuntime: edgeHttpRuntimeStatus(),
+      eventLoop: { delay_p99_ms: Number((eventLoopDelay.percentile(99) / 1e6).toFixed(3)), delay_max_ms: Number((eventLoopDelay.max / 1e6).toFixed(3)) },
       read_only: true,
       streamCount: streamSources.size,
       failedStreamCount: lastDiscoverySummary.failedAssignedCount,
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
       recorderSessionHeartbeat: privateNvrHeartbeat.status(),
+      recorderSessionLifecycle: { ...privateNvrSessionLifecycle, active_sessions: privateNvrSessions.size,
+        sessions: [...privateNvrSessions.values()].map((session) => ({ epoch: session.epoch ?? null,
+          age_ms: Date.now() - session.updatedAt })) },
       hardwareTranscoding: hardwareTranscoder.status(),
       deviceAuthorization: { status: deviceAuthorizationState === "ready" && deviceAccessExpiresAt <= Date.now() ? "unavailable" : deviceAuthorizationState },
       commandRuntime: privateNvrCommandRuntime ? privateNvrCommandRuntime.status() : privateNvrCommandRuntimeState,
@@ -1539,9 +1582,11 @@ async function handle(request, response) {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
-        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
+        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, progressing: relayIsProgressing(relay), input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
         lifecycle: relayLifecycle,
-        recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state }))
+        recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state })),
+        source_diagnostics: [...streamSources.entries()].map(([streamId, source]) => ({ channel: source.channel, source_kind: source.kind,
+          ...(relayDiagnostics.get(streamId) || {}), retry_failures: relayRecovery.get(streamId)?.failures ?? 0 }))
       },
       supervision,
       // Aggregate-only diagnostics for evidence authorization. This makes a
@@ -1696,7 +1741,7 @@ async function handle(request, response) {
       const relay = await ensureRelay(streamId);
       if (!relay) {
         requestMetrics.playbackUnavailable += 1;
-        json(response, 404, { error: "stream_not_registered" });
+        json(response, streamSources.has(streamId) ? 503 : 404, { error: streamSources.has(streamId) ? "stream_recovering" : "stream_not_registered", retryable: streamSources.has(streamId) });
         return;
       }
       if (!(await waitForFile(relay.playlist, 8000))) {

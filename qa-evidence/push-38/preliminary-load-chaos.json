@@ -1,0 +1,706 @@
+{
+  "status": "PASS",
+  "contract": "observer-reliability-qualification-v1",
+  "generated_at": "2026-09-11T20:31:20.410Z",
+  "runtime": {
+    "node": "v24.16.0",
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "evidence": [
+    "SYNTHETIC_LOAD",
+    "LOCAL_MULTI_PROCESS",
+    "LOCAL_MULTI_NODE"
+  ],
+  "capacity_curve": [
+    {
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 400,
+      "workers": 1,
+      "elapsed_ms": 1594.455,
+      "throughput_jobs_s": 250.87,
+      "queue_age_ms": {
+        "median": 825,
+        "p95": 1499,
+        "max": 1597,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 347,
+            "p95": 1138,
+            "max": 1138,
+            "samples": 5
+          },
+          "NORMAL": {
+            "median": 808,
+            "p95": 1461,
+            "max": 1574,
+            "samples": 383
+          },
+          "LEARNING": {
+            "median": 1561,
+            "p95": 1597,
+            "max": 1597,
+            "samples": 12
+          }
+        },
+        "samples": 400
+      },
+      "completed": 400,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 49.766,
+        "after_admission": 53.797,
+        "after": 67.094,
+        "growth": 17.328
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 400,
+      "workers": 2,
+      "elapsed_ms": 956.914,
+      "throughput_jobs_s": 418.01,
+      "queue_age_ms": {
+        "median": 531,
+        "p95": 929,
+        "max": 960,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 241,
+            "p95": 727,
+            "max": 727,
+            "samples": 5
+          },
+          "NORMAL": {
+            "median": 522,
+            "p95": 910,
+            "max": 953,
+            "samples": 383
+          },
+          "LEARNING": {
+            "median": 945,
+            "p95": 960,
+            "max": 960,
+            "samples": 12
+          }
+        },
+        "samples": 400
+      },
+      "completed": 400,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 67.391,
+        "after_admission": 67.703,
+        "after": 82.875,
+        "growth": 15.484
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 400,
+      "workers": 4,
+      "elapsed_ms": 694.401,
+      "throughput_jobs_s": 576.04,
+      "queue_age_ms": {
+        "median": 411,
+        "p95": 676,
+        "max": 698,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 171,
+            "p95": 545,
+            "max": 545,
+            "samples": 5
+          },
+          "NORMAL": {
+            "median": 404,
+            "p95": 666,
+            "max": 692,
+            "samples": 383
+          },
+          "LEARNING": {
+            "median": 688,
+            "p95": 698,
+            "max": 698,
+            "samples": 12
+          }
+        },
+        "samples": 400
+      },
+      "completed": 400,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 82.875,
+        "after_admission": 83.609,
+        "after": 87.703,
+        "growth": 4.828
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 400,
+      "workers": 8,
+      "elapsed_ms": 621.709,
+      "throughput_jobs_s": 643.39,
+      "queue_age_ms": {
+        "median": 356,
+        "p95": 609,
+        "max": 623,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 10,
+            "p95": 332,
+            "max": 332,
+            "samples": 5
+          },
+          "NORMAL": {
+            "median": 351,
+            "p95": 600,
+            "max": 623,
+            "samples": 383
+          },
+          "LEARNING": {
+            "median": 610,
+            "p95": 620,
+            "max": 620,
+            "samples": 12
+          }
+        },
+        "samples": 400
+      },
+      "completed": 400,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 87.703,
+        "after_admission": 88.172,
+        "after": 103.359,
+        "growth": 15.656
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    }
+  ],
+  "capacity_levels": [
+    {
+      "level": "25_PERCENT",
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 100,
+      "workers": 4,
+      "elapsed_ms": 136.872,
+      "throughput_jobs_s": 730.61,
+      "queue_age_ms": {
+        "median": 82,
+        "p95": 130,
+        "max": 135,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 3,
+            "p95": 4,
+            "max": 4,
+            "samples": 2
+          },
+          "NORMAL": {
+            "median": 82,
+            "p95": 129,
+            "max": 134,
+            "samples": 95
+          },
+          "LEARNING": {
+            "median": 134,
+            "p95": 135,
+            "max": 135,
+            "samples": 3
+          }
+        },
+        "samples": 100
+      },
+      "completed": 100,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 103.359,
+        "after_admission": 103.359,
+        "after": 104.453,
+        "growth": 1.094
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "level": "50_PERCENT",
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 200,
+      "workers": 4,
+      "elapsed_ms": 327.549,
+      "throughput_jobs_s": 610.6,
+      "queue_age_ms": {
+        "median": 202,
+        "p95": 318,
+        "max": 328,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 5,
+            "p95": 6,
+            "max": 6,
+            "samples": 3
+          },
+          "NORMAL": {
+            "median": 201,
+            "p95": 314,
+            "max": 327,
+            "samples": 191
+          },
+          "LEARNING": {
+            "median": 324,
+            "p95": 328,
+            "max": 328,
+            "samples": 6
+          }
+        },
+        "samples": 200
+      },
+      "completed": 200,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 104.453,
+        "after_admission": 104.453,
+        "after": 105.828,
+        "growth": 1.375
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "level": "75_PERCENT",
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 300,
+      "workers": 4,
+      "elapsed_ms": 515.851,
+      "throughput_jobs_s": 581.56,
+      "queue_age_ms": {
+        "median": 301,
+        "p95": 504,
+        "max": 517,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 7,
+            "p95": 179,
+            "max": 179,
+            "samples": 4
+          },
+          "NORMAL": {
+            "median": 297,
+            "p95": 497,
+            "max": 514,
+            "samples": 287
+          },
+          "LEARNING": {
+            "median": 514,
+            "p95": 517,
+            "max": 517,
+            "samples": 9
+          }
+        },
+        "samples": 300
+      },
+      "completed": 300,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 105.844,
+        "after_admission": 105.844,
+        "after": 107.859,
+        "growth": 2.016
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "level": "100_PERCENT",
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 400,
+      "workers": 4,
+      "elapsed_ms": 731.313,
+      "throughput_jobs_s": 546.96,
+      "queue_age_ms": {
+        "median": 417,
+        "p95": 698,
+        "max": 734,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 17,
+            "p95": 545,
+            "max": 545,
+            "samples": 10
+          },
+          "NORMAL": {
+            "median": 408,
+            "p95": 689,
+            "max": 733,
+            "samples": 766
+          },
+          "LEARNING": {
+            "median": 698,
+            "p95": 734,
+            "max": 734,
+            "samples": 24
+          }
+        },
+        "samples": 800
+      },
+      "completed": 400,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 107.844,
+        "after_admission": 107.859,
+        "after": 109.281,
+        "growth": 1.438
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "level": "OVERLOAD",
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 800,
+      "workers": 4,
+      "elapsed_ms": 1549.723,
+      "throughput_jobs_s": 516.22,
+      "queue_age_ms": {
+        "median": 905,
+        "p95": 1518,
+        "max": 1556,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 423,
+            "p95": 1521,
+            "max": 1521,
+            "samples": 9
+          },
+          "NORMAL": {
+            "median": 881,
+            "p95": 1503,
+            "max": 1555,
+            "samples": 766
+          },
+          "LEARNING": {
+            "median": 1528,
+            "p95": 1555,
+            "max": 1556,
+            "samples": 25
+          }
+        },
+        "samples": 800
+      },
+      "completed": 800,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 109.281,
+        "after_admission": 109.281,
+        "after": 113.094,
+        "growth": 3.813
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    }
+  ],
+  "milestones": [
+    {
+      "cameras": 10,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 200,
+      "workers": 2,
+      "elapsed_ms": 446.198,
+      "throughput_jobs_s": 448.23,
+      "queue_age_ms": {
+        "median": 249,
+        "p95": 428,
+        "max": 446,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 39,
+            "p95": 62,
+            "max": 62,
+            "samples": 3
+          },
+          "NORMAL": {
+            "median": 248,
+            "p95": 419,
+            "max": 435,
+            "samples": 191
+          },
+          "LEARNING": {
+            "median": 442,
+            "p95": 446,
+            "max": 446,
+            "samples": 6
+          }
+        },
+        "samples": 200
+      },
+      "completed": 200,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 113.094,
+        "after_admission": 113.094,
+        "after": 113.234,
+        "growth": 0.141
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "cameras": 100,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 1000,
+      "workers": 4,
+      "elapsed_ms": 2017.825,
+      "throughput_jobs_s": 495.58,
+      "queue_age_ms": {
+        "median": 1182,
+        "p95": 1977,
+        "max": 2027,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 899,
+            "p95": 1912,
+            "max": 1912,
+            "samples": 11
+          },
+          "NORMAL": {
+            "median": 1150,
+            "p95": 1957,
+            "max": 2022,
+            "samples": 957
+          },
+          "LEARNING": {
+            "median": 1984,
+            "p95": 2026,
+            "max": 2027,
+            "samples": 32
+          }
+        },
+        "samples": 1000
+      },
+      "completed": 1000,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 113.234,
+        "after_admission": 113.234,
+        "after": 115.313,
+        "growth": 2.078
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    },
+    {
+      "cameras": 1000,
+      "tenants": 10,
+      "sites": 50,
+      "jobs": 4000,
+      "workers": 8,
+      "elapsed_ms": 13482.368,
+      "throughput_jobs_s": 296.68,
+      "queue_age_ms": {
+        "median": 8083,
+        "p95": 13239,
+        "max": 13535,
+        "by_priority": {
+          "CRITICAL": {
+            "median": 6827,
+            "p95": 13194,
+            "max": 13426,
+            "samples": 42
+          },
+          "NORMAL": {
+            "median": 7869,
+            "p95": 12983,
+            "max": 13502,
+            "samples": 3830
+          },
+          "LEARNING": {
+            "median": 13403,
+            "p95": 13531,
+            "max": 13535,
+            "samples": 128
+          }
+        },
+        "samples": 4000
+      },
+      "completed": 4000,
+      "failures": 0,
+      "duplicates": 0,
+      "dead_letters": 0,
+      "backlog": 0,
+      "memory_mb": {
+        "before": 115.313,
+        "after_admission": 117.5,
+        "after": 203.594,
+        "growth": 88.281
+      },
+      "assumption": "synthetic metadata-only AI jobs; 2 ms bounded worker fixture"
+    }
+  ],
+  "chaos": {
+    "passed": 12,
+    "total": 12,
+    "cases": [
+      {
+        "name": "WORKER_PROCESS_CRASH",
+        "status": "PASS",
+        "suite": "PUSH37_HA_FAULTS",
+        "evidence": "ACTIVE_SYNTHETIC_LOAD"
+      },
+      {
+        "name": "WORKER_CAPACITY_LOSS",
+        "status": "PASS",
+        "suite": "PUSH37_HA_FAULTS",
+        "evidence": "ACTIVE_SYNTHETIC_LOAD"
+      },
+      {
+        "name": "WORKER_RECOVERY",
+        "status": "PASS",
+        "suite": "PUSH37_HA_FAULTS",
+        "evidence": "ACTIVE_SYNTHETIC_LOAD"
+      },
+      {
+        "name": "QUEUE_CONSUMER_CRASH",
+        "status": "PASS",
+        "suite": "PUSH36_HORIZONTAL_LOAD",
+        "evidence": "ACTIVE_SYNTHETIC_LOAD"
+      },
+      {
+        "name": "API_INSTANCE_FAILURE",
+        "status": "PASS",
+        "suite": "PUSH37_HA_FAULTS",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "DATABASE_UNAVAILABLE",
+        "status": "PASS",
+        "suite": "PUSH37_HA_FAULTS",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "STORAGE_UNAVAILABLE",
+        "status": "PASS",
+        "suite": "PUSH34_STORAGE",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "CLOUD_CONNECTIVITY_INTERRUPTION",
+        "status": "PASS",
+        "suite": "PUSH21_OFFLINE_RESYNC",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "GATEWAY_RELAY_FAILURE",
+        "status": "PASS",
+        "suite": "PUSH20_SELF_HEALING",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "STALE_VIDEO_STREAM",
+        "status": "PASS",
+        "suite": "PUSH20_SELF_HEALING",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "CONNECTOR_RESTART",
+        "status": "PASS",
+        "suite": "PUSH20_SELF_HEALING",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      },
+      {
+        "name": "DVR_SESSION_INTERRUPTION",
+        "status": "PASS",
+        "suite": "PUSH20_SELF_HEALING",
+        "evidence": "CANONICAL_DETERMINISTIC_FAULT_INJECTION"
+      }
+    ],
+    "suites": [
+      {
+        "name": "PUSH36_HORIZONTAL_LOAD",
+        "path": "scripts/qa/check-digital-observer-horizontal-scale.mjs",
+        "status": "PASS",
+        "output_digest": "ba2594a6e9ec44302ff2388e73edcd365269a24ea99ff5524bdc1b09b7d58696"
+      },
+      {
+        "name": "PUSH37_HA_FAULTS",
+        "path": "scripts/qa/check-digital-observer-high-availability.mjs",
+        "status": "PASS",
+        "output_digest": "dcf5bec1993d1ec71c30ff3eb607ec4fe8a8ae495f8c8e09783deeb3d94d2abe"
+      },
+      {
+        "name": "PUSH20_SELF_HEALING",
+        "path": "scripts/qa/check-edge-self-healing.mjs",
+        "status": "PASS",
+        "output_digest": "9b0b7df588e3f475a7961d00989019897c5c734c3caf3a758f091bcd955c2ac7"
+      },
+      {
+        "name": "PUSH21_OFFLINE_RESYNC",
+        "path": "scripts/qa/check-offline-buffer-resync.mjs",
+        "status": "PASS",
+        "output_digest": "a0d3748f2fda91ff9feb9a435b0dce8754f133138fb4b5c6fe30cb816b4e7bdd"
+      },
+      {
+        "name": "PUSH34_STORAGE",
+        "path": "scripts/qa/check-digital-observer-storage-portability.mjs",
+        "status": "PASS",
+        "output_digest": "ac3f0773a8a0aa3fddac5b0a702f423652b46e37d3fbea0464b52f7d6eecf1fa"
+      }
+    ],
+    "under_load": true
+  },
+  "acknowledged_data_loss": 0,
+  "duplicate_product_effects": 0,
+  "cross_tenant_leakage": 0,
+  "empty_dvr_jobs": 0,
+  "soak_pass_guard": "VERIFIED_24_HOURS_REQUIRED"
+}

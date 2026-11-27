@@ -1,0 +1,72 @@
+name: PUSH 38 Gateway sweep deadline Home QA manifest
+
+on:
+  push:
+    branches: [codex/push-38-aws-signing]
+    paths:
+      - .github/workflows/push38-home-qa-gateway-sweep-deadline.yml
+
+permissions: {}
+concurrency:
+  group: push38-home-qa-gateway-sweep-deadline-manifest
+  cancel-in-progress: false
+
+jobs:
+  issue-gateway-sweep-deadline-manifest:
+    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38-aws-signing'
+    environment: HOME_QA_SIGNING
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: 571fe54e511d6f6a3a64ed98c1c2626dca109c6a
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Require reviewed qualification tooling
+        run: test "$(git rev-parse HEAD)" = "571fe54e511d6f6a3a64ed98c1c2626dca109c6a"
+      - name: Install locked verification dependencies
+        run: npm ci --ignore-scripts --no-audit --fund=false
+      - name: Verify immutable Gateway sweep-deadline contract
+        run: |
+          node scripts/qa/check-push38-gateway-sweep-deadline-release.mjs
+          node scripts/qa/check-push38-gateway-common-cause-recovery.mjs
+          node --test scripts/qa/check-push38-relay-handoff-remediation.mjs
+          node scripts/qa/check-push38-home-qa-phases.mjs
+          node scripts/qa/check-push38b-relay-recovery.mjs
+          node scripts/qa/check-push38i-agent-core.mjs
+          node scripts/qa/check-edge-ota-update.mjs
+          node scripts/qa/check-remote-edge-signer.mjs
+          node scripts/qa/check-installed-ota-health-truth.mjs
+      - name: Assume exact protected release-signing role
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+          role-duration-seconds: 900
+          role-session-name: homeqa-gateway-sweep-deadline-${{ github.run_id }}
+          mask-aws-account-id: true
+          retry-max-attempts: 2
+          unset-current-credentials: true
+      - name: Sign exact-device Gateway sweep-deadline manifest
+        env:
+          SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
+          SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
+          SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
+          PUSH38_CANDIDATE_SHA: 29ca4057f5030452b14f085fe207242b98696b8f
+          HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
+          HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-gateway-sweep-deadline
+        run: node scripts/release/issue-push38-home-qa-gateway-sweep-deadline.mjs
+      - name: Preserve signed public manifest and redacted evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: push38-homeqa-gateway-sweep-deadline-${{ github.run_id }}
+          path: ${{ runner.temp }}/push38-homeqa-gateway-sweep-deadline/
+          if-no-files-found: error
+          retention-days: 7
