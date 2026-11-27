@@ -3,7 +3,7 @@ import { createManagedDeviceProofHeaders, generateManagedDeviceKeyPair } from ".
 
 const pendingRotationAccount = "device_rotation_pending";
 
-function confirmation({ deviceId, credentialVersion, rotationId, challenge, privateKeyPkcs8 }) {
+export function signManagedDeviceRotation({ deviceId, credentialVersion, rotationId, challenge, privateKeyPkcs8 }) {
   const canonical = ["observer-managed-device-rotation-v1", deviceId, String(credentialVersion), rotationId, challenge].join("\n");
   return sign(null, Buffer.from(canonical), createPrivateKey({ key: Buffer.from(privateKeyPkcs8, "base64url"),
     format: "der", type: "pkcs8" })).toString("base64url");
@@ -34,7 +34,7 @@ export async function rotateManagedDeviceCredential({ store, cloudBaseUrl, fetch
   }
   const body = JSON.stringify({ action: "rotate_confirm", gateway_id: pending.deviceId,
     rotation_id: pending.rotationId, new_credential_version: pending.newVersion, challenge: pending.challenge,
-    signature: confirmation({ deviceId: pending.deviceId, credentialVersion: pending.newVersion,
+    signature: signManagedDeviceRotation({ deviceId: pending.deviceId, credentialVersion: pending.newVersion,
       rotationId: pending.rotationId, challenge: pending.challenge, privateKeyPkcs8: pending.privateKeyPkcs8 }) });
   const response = await fetcher(`${cloudBaseUrl}/api/video-gateway/device-identity`, { method: "POST",
     headers: { "content-type": "application/json" }, body });
