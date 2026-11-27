@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -6,6 +5,7 @@ import { BACKEND_SOURCE, CLIENT_SOURCE, issueHomeMediaRecovery,
   prepareHomeMediaRecovery, preparePinnedHomeMediaRecovery } from "./issue-home-media-recovery.mjs";
 
 import { detachedResultKey, encryptDetachedHomeMediaResult } from "./detached-home-media-result.mjs";
+import { createHomeMediaKmsTransport } from "./home-media-kms-transport.mjs";
 
 const env = process.env;
 const repo = "infoganbatuah-ai/gan-batuach";
@@ -64,21 +64,17 @@ async function main() {
   const output = join(runner, "home-media-recovery-signed");
   if (!detached) mkdirSync(output, { mode: 0o700 });
   const config = { keyArn: env.SIGNER_KEY_ARN, keyId, publicKeySha256: env.SIGNER_PUBLIC_KEY_SHA256, role: "RELEASE_MANIFEST" };
-  let calls = 0;
-  const operations = ["describe-key", "get-public-key", "sign", "describe-key", "get-public-key", "sign"];
-  const call = async (operation, request) => {
-    if (operation !== operations[calls] || calls >= operations.length || request.KeyId !== config.keyArn)
-      throw new Error("HOME_MEDIA_KMS_LIMIT");
-    calls++;
-    return JSON.parse(execFileSync("aws", ["kms", operation, "--region", "us-east-1", "--cli-input-json", "file:///dev/stdin",
-      "--no-cli-pager", "--output", "json", "--cli-binary-format", "base64"], { input: JSON.stringify(request), encoding: "utf8", timeout: 30_000,
-      stdio: ["pipe", "pipe", "ignore"], maxBuffer: 64 * 1024, env: { ...env,
-        AWS_MAX_ATTEMPTS: "1", AWS_RETRY_MODE: "standard" } }));
-  };
+  const transport = createHomeMediaKmsTransport({ runner, keyArn: config.keyArn, env });
   const signed = [];
-  for (const item of inputs) signed.push(await issueHomeMediaRecovery({ ...item, config, call, detached,
-    approvedWorkflowSha: env.HOME_MEDIA_APPROVED_SHA, env: { ...env, HOME_MEDIA_PROFILE: item.profile } }));
-  if (calls !== operations.length) throw new Error("HOME_MEDIA_KMS_COUNT_INVALID");
+  try {
+    for (const item of inputs) signed.push(await issueHomeMediaRecovery({ ...item, config, call: transport.call, detached,
+      approvedWorkflowSha: env.HOME_MEDIA_APPROVED_SHA, env: { ...env, HOME_MEDIA_PROFILE: item.profile } }));
+  } catch (error) {
+    if (transport.failure) console.error(JSON.stringify({ result: "HOME_MEDIA_KMS_CALL_FAILED", ...transport.failure }));
+    throw error;
+  }
+  const calls = transport.count;
+  if (calls !== 6) throw new Error("HOME_MEDIA_KMS_COUNT_INVALID");
   if (detached) return { result: "HOME_MEDIA_SIGNED_MANIFESTS_ENCRYPTED", kms_calls: calls,
     ciphertext: signed.map(item => encryptDetachedHomeMediaResult(item.document, returnKey)) };
   for (const item of signed) {
