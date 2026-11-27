@@ -1,17 +1,12 @@
 import assert from "node:assert/strict";
 import { createHmac, randomUUID } from "node:crypto";
-import { spawn } from "node:child_process";
-import { once } from "node:events";
-import { cpSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
-import { dirname, join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
+import { closeLoopback, openLoopback, startNext } from "./partner-next-runtime.mjs";
 import { loadTs } from "./digital-guard-test-loader.mjs";
 import { asRole, currentScope, partnerPostgresFixture, partnerPostgresIds } from "./partner-postgres-fixture.mjs";
 
-const root = fileURLToPath(new URL("../../", import.meta.url));
 const { DigitalObserverServerClient } = loadTs("packages/digital-observer-sdk/src/index.ts");
 const { DigitalObserverEmbeddedClient } = loadTs("packages/digital-observer-sdk/src/browser.ts");
 const external = "/api/digital-observer/external/v1";
@@ -27,16 +22,6 @@ const origin = "https://partner.example.invalid";
 const audience = "synthetic-partner";
 const expiresAt = new Date(Date.now() + 600_000).toISOString();
 const digest = (token) => createHmac("sha256", pepper).update(token).digest("hex");
-
-async function open(server) {
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  return server.address().port;
-}
-
-function close(server) {
-  return new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
-}
 
 function restFixture(t, database) {
   const receipts = [];
@@ -162,62 +147,14 @@ async function jsonBody(request) {
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
-async function startNext(t, supabaseUrl) {
-  const directory = mkdtempSync(join(root, ".partner-next-"));
-  const projectPath = (relative) => join(directory, relative);
-  let child;
-  t.after(async () => {
-    if (child?.exitCode === null && child.signalCode === null) {
-      const exited = once(child, "exit");
-      child.kill();
-      await exited;
-    }
-    rmSync(directory, { recursive: true, force: true });
-  });
-  for (const file of ["proxy.ts", `app${external}/[...segments]/route.ts`, `app${embed}/route.ts`]) {
-    mkdirSync(dirname(projectPath(file)), { recursive: true });
-    cpSync(join(root, file), projectPath(file));
-  }
-  for (const link of ["node_modules", "lib"]) symlinkSync(join(root, link), projectPath(link), "dir");
-  writeFileSync(projectPath("package.json"), '{"private":true}');
-  writeFileSync(projectPath("next.config.mjs"), "export default { devIndicators: false };\n");
-  writeFileSync(projectPath("tsconfig.json"), JSON.stringify({
-    compilerOptions: { baseUrl: ".", paths: { "@/*": ["./*"] }, moduleResolution: "bundler" },
-  }));
-  const reservation = createServer();
-  const port = await open(reservation);
-  await close(reservation);
-  const endpoint = `http://127.0.0.1:${port}`;
-  child = spawn(process.execPath, [join(root, "node_modules/next/dist/bin/next"), "dev", "--webpack", "--hostname", "127.0.0.1", "--port", String(port)], {
-    cwd: directory,
-    env: { PATH: process.env.PATH, TMPDIR: directory, NEXT_TELEMETRY_DISABLED: "1",
-      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "synthetic-publishable-key",
-      SUPABASE_SERVICE_ROLE_KEY: apiKey, DIGITAL_OBSERVER_ENTERPRISE_CREDENTIAL_PEPPER: pepper },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
-  let logs = "";
-  child.stdout.on("data", (data) => { logs = (logs + data).slice(-12_000); });
-  child.stderr.on("data", (data) => { logs = (logs + data).slice(-12_000); });
-  for (let attempt = 0; attempt < 90; attempt++) {
-    if (child.exitCode !== null) break;
-    try {
-      const ready = await fetch(`${endpoint}${external}/openapi.json`, { signal: AbortSignal.timeout(30_000) });
-      if (ready.ok) return { endpoint, logs: () => logs };
-    } catch (error) {
-      if (!["ECONNREFUSED", "ECONNRESET"].includes(error.cause?.code)) break;
-    }
-    await sleep(250);
-  }
-  throw new Error(`Isolated Next did not start: ${logs}`);
-}
-
 test("SDK requests cross Next middleware and meter only current delegated usage in PostgreSQL", { timeout: 120_000 }, async (t) => {
   const database = await partnerPostgresFixture(t);
   await database.exec(currentScope);
   const fixture = restFixture(t, database);
-  const restPort = await open(fixture.server);
-  t.after(() => close(fixture.server));
-  const { endpoint, logs } = await startNext(t, `http://127.0.0.1:${restPort}`);
+  const restPort = await openLoopback(fixture.server);
+  t.after(() => closeLoopback(fixture.server));
+  const { endpoint, logs } = await startNext(t, { supabaseUrl: `http://127.0.0.1:${restPort}`,
+    publishableKey: "synthetic-publishable-key", serviceRoleKey: apiKey, pepper });
   try {
     const requestIds = new Set();
     const server = new DigitalObserverServerClient({ baseUrl: `${endpoint}${external}`, credential: serviceToken, fetch: async (url, init) => {
