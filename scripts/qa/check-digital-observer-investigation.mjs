@@ -169,3 +169,82 @@ test("bounded pagination and audit grounding are explicit", () => {
   assert.match(migration, /observer_signals_real_investigation_idx/);
   assert.match(migration, /REAL_CAMERA_AI/);
 });
+
+const { buildIncidentReconstructions } = loadTs("lib/domain/digital-observer/investigation-recording-timeline.ts");
+
+function reconstructionFixture(rows, { sources = [source(), { ...source(), id: otherCameraId }], limit = 20, cursor = 0 } = {}) {
+  const query = { ...compile("תראה לי אירועים ותקריות היום").query, cameraSourceIds: [],
+    scopes: ["EVENTS", "INCIDENTS"], pagination: { cursor, limit }, eventTypes: [] };
+  const timeline = rows.map((row) => ({
+    event_id: row.id, event_type: "person_exited", timestamp: "2026-09-06T14:50:00Z", camera_source_id: otherCameraId,
+  }));
+  const assembled = results.assembleInvestigationResults({
+    query, sources, eventRows: rows, clipRows: [clip()],
+    incidentRows: [incident({ related_event_ids: rows.map((row) => row.id), timeline_summary: [...timeline, ...timeline.slice(0, 1)] })],
+    now,
+  });
+  return { result: assembled, siteId, sources, historyAllowed: true, now };
+}
+
+test("incident reconstruction uses linked source time, canonical cameras and grounded evidence", () => {
+  const first = event();
+  const later = event("e-two", { camera_id: otherCameraId, created_at: "2026-09-06T14:30:51Z",
+    metadata: { ...first.metadata, camera_source_id: otherCameraId, first_seen: "2026-09-06T17:30:30+03:00" } });
+  const outsideWindow = event("e-three", { created_at: "2026-09-06T14:31:00Z",
+    metadata: { ...first.metadata, first_seen: "2026-09-06T14:31:00Z" } });
+  const f = reconstructionFixture([later, first, outsideWindow], { limit: 1 });
+  assert.equal(f.result.events.length, 0);
+  const [reconstruction] = buildIncidentReconstructions(f);
+  assert.equal(reconstruction.partialSearch, true);
+  assert.deepEqual(reconstruction.groups.map((group) => group.sourceCount), [2, 1]);
+  const [entry, other] = reconstruction.groups[0].observations;
+  assert.equal(entry.sourceId, cameraId);
+  assert.equal(entry.observedAt, "2026-09-06T14:30:00.000Z");
+  assert.equal(entry.label, "אדם נכנס");
+  assert.match(entry.evidencePath, /event-clips/);
+  assert.equal(other.sourceId, otherCameraId);
+  assert.equal(other.observedAt, "2026-09-06T14:30:30.000Z");
+  assert.equal(other.timeBasis, "TIME_DISAGREEMENT");
+  assert.equal(other.evidenceState, "UNAVAILABLE");
+  assert.equal(other.evidencePath, null);
+});
+
+test("rejects shared aliases and other Sites; privacy denies reconstruction", () => {
+  const first = event();
+  const alias = event("e-alias", { metadata: { ...first.metadata, camera_source_id: "entrance-11" } });
+  const foreign = event("e-foreign", { observer_site_id: otherSiteId });
+  const f = reconstructionFixture([first, alias, foreign], {
+    sources: [source(), { ...source(), id: otherCameraId }, { ...source(), observer_site_id: otherSiteId }],
+  });
+  const [reconstruction] = buildIncidentReconstructions(f);
+  assert.equal(reconstruction.omittedObservations, 2);
+  assert.deepEqual(reconstruction.groups.flatMap((group) => group.observations.map(({ eventId }) => eventId)), [first.id]);
+  assert.deepEqual(buildIncidentReconstructions({ ...f, historyAllowed: false }), []);
+  assert.deepEqual(buildIncidentReconstructions({ ...f, siteId: otherSiteId }), []);
+});
+
+test("excludes unzoned facts and caps reconstruction without joining pages", () => {
+  const first = event();
+  const rows = Array.from({ length: 28 }, (_, index) => event(`e-${String(index).padStart(2, "0")}`, {
+    metadata: { ...first.metadata, first_seen: index === 0 ? "2026-09-06T14:30:00" :
+      new Date(Date.parse(first.created_at) + index * 1_000).toISOString() },
+  }));
+  const firstPage = reconstructionFixture(rows, { limit: 2 });
+  const [reconstruction] = buildIncidentReconstructions(firstPage);
+  assert.equal(reconstruction.capped, true);
+  assert.equal(reconstruction.omittedObservations, 1);
+  assert.equal(reconstruction.groups.flatMap((group) => group.observations).length, 25);
+  assert.deepEqual(buildIncidentReconstructions(reconstructionFixture(rows, { limit: 2, cursor: 2 })), []);
+});
+
+test("hides an ungrounded evidence route without losing the stored-time observation", () => {
+  const first = event();
+  delete first.metadata.first_seen;
+  const f = reconstructionFixture([first]);
+  f.result.grounding.evidenceIds = [];
+  const [reconstruction] = buildIncidentReconstructions(f);
+  const [observation] = reconstruction.groups[0].observations;
+  assert.equal(observation.timeBasis, "STORED_TIME_ONLY");
+  assert.equal(observation.evidencePath, null);
+  assert.equal(observation.evidenceState, "UNAVAILABLE");
+});

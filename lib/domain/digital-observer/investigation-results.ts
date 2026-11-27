@@ -82,12 +82,15 @@ export type InvestigationRuleEvaluationRow = {
 
 export type EvidenceState = "AVAILABLE" | "NO_RECORDING_BY_POLICY" | "EXPIRED" | "FAILED" | "UNAVAILABLE";
 
+export type ObservationTimeBasis = "SOURCE_OBSERVATION" | "STORED_TIME_ONLY" | "TIME_DISAGREEMENT" | "UNVERIFIED_TIME_ZONE";
+
 export type InvestigationEvent = {
   kind: "EVENT";
   id: string;
   eventType: string;
   label: string;
   occurredAt: string;
+  timeBasis?: ObservationTimeBasis;
   siteId: string;
   cameraId: string;
   cameraName: string;
@@ -120,7 +123,9 @@ export type InvestigationIncident = {
   decision: { current: string | null; final: string | null; confidence: number | null };
   feedbackLabel: string | null;
   watchRuleMatched: boolean;
-  timeline: { eventId: string; eventType: string; label: string; timestamp: string; cameraId: string | null; trackId: string | null; confidence: number | null; provenance: string | null; evidenceState: EvidenceState }[];
+  timeline: { eventId: string; eventType: string; label: string; timestamp: string; cameraId: string | null; trackId: string | null; confidence: number | null; provenance: string | null; evidenceState: EvidenceState;
+    verifiedObservation?: Pick<InvestigationEvent, "occurredAt" | "cameraId" | "timeBasis" | "label"> & { evidenceId: string | null; evidencePath: string | null };
+  }[];
   evidence: { states: EvidenceState[]; availableCount: number; playbackPaths: string[] };
   relevanceScore: number;
 };
@@ -165,6 +170,16 @@ function eventTime(row: InvestigationEventRow) {
   return String(metadata.first_seen ?? row.created_at ?? "");
 }
 
+function observationTimeBasis(row: InvestigationEventRow): ObservationTimeBasis {
+  const explicitZone = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+  const observedAt = objectValue(row.metadata).first_seen;
+  if (!explicitZone.test(eventTime(row))) return "UNVERIFIED_TIME_ZONE";
+  if (typeof observedAt !== "string") return "STORED_TIME_ONLY";
+  if (explicitZone.test(row.created_at) && Number.isFinite(Date.parse(row.created_at)) &&
+    Date.parse(observedAt) !== Date.parse(row.created_at)) return "TIME_DISAGREEMENT";
+  return "SOURCE_OBSERVATION";
+}
+
 function evidenceFor(row: InvestigationEventRow, clips: InvestigationClipRow[], now: Date) {
   const metadata = objectValue(row.metadata);
   const cameraId = eventCameraId(row);
@@ -185,7 +200,11 @@ function evidenceFor(row: InvestigationEventRow, clips: InvestigationClipRow[], 
 }
 
 function sourceFor(cameraId: string, sources: InvestigationSource[]) {
-  return sources.find((source) => source.id === cameraId || source.camera_stream_id === cameraId) ?? null;
+  if (!cameraId) return null;
+  const exact = sources.filter((source) => source.id === cameraId);
+  if (exact.length) return exact.length === 1 ? exact[0] : null;
+  const aliases = sources.filter((source) => source.camera_stream_id === cameraId);
+  return aliases.length === 1 ? aliases[0] : null;
 }
 
 function validRealEvent(row: InvestigationEventRow, query: CanonicalInvestigationQuery, sources: InvestigationSource[]) {
@@ -230,6 +249,7 @@ function eventResult(row: InvestigationEventRow, sources: InvestigationSource[],
     eventType: type,
     label: labels[type] ?? "אירוע מצלמה",
     occurredAt: new Date(eventTime(row)).toISOString(),
+    timeBasis: observationTimeBasis(row),
     siteId: row.observer_site_id,
     cameraId: source.id,
     cameraName: source.display_name ?? source.location_label ?? "מצלמה",
@@ -274,23 +294,30 @@ function incidentResult(row: InvestigationIncidentRow, sources: InvestigationSou
   const source = sourceFor(cameraId, sources);
   if (!source || !row.opened_at || !row.last_activity_at) return null;
   const byId = new Map(events.map((event) => [event.id, event]));
-  const timeline = timelineRows(row.timeline_summary).map((item) => {
-    const eventId = String(item.event_id);
-    const linked = byId.get(eventId);
-    const type = String(item.event_type ?? linked?.eventType ?? "system");
-    return {
-      eventId,
-      eventType: type,
-      label: labels[type] ?? "אירוע מצלמה",
-      timestamp: new Date(String(item.timestamp)).toISOString(),
-      cameraId: typeof item.camera_source_id === "string" ? item.camera_source_id : linked?.cameraId ?? null,
-      trackId: typeof item.track_id === "string" ? item.track_id : linked?.trackId ?? null,
-      confidence: typeof item.confidence === "number" ? item.confidence : linked?.confidence ?? null,
-      provenance: typeof item.provenance === "string" ? item.provenance : linked?.provenance ?? null,
-      evidenceState: linked?.evidence.state ?? "UNAVAILABLE" as EvidenceState
-    };
-  }).sort((left, right) => left.timestamp.localeCompare(right.timestamp));
-  const related = strings(row.related_event_ids).map((id) => byId.get(id)).filter((event): event is InvestigationEvent => Boolean(event));
+  const relatedIds = new Set(strings(row.related_event_ids));
+  const timeline = timelineRows(row.timeline_summary)
+    .filter((item) => Number.isFinite(Date.parse(String(item.timestamp))))
+    .map((item) => {
+      const eventId = String(item.event_id);
+      const linked = byId.get(eventId);
+      const type = String(item.event_type ?? linked?.eventType ?? "system");
+      return {
+        eventId,
+        eventType: type,
+        label: labels[type] ?? "אירוע מצלמה",
+        timestamp: new Date(String(item.timestamp)).toISOString(),
+        cameraId: typeof item.camera_source_id === "string" ? item.camera_source_id : linked?.cameraId ?? null,
+        trackId: typeof item.track_id === "string" ? item.track_id : linked?.trackId ?? null,
+        confidence: typeof item.confidence === "number" ? item.confidence : linked?.confidence ?? null,
+        provenance: typeof item.provenance === "string" ? item.provenance : linked?.provenance ?? null,
+        evidenceState: linked?.evidence.state ?? "UNAVAILABLE" as EvidenceState,
+        verifiedObservation: linked && relatedIds.has(eventId) ? {
+          occurredAt: linked.occurredAt, cameraId: linked.cameraId, timeBasis: linked.timeBasis,
+          label: linked.label, evidenceId: linked.evidence.clipId, evidencePath: linked.evidence.playbackPath,
+        } : undefined
+      };
+    }).sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+  const related = [...relatedIds].map((id) => byId.get(id)).filter((event): event is InvestigationEvent => Boolean(event));
   const playbackPaths = related.map((event) => event.evidence.playbackPath).filter((path): path is string => Boolean(path));
   const evidenceStates = [...new Set(related.map((event) => event.evidence.state))];
   return {
