@@ -12,7 +12,7 @@ const js = ts.transpileModule(source, { compilerOptions: {
 const link = "digitalobserver://camera/00000000-0000-4000-8000-000000000044?site=00000000-0000-4000-8000-000000000045";
 const tick = async () => { for (let i = 0; i < 80; i++) await Promise.resolve(); };
 
-test("a new appUrlOpen tap of the same URL is authorized after initial getLaunchUrl", async () => {
+function iosRuntime(getLaunchUrl = async () => ({ url: link })) {
   let appUrlOpen, launchChecks = 0, postCount = 0;
   const destinations = [];
   const storage = new Map();
@@ -29,7 +29,7 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
   const plugin = {
     Capacitor: { isNativePlatform: () => true, isPluginAvailable: () => false, getPlatform: () => "ios" },
     App: { addListener: async (name, callback) => { if (name === "appUrlOpen") appUrlOpen = callback; return { remove: async () => {} }; },
-      getLaunchUrl: async () => ({ url: link }), getInfo: async () => ({ id: "com.ganbatuach.app" }) },
+      getLaunchUrl, getInfo: async () => ({ id: "com.ganbatuach.app" }) },
     Network: { addListener: async () => ({ remove: async () => {} }), getStatus: async () => ({ connected: true }) },
     Preferences: { get: async () => ({ value: null }), set: async () => {} }, Device: {}, PushNotifications: {}
   };
@@ -62,17 +62,54 @@ test("a new appUrlOpen tap of the same URL is authorized after initial getLaunch
     }
   }, { timeout: 5000 });
   exports.ObserverMobileRuntime();
+  return {
+    tap: (url) => appUrlOpen({ url }),
+    get launchChecks() { return launchChecks; },
+    get postCount() { return postCount; },
+    destinations
+  };
+}
+
+test("a new appUrlOpen tap of the same URL is authorized after initial getLaunchUrl", async () => {
+  const h = iosRuntime();
   await tick();
-  assert.equal(postCount, 1, "initial launch was authorized");
-  assert.equal(typeof appUrlOpen, "function");
-  appUrlOpen({ url: link });
+  assert.equal(h.postCount, 1, "initial launch was authorized");
+  h.tap(link);
   await tick();
-  assert.equal(postCount, 2, "deliberate second appUrlOpen tap bypasses only the stale-launch marker");
-  assert.equal(launchChecks, 1, "the stale-launch marker applies only to getLaunchUrl");
-  appUrlOpen({ url: link.replace("digitalobserver://", "observerqaandroid://") });
+  assert.equal(h.postCount, 2, "deliberate second appUrlOpen tap bypasses only the stale-launch marker");
+  assert.equal(h.launchChecks, 1, "the stale-launch marker applies only to getLaunchUrl");
+  h.tap(link.replace("digitalobserver://", "observerqaandroid://"));
   await tick();
-  assert.equal(postCount, 2, "a foreign app scheme is denied before the server request");
-  assert.deepEqual(destinations, ["/digital-observer/sites/authorized", "/digital-observer/sites/authorized"]);
+  assert.equal(h.postCount, 2, "a foreign app scheme is denied before the server request");
+  assert.deepEqual(h.destinations, ["/digital-observer/sites/authorized", "/digital-observer/sites/authorized"]);
+});
+
+test("a native link delivered as both a startup event and a launch snapshot opens once", async () => {
+  const launch = Promise.withResolvers();
+  const h = iosRuntime(() => launch.promise);
+  await tick();
+  h.tap(link);
+  await tick();
+  assert.equal(h.postCount, 1);
+  launch.resolve({ url: link });
+  await tick();
+  assert.equal(h.postCount, 1, "the duplicate snapshot must not authorize again");
+  assert.deepEqual(h.destinations, ["/digital-observer/sites/authorized"]);
+  assert.equal(h.launchChecks, 1, "still mark the launch snapshot for login reloads");
+  h.tap(link);
+  await tick();
+  assert.equal(h.postCount, 2, "a later deliberate tap is still authorized");
+});
+
+test("a different startup event does not consume the launch snapshot", async () => {
+  const launch = Promise.withResolvers();
+  const h = iosRuntime(() => launch.promise);
+  await tick();
+  h.tap(link.replace("digitalobserver://", "observerqaandroid://"));
+  launch.resolve({ url: link });
+  await tick();
+  assert.equal(h.postCount, 1);
+  assert.equal(h.launchChecks, 1);
 });
 
 test("Android Observer QA defers only a resource link on network failure and retries after reconnect", async () => {

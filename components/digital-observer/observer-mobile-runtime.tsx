@@ -339,13 +339,24 @@ export function ObserverMobileRuntime() {
       await Promise.all([networkRegistration, appRegistration]);
       if (disposed || !playbackPublisher.isCurrent()) return;
 
-      const appUrl = await App.addListener("appUrlOpen", ({ url }) => { void authorizeAndOpen(url).catch(() => emit("digital-observer:mobile-link-denied")); });
+      // Native startup can deliver the same link through both entry points.
+      // Keep this comparison confined to startup so deliberate retaps still work.
+      let startupUrls: Set<string> | null = new Set();
+      const appUrl = await App.addListener("appUrlOpen", ({ url }) => {
+        startupUrls?.add(url);
+        void authorizeAndOpen(url).catch(() => emit("digital-observer:mobile-link-denied"));
+      });
       if (disposed || !playbackPublisher.isCurrent()) { await appUrl.remove(); return; }
       removers.push(() => appUrl.remove());
-      const launch = await App.getLaunchUrl();
-      if (disposed || !playbackPublisher.isCurrent()) return;
-      if (launch?.url && window.sessionStorage && firstLaunchOfMobileLink(window.sessionStorage, launch.url, Date.now(), window.location.origin))
-        void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
+      try {
+        const launch = await App.getLaunchUrl();
+        if (disposed || !playbackPublisher.isCurrent()) return;
+        if (launch?.url && window.sessionStorage && firstLaunchOfMobileLink(window.sessionStorage, launch.url, Date.now(), window.location.origin)
+          && !startupUrls.has(launch.url))
+          void authorizeAndOpen(launch.url).catch(() => emit("digital-observer:mobile-link-denied"));
+      } finally {
+        startupUrls = null;
+      }
 
       if (pushEnabled) {
         const registration = await PushNotifications.addListener("registration", (token) => { void handlePushRegistration(token); });
