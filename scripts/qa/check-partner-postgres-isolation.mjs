@@ -9,6 +9,7 @@ const identity = migration("20261019020000_digital_observer_push41_enterprise_id
 const external = migration("20261019030000_digital_observer_push42_external_api.sql");
 const partner = migration("20261019040000_digital_observer_push43_oem_sdk.sql");
 const delegated = migration("20261019041000_digital_observer_push43_delegated_usage.sql");
+const currentScope = migration("20261127162335_digital_observer_push43_current_usage_scope.sql");
 
 function section(source, first, next) {
   const start = source.indexOf(first);
@@ -17,8 +18,8 @@ function section(source, first, next) {
   return source.slice(start, end);
 }
 
-const [memberA, memberB, partnerAdmin, orgA, orgB, partnerOrg, site, source, partnerId, customer, account, session] =
-  Array.from({ length: 12 }, (_, i) => `10000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`);
+const [memberA, memberB, partnerAdmin, orgA, orgB, partnerOrg, site, source, partnerId, customer, account, session, directAccount] =
+  Array.from({ length: 13 }, (_, i) => `10000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`);
 
 async function fixture(t) {
   const directory = mkdtempSync(new URL("../../.partner-postgres-", import.meta.url).pathname);
@@ -79,6 +80,9 @@ async function fixture(t) {
     insert into public.digital_observer_camera_sources(id,observer_site_id,display_name) values ('${source}', '${site}', 'synthetic');
     insert into public.digital_observer_service_accounts(id,organization_id,display_name,permissions,expires_at,created_by)
       values ('${account}', '${partnerOrg}', 'synthetic', '["camera.live.view"]', now() + interval '1 day', '${partnerAdmin}');
+    insert into public.digital_observer_service_account_sites values ('${account}', '${site}', now());
+    insert into public.digital_observer_service_accounts(id,organization_id,display_name,permissions,expires_at,created_by,all_sites)
+      values ('${directAccount}', '${orgA}', 'direct-fixture', '["camera.live.view"]', now() + interval '1 day', '${memberA}', true);
     insert into public.digital_observer_partners(id,organization_id,partner_key,partner_type)
       values ('${partnerId}', '${partnerOrg}', 'partner-fixture', 'oem');
     insert into public.digital_observer_partner_customers(id,partner_id,customer_organization_id,external_customer_reference_hash,
@@ -106,7 +110,8 @@ function asRole(db, role, profileId, statement) {
 
 const readCameras = "select id from public.digital_observer_camera_sources";
 const readSessions = "select id from public.digital_observer_embedded_sessions";
-const meter = `select public.record_digital_observer_external_api_usage('${account}', '${site}', 'cameras.list', '2026-11-27T10:00:00Z', true) as receipt`;
+const meter = (id = account, success = true) =>
+  `select public.record_digital_observer_external_api_usage('${id}', '${site}', 'cameras.list', '2026-11-27T10:00:00Z', ${success}) as receipt`;
 
 test("PostgreSQL RLS semantics on the installed embedded engine", async (t) => {
   const db = await fixture(t);
@@ -134,20 +139,43 @@ test("PostgreSQL RLS semantics on the installed embedded engine", async (t) => {
     await db.query("update public.digital_observer_embedded_sessions set revoked_at=now() where id=$1", [session]);
     assert.deepEqual((await db.query("select id from public.digital_observer_embedded_sessions where revoked_at is null")).rows, []);
   });
-  await t.test("private metering RPC accepts a stale delegated Site link and a revoked service account", async (subtest) => {
-    await assert.rejects(asRole(db, "anon", "", meter), { code: "42501" });
-    await assert.rejects(asRole(db, "authenticated", partnerAdmin, meter), { code: "42501" });
-    const initial = (await asRole(db, "service_role", "", meter)).rows[0].receipt;
+  await t.test("ordered upgrade keeps existing counters and rejects stale Site, account and customer scopes", async () => {
+    const initial = (await asRole(db, "service_role", "", meter())).rows[0].receipt;
     assert.ok(initial);
+    await db.exec(currentScope);
+    await assert.rejects(asRole(db, "anon", "", meter()), { code: "42501" });
+    await assert.rejects(asRole(db, "authenticated", partnerAdmin, meter()), { code: "42501" });
+    const denied = () => assert.rejects(asRole(db, "service_role", "", meter()), { message: "service account/site mismatch" });
+
+    const retained = await asRole(db, "service_role", "", meter(account, false));
+    assert.equal(retained.rows[0].receipt, initial);
+    assert.ok((await asRole(db, "service_role", "", meter(directAccount))).rows[0].receipt);
     await db.query("update public.observer_sites set digital_observer_organization_id=$1 where id=$2", [orgB, site]);
-    assert.equal((await asRole(db, "service_role", "", meter)).rows[0].receipt, initial);
+    await denied();
+    await assert.rejects(asRole(db, "service_role", "", meter(directAccount)), { message: "service account/site mismatch" });
     await db.query("update public.observer_sites set digital_observer_organization_id=$1 where id=$2", [orgA, site]);
+
     await db.query("update public.digital_observer_service_accounts set account_status='revoked', revoked_at=now() where id=$1", [account]);
-    assert.equal((await asRole(db, "service_role", "", meter)).rows[0].receipt, initial);
+    await denied();
+    await db.query(`update public.digital_observer_service_accounts set account_status='active', revoked_at=null,
+      created_at=now()-interval '2 days', expires_at=now()-interval '1 day' where id=$1`, [account]);
+    await denied();
+    await db.query("update public.digital_observer_service_accounts set expires_at=now()+interval '1 day' where id=$1", [account]);
+
+    await db.query("update public.digital_observer_partner_customers set customer_status='suspended' where id=$1", [customer]);
+    await denied();
+    await db.query("update public.digital_observer_partner_customers set customer_status='active' where id=$1", [customer]);
+    await db.query("delete from public.digital_observer_service_account_sites where service_account_id=$1 and observer_site_id=$2", [account, site]);
+    await denied();
+    await db.query("insert into public.digital_observer_service_account_sites values ($1,$2,now())", [account, site]);
     await db.query("delete from public.digital_observer_partner_customer_sites where partner_customer_id=$1 and observer_site_id=$2", [customer, site]);
-    await assert.rejects(asRole(db, "service_role", "", meter), { message: "service account/site mismatch" });
-    const count = await db.query("select request_count::int from public.digital_observer_external_api_usage_buckets");
-    assert.deepEqual(count.rows, [{ request_count: 3 }]);
-    subtest.diagnostic("GAP: 2 formerly valid mappings still allowed metering under the server-only role.");
+    await denied();
+
+    const buckets = await db.query(`select service_account_id, request_count::int, success_count::int, failure_count::int
+      from public.digital_observer_external_api_usage_buckets order by service_account_id`);
+    assert.deepEqual(buckets.rows, [
+      { service_account_id: account, request_count: 2, success_count: 1, failure_count: 1 },
+      { service_account_id: directAccount, request_count: 1, success_count: 1, failure_count: 0 },
+    ]);
   });
 });
