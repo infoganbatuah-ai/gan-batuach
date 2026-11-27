@@ -12,6 +12,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private var captureShieldView: UIView?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        #if OBSERVER_PRODUCT_PILOT
+        let pilotWindow = UIWindow(frame: UIScreen.main.bounds)
+        pilotWindow.rootViewController = CAPBridgeViewController(nibName: nil, bundle: nil)
+        window = pilotWindow
+        #endif
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(screenCaptureStateChanged),
@@ -19,6 +24,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             object: nil
         )
         updateCaptureShield()
+        #if OBSERVER_PRODUCT_PILOT
+        pilotWindow.makeKeyAndVisible()
+        #endif
         return true
     }
 
@@ -86,7 +94,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
     }
 
-    #if !PERSONAL_TEAM_QA
+    #if !PERSONAL_TEAM_QA && !OBSERVER_PRODUCT_PILOT
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
     }
