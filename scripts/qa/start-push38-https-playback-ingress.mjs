@@ -10,6 +10,7 @@ const args = new Map(process.argv.slice(2).map(value => {
   return [key, rest.join("=") || true];
 }));
 const hostnamePattern = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+ganbatuach\.com$/;
+const browserOrigins = new Set(["https://ganbatuach.com", "https://gan-batuach.vercel.app"]);
 const gatewayHost = String(args.get("gateway-host") || "").toLowerCase();
 const connectorHost = String(args.get("connector-host") || "").toLowerCase();
 const port = Number(args.get("port") || 18443);
@@ -25,7 +26,7 @@ if (isIP(bindAddress) !== 6 || bindAddress === "::" || bindAddress.toLowerCase()
 if (!keyPath || !certPath) throw new Error("PUSH38_MEDIA_TLS_REQUIRED");
 const browserUrl = new URL(browserOrigin);
 if (browserUrl.protocol !== "https:" || browserUrl.username || browserUrl.password || browserUrl.pathname !== "/" ||
-  browserUrl.search || browserUrl.hash || !hostnamePattern.test(browserUrl.hostname))
+  browserUrl.search || browserUrl.hash || !browserOrigins.has(browserUrl.origin))
   throw new Error("PUSH38_MEDIA_BROWSER_ORIGIN_INVALID");
 const loopbackOrigin = (raw, fallback) => {
   const value = new URL(String(raw || fallback));
