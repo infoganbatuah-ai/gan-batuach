@@ -18932,30 +18932,31 @@
       "sourceCommits": [
         "efbc9fb8ee63e1ec073788eace1defba97ae33bc"
       ],
-      "state": "PRESERVED_PENDING_INTEGRATION",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gb-m39-parent-discovery-accessibility-20261124@efbc9fb8ee63e1ec073788eace1defba97ae33bc"
         ],
-        "status": "PRESERVED_PENDING_INTEGRATION"
+        "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "SCOPED_8_OF_8_PASS_COMBINED_CI_AND_PRODUCT_QA_PENDING",
+        "status": "COMBINED_PR_CI_PASS_AND_POSTMERGE_FOCUSED_8_OF_8_PASS",
         "evidence": [
-          "Original PR #662 and remote source efbc9fb8ee63e1ec073788eace1defba97ae33bc. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks."
+          "Original PR #662 and remote source efbc9fb8ee63e1ec073788eace1defba97ae33bc. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks.",
+          "Combined PR #676 head b0b890c9d67c9bef9d8444f4b1bf90be3ab75fe7 passed all six CI gates and aggregate (45914540566), Management tenant context (45914540531) and Snyk. The merge has the tested tree 5f2b11b65603a2bfb9287ddcdc6710cf8f2d8056 and both original SHAs as ancestors. Both focused suites passed 8/8 again on that merge."
         ],
-        "limits": "Combined candidate CI and authenticated Desktop/Mobile Development QA require verification."
+        "limits": "Authenticated Product QA is blocked: the external Colima gbi hostagent socket refuses connections and local Supabase health resets. Scope is code, CI, ancestry and focused post-merge tests. No local Product or Production verification is claimed."
       },
       "integration": {
         "branch": "integration/development",
-        "commit": null,
+        "commit": "99fbd39f91a19c1dd79cec5d61175389d3ce3be5",
         "pullRequests": [
           662,
           676
         ],
         "candidateSource": "a918ebc3179bf591c188763b8c4676f40aa07d97",
-        "sourceAncestryVerified": false
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "COMBINED_STAGE_1_CANDIDATE",
@@ -18963,12 +18964,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "FOCUSED_SOURCE_TESTS_ONLY",
+      "localVerification": "BLOCKED_CANONICAL_DEVELOPMENT_RUNTIME_UNAVAILABLE",
       "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify combined candidate CI and the ancestry-preserving Development merge, then run isolated authenticated Parent discovery Desktop and Mobile QA and record the results."
+      "nextAction": "After coordinated safe recovery of the existing external gbi runtime, verify canonical Development drift and run authenticated Desktop and Mobile Parent discovery QA with the existing synthetic Parent."
     },
     {
       "id": "codex/gb-parent-discovery-age-filter-20261127",
@@ -18980,29 +18981,30 @@
       "sourceCommits": [
         "4a48f68eae06efc8d16d0f7c95951b07b9ff1b40"
       ],
-      "state": "PRESERVED_PENDING_INTEGRATION",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gb-parent-discovery-age-filter-20261127@4a48f68eae06efc8d16d0f7c95951b07b9ff1b40"
         ],
-        "status": "PRESERVED_PENDING_INTEGRATION"
+        "status": "INTEGRATED_DEVELOPMENT"
       },
       "validation": {
-        "status": "SCOPED_8_OF_8_PASS_COMBINED_CI_AND_PRODUCT_QA_PENDING",
+        "status": "COMBINED_PR_CI_PASS_AND_POSTMERGE_FOCUSED_8_OF_8_PASS",
         "evidence": [
-          "Original PR #676 and remote source 4a48f68eae06efc8d16d0f7c95951b07b9ff1b40. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks."
+          "Original PR #676 and remote source 4a48f68eae06efc8d16d0f7c95951b07b9ff1b40. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks.",
+          "Combined PR #676 head b0b890c9d67c9bef9d8444f4b1bf90be3ab75fe7 passed all six CI gates and aggregate (45914540566), Management tenant context (45914540531) and Snyk. The merge has the tested tree 5f2b11b65603a2bfb9287ddcdc6710cf8f2d8056 and both original SHAs as ancestors. Both focused suites passed 8/8 again on that merge."
         ],
-        "limits": "Combined candidate CI and authenticated Desktop/Mobile Development QA require verification."
+        "limits": "Authenticated Product QA is blocked: the external Colima gbi hostagent socket refuses connections and local Supabase health resets. Scope is code, CI, ancestry and focused post-merge tests. No local Product or Production verification is claimed."
       },
       "integration": {
         "branch": "integration/development",
-        "commit": null,
+        "commit": "99fbd39f91a19c1dd79cec5d61175389d3ce3be5",
         "pullRequests": [
           676
         ],
         "candidateSource": "a918ebc3179bf591c188763b8c4676f40aa07d97",
-        "sourceAncestryVerified": false
+        "sourceAncestryVerified": true
       },
       "dependencies": {
         "status": "COMBINED_STAGE_1_CANDIDATE",
@@ -19010,12 +19012,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "FOCUSED_SOURCE_TESTS_ONLY",
+      "localVerification": "BLOCKED_CANONICAL_DEVELOPMENT_RUNTIME_UNAVAILABLE",
       "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify combined candidate CI and the ancestry-preserving Development merge, then run isolated authenticated Parent discovery Desktop and Mobile QA and record the results."
+      "nextAction": "After coordinated safe recovery of the existing external gbi runtime, verify canonical Development drift and run authenticated Desktop and Mobile Parent discovery QA with the existing synthetic Parent."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
