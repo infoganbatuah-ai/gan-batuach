@@ -1,0 +1,16 @@
+{
+  "schema": "do-partner-conformance-v1",
+  "run_ref": null,
+  "evidence": "NOT_RUN",
+  "sdk_revision": null,
+  "api_version": "2026-10-19.v1",
+  "observed_at_utc": null,
+  "checks": {
+    "signed_paging": "NOT_RUN",
+    "cross_site_denial": "NOT_RUN",
+    "browser_embed": "NOT_RUN",
+    "browser_revocation": "NOT_RUN",
+    "site_transfer": "NOT_RUN",
+    "usage_attribution": "NOT_RUN"
+  }
+}
