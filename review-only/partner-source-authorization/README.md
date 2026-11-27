@@ -23,6 +23,8 @@ On every use, intersect current account permission and Site authorization with t
 
 ## Enforcement placement
 
+See the [route-by-route enforcement matrix](route-enforcement-matrix.md) for lists, detail lookups, aggregates and links.
+
 - **External v1.** Preserve request signing, receipt, entitlement and Site authorization. Resolve effective resource scope after these checks, before any source-derived query or signing operation. The first qualified restricted surface should be camera inventory/detail and health using a server-derived exact source filter in the query before limit and pagination. A request filter can further narrow those results. Any route whose result cannot be proven to contain only the granted source stays closed for restricted principals.
 - **Events, metadata and Investigation.** When separately qualified, authorize each resource by its server-resolved canonical source, including ID lookups. Deny unresolved provenance, cross-source Incidents and derived results or counts containing a second source. Apply the same boundary to investigation candidates, cross-camera summaries, Watch Rules, webhook dispatch and generated links before enabling those operations for a restricted principal.
 - **Evidence and archive.** Authorize Evidence and its canonical Event/source before revealing a reference or attempting a media operation. Issuing a durable bearer URL would create a separate revocation exposure. Keep media and archive unavailable to a restricted principal until retrieval and per-use revocation are qualified. No archive route is proposed here.

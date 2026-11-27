@@ -7,6 +7,7 @@ const { hashEnterpriseCredential } = loadTs("lib/domain/digital-observer/enterpr
 const uuid = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const [org, otherOrg, partnerOrg, site, otherSite, camera, anotherCamera, service, evidence] = Array.from({ length: 9 }, (_, i) => uuid(i + 1));
 const siblingEvidence = uuid(19);
+const mixedIncident = uuid(21);
 const credential = "dosvc_local_fixture_only_not_a_real_account";
 const pepper = "synthetic-local-pepper";
 const base = "https://observer.example.invalid/api/digital-observer/external/v1";
@@ -50,6 +51,11 @@ function fixture() {
         { id: siblingEvidence, observer_site_id: site, camera_source_id: anotherCamera, signal_id: uuid(20), clip_status: "available",
           storage_bucket: "sibling-private", storage_path: "never-return" },
       ];
+      case "observer_correlated_events": return [{
+        id: mixedIncident, observer_site_id: site, primary_camera_source_id: camera,
+        involved_camera_ids: [camera, anotherCamera], related_event_ids: [uuid(15), uuid(20)],
+        timeline_summary: { observations: 2 },
+      }];
       case "digital_observer_external_api_request_receipts": return [];
       default: throw Error(`unexpected read ${table}`);
     }
@@ -130,6 +136,20 @@ test("a delegated service account's camera filter does not narrow a later v1 evi
   assert.doesNotMatch(JSON.stringify(sibling), /sibling-private|never-return/);
   state.partnerLinked = false;
   await assert.rejects(client.evidence(site, siblingEvidence), { status: 403 });
+});
+
+test("a Site-scoped incident exposes secondary provenance in both list and direct lookup", async () => {
+  const { client, state } = fixture();
+  state.accountOrg = partnerOrg;
+  state.permissions.push("incidents.manage");
+  const listed = await client.incidents(site);
+  assert.equal(listed.data.length, 1);
+  assert.equal(listed.data[0].primary_camera_source_id, camera);
+  assert.deepEqual(listed.data[0].involved_camera_ids, [camera, anotherCamera]);
+  assert.deepEqual(listed.data[0].related_event_ids, [uuid(15), uuid(20)]);
+  const detail = await client.request(`/incidents/${mixedIncident}?site_id=${site}`);
+  assert.deepEqual(detail.incident, listed.data[0]);
+  assert.deepEqual(detail.incident.timeline_summary, { observations: 2 });
 });
 
 test("expired, invalid-expiry and revoked service credentials/accounts are denied before camera access", async () => {
