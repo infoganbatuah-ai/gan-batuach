@@ -136,6 +136,43 @@ export function openGanCameraPilotSyntheticEdge({ databasePath, windowId, scope,
     }
   };
 
+  function transportAllowed(handle: string, requestedScope: GanCameraPilotScope) {
+    if (!handlePattern.test(handle) || scopeHash(requestedScope) !== expectedScope) return false;
+    try {
+      return transaction(() => {
+        const row = active();
+        if (!row || row.lease !== digest(handle)) return false;
+        if (row.reserved >= ganCameraPilotLimits.cumulativeBytes) {
+          stop("BYTE_LIMIT");
+          return false;
+        }
+        return true;
+      });
+    }
+    catch { return false; }
+  }
+
+  // Charge the encrypted byte stream at the serving boundary, independently
+  // of frame observations or the publisher's bitrate. Never refund a write.
+  function reserveTransportBytes(handle: string, requestedScope: GanCameraPilotScope, bytes: number) {
+    if (!handlePattern.test(handle) || scopeHash(requestedScope) !== expectedScope || !Number.isSafeInteger(bytes) ||
+        bytes < 1 || bytes > maxChunkBytes) return false;
+    try {
+      return transaction(() => {
+        const row = active();
+        if (!row || row.lease !== digest(handle)) return false;
+        if (row.reserved + bytes > ganCameraPilotLimits.cumulativeBytes) {
+          stop("BYTE_LIMIT"); return false;
+        }
+        db.prepare("UPDATE pilot_window SET reserved = reserved + ? WHERE id = 1").run(bytes);
+        return true;
+      });
+    } catch {
+      try { transaction(() => stop("ACCOUNTING_OR_SINK")); } catch { /* An unavailable store cannot reserve bytes. */ }
+      return false;
+    }
+  }
+
   function deliverSyntheticChunk({ handle, scope: requestedScope, payload, sequence, write }: {
     handle: string; scope: GanCameraPilotScope; payload: Buffer; sequence: number;
     write: (bytes: Buffer) => boolean;
@@ -189,5 +226,5 @@ export function openGanCameraPilotSyntheticEdge({ databasePath, windowId, scope,
     return `${payload}.${sign(null, Buffer.from(payload), key).toString("base64url")}`;
   }
 
-  return { store, deliverSyntheticChunk, signSyntheticEvidence, close: () => db.close() };
+  return { store, transportAllowed, reserveTransportBytes, deliverSyntheticChunk, signSyntheticEvidence, close: () => db.close() };
 }
