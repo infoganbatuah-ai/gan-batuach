@@ -250,3 +250,36 @@ test("registry scopes lookup, denies a second viewer, and blocks immediately on 
   assert.deepEqual(revoked, [grant.handle, grant.handle]);
   assert.equal(registry.lookup(context), null);
 });
+
+test("issue uses the private authenticated empty-body contract and validates the receipt", async () => {
+  let responseGarden = "garden-a";
+  const transport = createCameraPilotLoopbackTransport({
+    origin: "http://127.0.0.1:4444", serviceToken: "s".repeat(43),
+    fetcher: async (url, request) => {
+      assert.equal(url.href, "http://127.0.0.1:4444/pilot/issue");
+      assert.equal(request.body, undefined);
+      assert.equal(Object.hasOwn(request.headers, "Origin"), false);
+      const proof = verifyEnvelope(request.headers["X-Gan-Pilot-Assertion"]);
+      assert.equal(proof.operation, "issue");
+      return new Response(JSON.stringify({
+        ...proof.binding, gardenId: responseGarden, version: 1, environment: "development",
+        capability: "live_playback", recording: false, operation: "issue",
+        expiresAtMs: 15_000, handle: "h".repeat(43)
+      }), { status: 201, headers: {
+        "content-type": "application/json", "cache-control": "private, no-store"
+      } });
+    }
+  });
+  const request = {
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    context: {
+      sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+      camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+    },
+    operation: "issue", authorize: async () => true, now: () => 10_000,
+    transport: ({ assertion }) => transport.issue(assertion)
+  };
+  assert.ok(await requestCameraPilotPlayback(request));
+  responseGarden = "garden-b";
+  assert.equal(await requestCameraPilotPlayback(request), null);
+});
