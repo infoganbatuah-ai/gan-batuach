@@ -31,8 +31,9 @@ function load(authorized = true) {
     let selected = "";
     const query = {
       select(value) { selected = value; return query; }, eq() { return query; }, is() { return query; }, neq() { return query; },
-      order() { return query; }, limit() { return query; }, maybeSingle() { return Promise.resolve({ data: null, error: null }); },
-      single() { return Promise.resolve({ data: { id: siteId }, error: null }); },
+      order() { return query; }, limit() { return query; }, maybeSingle() {
+        return Promise.resolve({ data: table === "observer_sites" ? { id: siteId } : null, error: null });
+      },
       then(resolve) {
         if (table === "digital_observer_camera_sources") assert.ok(selected.split(",").includes("source_mode"));
         return Promise.resolve({ data: table === "digital_observer_camera_sources" ? rows : [], error: null }).then(resolve);
@@ -42,11 +43,18 @@ function load(authorized = true) {
   } };
   const imports = {
     "next/server": { NextResponse: { json: (body, options = {}) => ({ body, status: options.status ?? 200, headers: options.headers }) } },
-    "@/lib/domain/digital-observer/partner-platform-service": { authenticateEmbeddedSession: async (_admin, input) => {
-      calls.scope = input.requiredScope; if (!authorized) throw Error("AUTH_DENIED");
-      return { partner_id: "synthetic-partner", observer_site_id: siteId, scopes: ["cameras.read"], expires_at: now };
-    } },
-    "@/lib/domain/digital-observer/partner-platform": { publicBrandProfile: () => null },
+    "@/lib/domain/digital-observer/partner-platform-service": {
+      authenticateEmbeddedSession: async (_admin, input) => {
+        calls.scope = input.requiredScope; if (!authorized) throw Error("AUTH_DENIED");
+        return { partner_id: "synthetic-partner", observer_site_id: siteId, customerOrganizationId: "synthetic-tenant",
+          scopes: ["cameras.read", "camera_health.read"], expires_at: now };
+      },
+      confirmEmbeddedSessionRead: async () => undefined
+    },
+    "@/lib/domain/digital-observer/partner-platform": {
+      publicBrandProfile: () => null, embeddedDashboardReadScopes: () => ({ cameraHealth: true })
+    },
+    "@/lib/domain/digital-observer/investigation-history-policy": { guardHistoryPrivacyRestricted: () => false },
     "@/lib/supabase/admin": { createAdminClient: () => admin, isAdminClientConfigured: () => true },
     "@/lib/domain/digital-observer/camera-live-status": health
   };

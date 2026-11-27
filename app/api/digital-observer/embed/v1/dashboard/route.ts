@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- bounded reads span canonical domain tables. */
 import { NextResponse } from "next/server";
-import { authenticateEmbeddedSession } from "@/lib/domain/digital-observer/partner-platform-service";
+import { authenticateEmbeddedSession, confirmEmbeddedSessionRead } from "@/lib/domain/digital-observer/partner-platform-service";
 import { embeddedDashboardReadScopes, publicBrandProfile } from "@/lib/domain/digital-observer/partner-platform";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { digitalObserverCameraHealthProjection } from "@/lib/domain/digital-observer/camera-live-status";
@@ -10,17 +10,44 @@ import { guardHistoryPrivacyRestricted } from "@/lib/domain/digital-observer/inv
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function browserOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  if (!origin || origin.length > 1000) return null;
+  const url = URL.parse(origin);
+  if (!url || url.origin !== origin) return null;
+  return url.protocol === "https:" ||
+    (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)) ? origin : null;
+}
+
+export function OPTIONS(request: Request) {
+  const origin = browserOrigin(request);
+  const method = request.headers.get("access-control-request-method");
+  const headers = (request.headers.get("access-control-request-headers") ?? "").toLowerCase().split(",").map((header) => header.trim());
+  const vary = "Origin, Access-Control-Request-Method, Access-Control-Request-Headers";
+  if (!origin || method !== "GET" || !headers.every((header) => header === "authorization" || header === "x-do-audience")) {
+    return new Response(null, { status: 403, headers: { "cache-control": "no-store", vary } });
+  }
+  // The browser cannot send the session token on a preflight. The GET checks
+  // its current allowlist and only a successful authorized read grants CORS.
+  return new Response(null, { status: 204, headers: { "cache-control": "no-store", vary,
+    "access-control-allow-origin": origin, "access-control-allow-methods": "GET",
+    "access-control-allow-headers": "Authorization, X-DO-Audience" } });
+}
+
 export async function GET(request: Request) {
   try {
     if (!isAdminClientConfigured()) throw new Error("EMBEDDED_PLATFORM_UNAVAILABLE");
     const authorization = request.headers.get("authorization") ?? "";
     const token = authorization.startsWith("Bearer doemb_") ? authorization.slice(7).trim() : "";
     const audience = request.headers.get("x-do-audience") ?? "";
-    const origin = request.headers.get("origin");
+    const origin = browserOrigin(request);
     const admin = createAdminClient();
     const session = await authenticateEmbeddedSession(admin, { token, audience, origin, requiredScope: "cameras.read" });
-    const site = await (admin as any).from("observer_sites").select("id,name,site_type,timezone,active,monitoring_enabled,business_handles_children,vision_privacy_mode").eq("id", session.observer_site_id).is("garden_id", null).neq("site_type", "kindergarten").single();
-    if (site.error || !site.data) throw new Error("EMBEDDED_SITE_UNAVAILABLE");
+    const site = await (admin as any).from("observer_sites").select("id,name,site_type,timezone,active,monitoring_enabled,business_handles_children,vision_privacy_mode")
+      .eq("id", session.observer_site_id).eq("digital_observer_organization_id", session.customerOrganizationId)
+      .is("garden_id", null).neq("site_type", "kindergarten").maybeSingle();
+    if (site.error) throw new Error("EMBEDDED_SITE_UNAVAILABLE");
+    if (!site.data) throw new Error("EMBEDDED_SITE_SCOPE_DENIED");
     const publicSite = {
       id: site.data.id, name: site.data.name, site_type: site.data.site_type,
       timezone: site.data.timezone, active: site.data.active, monitoring_enabled: site.data.monitoring_enabled
@@ -50,13 +77,16 @@ export async function GET(request: Request) {
     });
     const cameraHealth = permissions.cameraHealth ? projectedCameras.map((camera: any) => ({ camera_id: camera.id, status: camera.health_status,
       last_frame_at: camera.last_seen_at, last_heartbeat_at: camera.last_health_check_at })) : [];
+    await confirmEmbeddedSessionRead(admin, session);
     return NextResponse.json({ contract: "digital-observer-embedded-v1", session: { expires_at: session.expires_at, scopes: session.scopes },
       brand: brand.data ? publicBrandProfile(brand.data) : null, site: publicSite, cameras: projectedCameras, camera_health: cameraHealth,
       events: events.data ?? [], incidents: incidents.data ?? [], evidence_references: evidence.data ?? [], raw_video_embedded: false,
-      private_credentials_exposed: false, biometric_features_enabled: false, production_proof: false }, { headers: { "cache-control": "no-store", "vary": "Origin" } });
+      private_credentials_exposed: false, biometric_features_enabled: false, production_proof: false }, { headers: {
+        "cache-control": "no-store", vary: "Origin", ...(origin ? { "access-control-allow-origin": origin } : {})
+      } });
   } catch (error) {
     const code = error instanceof Error ? error.message : "EMBEDDED_REQUEST_FAILED";
     const status = /AUTH/.test(code) ? 401 : /DENIED|INACTIVE/.test(code) ? 403 : 503;
-    return NextResponse.json({ error: { code } }, { status, headers: { "cache-control": "no-store" } });
+    return NextResponse.json({ error: { code } }, { status, headers: { "cache-control": "no-store", vary: "Origin" } });
   }
 }

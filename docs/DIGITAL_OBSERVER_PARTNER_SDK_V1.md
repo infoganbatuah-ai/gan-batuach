@@ -10,6 +10,8 @@ PUSH 43 adds a partner layer over the canonical PUSH 39–42 contracts. It does 
 - Browser/mobile components receive only a `doemb_` token with a maximum 60-minute lifetime, fixed audience, allowed Origin, customer, Site and scopes. Raw tokens are not stored.
 - Revoking or suspending the partner customer revokes active embedded sessions.
 
+At dashboard read time the server checks the exact browser Origin against the session and the partner's current allowlist. It also checks the audience, the active partner and customer relationship, the current customer–Site link, and the Site's current customer organization. Before returning dashboard data, the existing last-used update must match a session that has neither expired nor been revoked. A cross-origin preflight permits only the dashboard GET and its two request headers. Only a successful authorized read returns the CORS response header, and the browser SDK sends no cookies.
+
 ## Public surfaces
 
 - `@digital-observer/sdk`: signed server client, camera inventory/health, Events, Incidents, Evidence references, investigation, Watch Rules, webhooks, customer provisioning and embedded-session issuance.
@@ -29,3 +31,5 @@ OEM integration uses the canonical source-capability registry. No partner or sou
 ## Evidence status
 
 Deterministic SDK, isolation and synthetic independent-app tests are internal proof only. A real OEM/white-label partner, external SSO, customer domain, vendor camera/VMS, billing settlement and Production webhook remain `NOT_PROVEN` in the activation register.
+
+`node --test scripts/qa/check-embedded-dashboard-route.mjs` exercises the browser SDK, dashboard handler and authorization logic with a synthetic database boundary. It covers request and response CORS headers, current Site ownership, and revocation or expiry both before and during resource reads. Live browser and proxy behavior, PostgreSQL concurrency and partner activation still require separate verification.
