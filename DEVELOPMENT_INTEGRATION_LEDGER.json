@@ -18932,7 +18932,7 @@
       "sourceCommits": [
         "efbc9fb8ee63e1ec073788eace1defba97ae33bc"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -18944,9 +18944,10 @@
         "status": "COMBINED_PR_CI_PASS_AND_POSTMERGE_FOCUSED_8_OF_8_PASS",
         "evidence": [
           "Original PR #662 and remote source efbc9fb8ee63e1ec073788eace1defba97ae33bc. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks.",
-          "Combined PR #676 head b0b890c9d67c9bef9d8444f4b1bf90be3ab75fe7 passed all six CI gates and aggregate (45914540566), Management tenant context (45914540531) and Snyk. The merge has the tested tree 5f2b11b65603a2bfb9287ddcdc6710cf8f2d8056 and both original SHAs as ancestors. Both focused suites passed 8/8 again on that merge."
+          "Combined PR #676 head b0b890c9d67c9bef9d8444f4b1bf90be3ab75fe7 passed all six CI gates and aggregate (45914540566), Management tenant context (45914540531) and Snyk. The merge has the tested tree 5f2b11b65603a2bfb9287ddcdc6710cf8f2d8056 and both original SHAs as ancestors. Both focused suites passed 8/8 again on that merge.",
+          "Authenticated canonical Product QA on d6687b39e8ee9f5c3f4c572f4b3d7387430926dc after same-instance gbi recovery. Migration drift 276/276. At 1440x1024 and 390x844: all 12, included 1, excluded 0, clear and child switching verified against the server, four labeled controls, RTL, no overflow. One authorized synthetic classroom was removed. Four fixture-related table counts and ordered row digests returned to baseline. Protected redacted receipt SHA-256 67e2ff302b1a80b3a2d7643b723f296ab0ead7bd14de518049f1166087bbfbe3 (.recovery/gan-stage-1-20261127/PARENT-DISCOVERY-PRODUCT-QA.md)."
         ],
-        "limits": "Authenticated Product QA is blocked: the external Colima gbi hostagent socket refuses connections and local Supabase health resets. Scope is code, CI, ancestry and focused post-merge tests. No local Product or Production verification is claimed."
+        "limits": "Focused Stage 1 Parent discovery only. Positive case used one temporary, manager-created QA classroom. Legacy age-key equivalence, native, provider, camera, external visual acceptance and cumulative release readiness remain outside this receipt."
       },
       "integration": {
         "branch": "integration/development",
@@ -18964,12 +18965,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "BLOCKED_CANONICAL_DEVELOPMENT_RUNTIME_UNAVAILABLE",
+      "localVerification": "PASS_SCOPED_AUTHENTICATED_PARENT_DISCOVERY_DESKTOP_MOBILE",
       "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After coordinated safe recovery of the existing external gbi runtime, verify canonical Development drift and run authenticated Desktop and Mobile Parent discovery QA with the existing synthetic Parent."
+      "nextAction": "Coordinator to record Stage 1 completion. Stage 2 awaits separate owner direction. Review Next 16.4.3 startup security notice separately before release."
     },
     {
       "id": "codex/gb-parent-discovery-age-filter-20261127",
@@ -18981,7 +18982,7 @@
       "sourceCommits": [
         "4a48f68eae06efc8d16d0f7c95951b07b9ff1b40"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -18993,9 +18994,10 @@
         "status": "COMBINED_PR_CI_PASS_AND_POSTMERGE_FOCUSED_8_OF_8_PASS",
         "evidence": [
           "Original PR #676 and remote source 4a48f68eae06efc8d16d0f7c95951b07b9ff1b40. Reconciled source a918ebc3179bf591c188763b8c4676f40aa07d97 preserves both originals and passed the two focused suites (8/8) and diff checks.",
-          "Combined PR #676 head b0b890c9d67c9bef9d8444f4b1bf90be3ab75fe7 passed all six CI gates and aggregate (45914540566), Management tenant context (45914540531) and Snyk. The merge has the tested tree 5f2b11b65603a2bfb9287ddcdc6710cf8f2d8056 and both original SHAs as ancestors. Both focused suites passed 8/8 again on that merge."
+          "Combined PR #676 head b0b890c9d67c9bef9d8444f4b1bf90be3ab75fe7 passed all six CI gates and aggregate (45914540566), Management tenant context (45914540531) and Snyk. The merge has the tested tree 5f2b11b65603a2bfb9287ddcdc6710cf8f2d8056 and both original SHAs as ancestors. Both focused suites passed 8/8 again on that merge.",
+          "Authenticated canonical Product QA on d6687b39e8ee9f5c3f4c572f4b3d7387430926dc after same-instance gbi recovery. Migration drift 276/276. At 1440x1024 and 390x844: all 12, included 1, excluded 0, clear and child switching verified against the server, four labeled controls, RTL, no overflow. One authorized synthetic classroom was removed. Four fixture-related table counts and ordered row digests returned to baseline. Protected redacted receipt SHA-256 67e2ff302b1a80b3a2d7643b723f296ab0ead7bd14de518049f1166087bbfbe3 (.recovery/gan-stage-1-20261127/PARENT-DISCOVERY-PRODUCT-QA.md)."
         ],
-        "limits": "Authenticated Product QA is blocked: the external Colima gbi hostagent socket refuses connections and local Supabase health resets. Scope is code, CI, ancestry and focused post-merge tests. No local Product or Production verification is claimed."
+        "limits": "Focused Stage 1 Parent discovery only. Positive case used one temporary, manager-created QA classroom. Legacy age-key equivalence, native, provider, camera, external visual acceptance and cumulative release readiness remain outside this receipt."
       },
       "integration": {
         "branch": "integration/development",
@@ -19012,12 +19014,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "BLOCKED_CANONICAL_DEVELOPMENT_RUNTIME_UNAVAILABLE",
+      "localVerification": "PASS_SCOPED_AUTHENTICATED_PARENT_DISCOVERY_DESKTOP_MOBILE",
       "releaseEligibility": "NOT_READY_CUMULATIVE_RELEASE_GATES_OPEN",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After coordinated safe recovery of the existing external gbi runtime, verify canonical Development drift and run authenticated Desktop and Mobile Parent discovery QA with the existing synthetic Parent."
+      "nextAction": "Coordinator to record Stage 1 completion. Stage 2 awaits separate owner direction. Review Next 16.4.3 startup security notice separately before release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
