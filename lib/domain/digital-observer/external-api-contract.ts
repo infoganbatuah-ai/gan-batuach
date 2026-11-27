@@ -126,7 +126,7 @@ export function verifyExternalApiSignature(input: {
 }
 
 export function safeExternalProductPath(path: string) {
-  if (!path.startsWith("/digital-observer/") || path.startsWith("//") || path.includes("..")) throw new Error("INVALID_PRODUCT_PATH");
+  if (!/^\/digital-observer\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*\/?$/.test(path)) throw new Error("INVALID_PRODUCT_PATH");
   return path;
 }
 

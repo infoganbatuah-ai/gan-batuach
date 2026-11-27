@@ -47,9 +47,11 @@ List endpoints accept `site_id`, `limit` (maximum 100), opaque `cursor`, and whe
 
 ## Webhooks
 
-Destinations must use HTTPS, contain no embedded credentials, resolve to an explicitly configured host, and cannot target local/private/link-local networks. Payloads use `do-external-webhook-v1`, include a stable delivery ID and contain references rather than sensitive media. Delivery reuses PUSH 39 bounded retry, acknowledgement, dead-letter and unknown-outcome semantics.
+Destinations must use HTTPS, contain no embedded credentials, resolve to an explicitly configured host, and cannot target local/private/link-local networks. Payloads use `do-external-webhook-v1`; they carry a stable delivery ID and a canonical resource reference. Product paths accept relative Digital Observer path segments, with no query, fragment, encoding, or backslashes. The delivery contract follows PUSH 39 bounded retry, acknowledgement, dead-letter and unknown-outcome semantics.
 
 Receivers verify the timestamp, stable delivery ID, key version and HMAC signature, reject payloads outside the five-minute replay window, and process delivery IDs idempotently. The independent example exports `verifyDigitalObserverWebhook` for this verification without importing private server code. An accepted endpoint registration is not delivery proof. Real sandbox receipts remain separately tracked.
+
+`node --test scripts/qa/check-external-webhook-receiver.mjs` runs the real v1 payload generator and signer against the independent verifier and a synthetic receiver. The cases cover a transient failure, a bounded retry with the same delivery ID, acknowledgement, duplicate and conflicting IDs, and Site and tenant rejection. The receiver uses an in-memory receipt map and the test feeds response outcomes into the existing PUSH 39 transition code. The current v1 route registers subscriptions. A worker connecting an authorized canonical event to those subscriptions, signing-key resolution, HTTP dispatch and durable delivery receipts are still unverified by this test.
 
 ## DVR, NVR, VMS and federation truthfulness
 
