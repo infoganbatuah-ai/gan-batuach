@@ -1,0 +1,89 @@
+name: Sign the two Home camera recovery manifests
+
+on:
+  push:
+    branches: [codex/push-38-aws-signing]
+    paths:
+      - .github/signing-requests/home-media-recovery.json
+
+permissions: {}
+concurrency:
+  group: home-media-recovery-signing-20261127
+  cancel-in-progress: false
+
+jobs:
+  sign:
+    if: >-
+      github.repository == 'infoganbatuah-ai/gan-batuach' &&
+      github.ref == 'refs/heads/codex/push-38-aws-signing' &&
+      github.run_attempt == 1 && !github.event.deleted
+    environment: HOME_QA_SIGNING
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      HOME_MEDIA_SIGNING_ENVIRONMENT: HOME_QA_SIGNING
+      HOME_MEDIA_SIGNING_INPUT_MODE: DETACHED
+      HOME_MEDIA_RETURN_KEY_SHA256: ${{ vars.HOME_MEDIA_RETURN_KEY_SHA256 }}
+      HOME_MEDIA_APPROVED_SHA: ${{ vars.HOME_MEDIA_APPROVED_SHA }}
+      HOME_MEDIA_CLIENT_SHA: a605ea6834f9537d5526cfa5ea0d0db2b003992d
+      HOME_MEDIA_BACKEND_SHA: b9a2001cfd1fab3d24966083a785734f147657e8
+      SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
+      SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out the pinned recovery issuer
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: 08f48e40a59b0c28d4ededa8bd8844af18013f2a
+          path: home-media-signing-source
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .nvmrc
+      - name: Check reviewed commit and explicit release request
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "$HOME_MEDIA_APPROVED_SHA"
+          git ls-files --error-unmatch .github/signing-requests/home-media-recovery.json >/dev/null
+          test "$(git -C home-media-signing-source rev-parse HEAD)" = 08f48e40a59b0c28d4ededa8bd8844af18013f2a
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          import { BACKEND_SOURCE, CLIENT_SOURCE } from './home-media-signing-source/scripts/release/issue-home-media-recovery.mjs';
+          assert.deepEqual(JSON.parse(readFileSync('.github/signing-requests/home-media-recovery.json')), {
+            backend: BACKEND_SOURCE, client: CLIENT_SOURCE, max_kms_calls: 6
+          });
+          JS
+      - name: Check the protected baseline and the encrypted return route
+        env:
+          HOME_MEDIA_BASELINE_SOFTWARE_CONNECTOR: ${{ secrets.HOME_MEDIA_BASELINE_SOFTWARE_CONNECTOR }}
+          HOME_MEDIA_BASELINE_PHYSICAL_GATEWAY: ${{ secrets.HOME_MEDIA_BASELINE_PHYSICAL_GATEWAY }}
+          HOME_MEDIA_TRUSTED_PUBLIC_KEY: ${{ secrets.HOME_MEDIA_TRUSTED_PUBLIC_KEY }}
+          HOME_MEDIA_RETURN_PUBLIC_KEY: ${{ secrets.HOME_MEDIA_RETURN_PUBLIC_KEY }}
+        working-directory: home-media-signing-source
+        run: node scripts/release/run-home-media-recovery-signing-job.mjs preflight
+      - name: Assume the existing protected KMS signer role
+        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+          role-duration-seconds: 900
+          role-session-name: home-media-recovery-${{ github.run_id }}
+          mask-aws-account-id: true
+          disable-retry: true
+          unset-current-credentials: true
+      - name: Sign the two pinned digests and return encrypted detached signatures
+        env:
+          SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
+          HOME_MEDIA_BASELINE_SOFTWARE_CONNECTOR: ${{ secrets.HOME_MEDIA_BASELINE_SOFTWARE_CONNECTOR }}
+          HOME_MEDIA_BASELINE_PHYSICAL_GATEWAY: ${{ secrets.HOME_MEDIA_BASELINE_PHYSICAL_GATEWAY }}
+          HOME_MEDIA_TRUSTED_PUBLIC_KEY: ${{ secrets.HOME_MEDIA_TRUSTED_PUBLIC_KEY }}
+          HOME_MEDIA_RETURN_PUBLIC_KEY: ${{ secrets.HOME_MEDIA_RETURN_PUBLIC_KEY }}
+        working-directory: home-media-signing-source
+        run: node scripts/release/run-home-media-recovery-signing-job.mjs sign
