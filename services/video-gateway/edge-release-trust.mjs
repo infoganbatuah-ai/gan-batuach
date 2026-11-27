@@ -65,10 +65,15 @@ export const PROTECTED_EDGE_TRUST_ROOT_PATH = "/Library/Application Support/Digi
 export const PROTECTED_EDGE_TRUST_REGISTRY_PATH = "/Library/Application Support/Digital Observer/release-trust/release-keys.json";
 
 export function loadPinnedEdgeReleaseKeys({ registryPath, rootPinPath = PROTECTED_EDGE_TRUST_ROOT_PATH, qaOwnerAllowed = false }) {
-  const path = resolve(rootPinPath), info = lstatSync(path), parent = lstatSync(dirname(path));
+  // These protected host files are runtime inputs, never project assets to
+  // trace into a Next server bundle. The ownership and signature gates below
+  // still run against the actual installed files on every load.
+  const path = resolve(/* turbopackIgnore: true */ rootPinPath);
+  const info = lstatSync(/* turbopackIgnore: true */ path);
+  const parent = lstatSync(/* turbopackIgnore: true */ dirname(path));
   if (info.isSymbolicLink() || parent.isSymbolicLink() || (info.mode & 0o022) || (parent.mode & 0o022) ||
     (!qaOwnerAllowed && (info.uid !== 0 || parent.uid !== 0))) fail("EDGE_TRUST_ROOT_PIN_UNPROTECTED");
-  const pin = JSON.parse(readFileSync(path, "utf8"));
+  const pin = JSON.parse(readFileSync(/* turbopackIgnore: true */ path, "utf8"));
   if (!pin || Object.keys(pin).sort().join(",") !== ["protocol", "root_key_id", "root_public_key"].sort().join(",") ||
     pin.protocol !== "observer-edge-trust-root-v1" || !KEY.test(pin.root_key_id) || !B64.test(pin.root_public_key)) fail("EDGE_TRUST_ROOT_PIN_INVALID");
   const registry = loadEdgeTrustRegistry({ path: registryPath, pinnedRootKeyId: pin.root_key_id, pinnedRootPublicKey: pin.root_public_key });
