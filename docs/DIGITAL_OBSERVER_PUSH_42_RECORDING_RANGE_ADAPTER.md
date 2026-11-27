@@ -53,3 +53,19 @@ The first-party investigation UI offers a JSON export for one incident on the cu
 The document contains stable Site, Incident, Event, source and available Evidence IDs, UTC times, timestamp basis, and coverage and uncertainty flags. It carries no media, path, URL, free-text question, camera label, name, or identity inference. Expired or missing Evidence appears as a state with no Evidence ID. The source states that observations came from an authorized investigation page. The version is `observer-incident-observations-v1`. Verify `content_sha256` by hashing the UTF-8 JSON of the `report` object with object keys sorted recursively and no added whitespace, preserving array order. The existing audit writer must acknowledge a row for the report digest before download. Verification of origin requires the corresponding trusted audit record. The digest alone does not authenticate origin or establish chain of custody.
 
 The route conformance tests execute the handler with synthetic data, identity and audit boundaries. Browser download, actual authorized database writes, live or archive media, external sharing and forensic chain of custody remain unverified. No additional persistence or migration is included.
+
+## Synthetic local playback qualification
+
+On November 27, 2026, the existing `ObserverLivePlayer` was bundled without source changes and mounted in a loopback-only browser fixture. The fixture served a ten-second 320×180 H.264 test pattern with 240 source frames, no audio, and one-second HLS segments. Its synthetic grant endpoint scoped the allowed source, issued one claim, and returned 403 for a second source. It used no account, device data, or live recorder. The real Product identity and delivery edge were not part of this fixture.
+
+| Surface | Measured result |
+| --- | --- |
+| Chrome, native HLS | The existing player reached `playing`. Presented frames advanced 242→245 at media times 1.042→1.167 seconds after seeking into the fixture. The denied source reached error with no media source. |
+| Chrome, forced hls.js fallback | With native HLS detection disabled in the fixture only, the existing component attached a MediaSource and reached `playing`. Frames advanced 242→245 at 1.042→1.167 seconds. The denied source had no media source. |
+| macOS WKWebView, native HLS | The existing component reached `playing`. Twelve presented-frame callbacks advanced from 0 to 0.458 seconds at 320×180. This is desktop WebKit evidence. |
+| Chrome Event Evidence MP4 pattern | The existing inline-video pattern was exercised with a synthetic 307 media redirect. At 320×180, four presented frames advanced from 0.042 to 0.167 seconds. This qualifies the media pattern, not the real storage signer. |
+| Canonical authorization and Event Evidence regression | The DVR grant handler's four synthetic authorization cases passed, together with the existing Event Evidence contract checks. |
+
+The registered iPhone 13 Pro was visible to Xcode and no simulator was booted. The pilot contract at `3a775c49` pins `com.digitalobserver.app.pilot` to the existing Product HTTPS origin, with cleartext disabled and no navigation override. Launching that build would take the test outside the local fixture. **Physical pilot playback remains NOT RUN.** The next device test needs an approved signed Development-only QA build with a trusted, isolated synthetic HTTPS origin that preserves the native shell and source authorization. A real DVR archive test also needs a verified archive-to-Event/Evidence link, trusted lookup, actual audit acknowledgment and bounded authorized transport.
+
+No player defect was observed under these synthetic conditions, so this unit changes no player code. All launched fixture listeners were closed and verified absent, the two browser tabs were closed, and generated clips and binaries were removed. The fixture sources remain on the external drive for reproducibility.
