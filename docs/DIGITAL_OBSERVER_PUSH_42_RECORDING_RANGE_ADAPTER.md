@@ -19,7 +19,7 @@ The adapter receives a server-derived session grant for the exact Tenant, Site a
 
 The existing Hebrew investigation API adds a chronological timeline from the current authorized result page after site access, entitlement and history-privacy checks. The UI filters that page by camera. Only grounded rows with available Event Evidence show an archive candidate interval, clipped to the query and current time. Evidence playback retains its existing path. The archive candidate has no playback action and does not establish that a source recording exists.
 
-The server-side preparation function rebuilds the candidate from authorized results and passes it to the range adapter. No transport calls it yet. The durable service `writeAuditEvent` currently logs insert errors internally and returns no acknowledgment, so a resolved promise from it cannot satisfy this adapter. Before activating archive access, bind the trusted archive–Evidence lookup and an acknowledged writer to the existing audit store. Record the authorization without raw archive identifiers, URLs or credentials. No SQL or schema changes are included here. Focused tests cover clock normalization, authorization, linkage, privacy and audit failure alongside the existing Hebrew investigation regression.
+The server-side preparation function rebuilds the candidate from authorized results and passes it to the range adapter. No transport calls it yet. The best-effort `writeAuditEvent` continues to log and swallow failures for its existing callers. The server-only audited adapter uses a separate acknowledged writer for the existing audit store. Before activating archive access, bind the trusted archive–Evidence lookup and verify the writer against an authorized Development database. Record the authorization without raw archive identifiers, URLs or credentials. No SQL or schema changes are included here. Focused tests cover clock normalization, authorization, linkage, privacy and audit failure alongside the existing Hebrew investigation regression.
 
 ## External consumer conformance
 
@@ -31,3 +31,9 @@ The server-side preparation function rebuilds the candidate from authorized resu
 | Archive | No external archive endpoint or playback permission added. | Authorized real archive lookup, acknowledged audit, bounded transport, identified post-recovery video, and independent partner/browser acceptance remain open. |
 
 Run `node --experimental-strip-types --test scripts/qa/check-push42-investigation-consumer.mjs` for the disconnected conformance suite. Synthetic grant checks and SDK transport do not prove deployed authorization, device playback, or RLS.
+
+## Acknowledged access audit
+
+Server-only `createAuditedRecordingRangeAdapter` composes the scoped range adapter with the existing `immutable_audit_events` store. The critical writer submits a unique UUID and requests that exact ID back from the insert. Rejection, transport failure, missing row, or mismatched ID prevents delivery of an archive handle. The range adapter checks session and retention again after the write. A response may be lost after insert, so a missing receipt denies access but does not prove there is no audit row.
+
+The event records actor, Tenant, Site, camera, Event, Evidence, authorized UTC interval and authorization time. Raw archive references, recording locators and credentials are omitted. No route calls the composed adapter. The tests use the installed Supabase client with a synthetic transport that intercepts every request. An actual Development insert and its permissions, source ownership, trusted archive lookup, and browser playback remain unverified. No migration is proposed.

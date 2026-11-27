@@ -1,11 +1,35 @@
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
 import { buildGuardJournalQuery, type GuardJournalQueryInput, type GuardQueryContext } from "../digital-observer/guard-chat-query";
 import { GUARD_EVENT_TYPES, type GuardEventType } from "../digital-observer/guard-event-types";
 import { guardHistoryPrivacyRestricted } from "../digital-observer/investigation-history-policy";
 import { eventJournalService } from "./event-journal-service";
 import { cameraZoneMapper } from "./camera-zone-mapper";
 
-type Row = Record<string, any>;
+type CameraRow = {
+  id: string;
+  observer_site_id?: string | null;
+  camera_stream_id?: string | null;
+  display_name?: string | null;
+  location_label?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type JournalRow = Record<string, unknown> & {
+  id: string;
+  created_at: string;
+  review_status: string;
+  metadata?: (Record<string, unknown> & { first_seen?: string }) | null;
+  clip?: ClipRow | ClipRow[] | null;
+};
+
+type ClipRow = Record<string, unknown> & { captured_at: string; signal?: JournalRow | JournalRow[] | null };
+
+type JournalFilter<Query> = {
+  or(filters: string, options?: { referencedTable: string }): Query;
+  in(column: string, values: readonly string[]): Query;
+};
 export type GuardJournalContext = GuardQueryContext & { privacyRestricted: boolean };
 export { guardHistoryPrivacyRestricted };
 // Public intent names are never interpolated into database filters. A sighting
@@ -29,15 +53,16 @@ export function guardStorageEventTypes(types: readonly string[]): string[] {
   }))];
 }
 const uuid = z.string().uuid();
-const rowCamera = (row: Row) => String(row.metadata?.camera_source_id || row.camera_source_id || row.camera_id || "");
-const typeOf = (row: Row) => String(row.metadata?.event_type || row.event_type || row.signal_type || "");
+const rowCamera = (row: JournalRow) => String(row.metadata?.camera_source_id || row.camera_source_id || row.camera_id || "");
+const typeOf = (row: JournalRow) => String(row.metadata?.event_type || row.event_type || row.signal_type || "");
 const cap = 1000;
 
-export function guardContextForSite(site: Row, cameras: Row[]): GuardJournalContext {
+export function guardContextForSite(site: Parameters<typeof guardHistoryPrivacyRestricted>[0] & { id: string; timezone: string }, cameras: CameraRow[]): GuardJournalContext {
   return {
     observerSiteId: site.id, timeZone: site.timezone, privacyRestricted: guardHistoryPrivacyRestricted(site),
-    cameras: cameras.map(camera => ({ id: camera.id, observerSiteId: camera.observer_site_id,
-      name: camera.display_name, zoneName: camera.location_label,
+    // The camera source query selects the two NOT NULL columns below.
+    cameras: cameras.map(camera => ({ id: camera.id, observerSiteId: camera.observer_site_id as string,
+      name: camera.display_name as string, zoneName: camera.location_label,
       aliases: [camera.camera_stream_id, camera.metadata?.gateway_stream_id,
         ...(cameraZoneMapper.map(camera).source === "default" ? [] : ({ PARKING: ["חניה", "חנייה", "parking", "garage"], POOL: ["בריכה", "pool"], ENTRANCE: ["כניסה", "entrance"], PERIMETER: ["היקף", "perimeter"], INDOOR: [] }[cameraZoneMapper.map(camera).zone_type])),
         ...(Array.isArray(camera.metadata?.aliases) ? camera.metadata.aliases : [])]
@@ -86,7 +111,7 @@ export function guardHistoryInput(message: string, context: GuardQueryContext, c
  * New validated events store their observed timestamp in created_at at ingestion.
  * Legacy events use the linked clip's captured_at, never their ingestion time.
  * Both streams apply site, camera, type, review and time filters BEFORE the cap. */
-export async function searchGuardJournal(db: any, input: GuardJournalQueryInput, context: GuardJournalContext, cameras: Row[]) {
+export async function searchGuardJournal(db: SupabaseClient<Database>, input: GuardJournalQueryInput, context: GuardJournalContext, cameras: CameraRow[]) {
   // Until a separately reviewed skeleton-only projection exists, do not read
   // potentially identifying legacy events, including unfiltered history queries.
   if (context.privacyRestricted !== false) throw new Error("GUARD_QUERY_PRIVACY_SCOPE_UNSUPPORTED");
@@ -96,7 +121,7 @@ export async function searchGuardJournal(db: any, input: GuardJournalQueryInput,
   const camera = plan.cameraSourceId ? scopedCameras.find(item => item.id === plan.cameraSourceId) : null;
   if (plan.cameraSourceId && !camera) throw new Error("GUARD_QUERY_CAMERA_OUTSIDE_SITE");
   const selectedIds = camera ? [camera.id, camera.camera_stream_id].filter(value => uuid.safeParse(value).success) : [];
-  function filters(query: any, joined = false) {
+  function filters<Query extends JournalFilter<Query>>(query: Query, joined = false) {
     const prefix = joined ? "signal." : "";
     if (types.length) query = query.or(`metadata->>event_type.in.(${types.join(",")}),and(metadata->>event_type.is.null,signal_type.in.(${types.join(",")}))`, joined ? { referencedTable: "signal" } : undefined);
     if (plan.reviewStatuses.length) query = query.in(`${prefix}review_status`, [...plan.reviewStatuses]);
@@ -105,12 +130,12 @@ export async function searchGuardJournal(db: any, input: GuardJournalQueryInput,
     if (camera && !joined) query = query.or(`metadata->>camera_source_id.eq.${camera.id},camera_id.in.(${selectedIds.join(",")})`);
     return query;
   }
-  let current = db.from("observer_intelligence_signals")
+  let current = db.from("observer_intelligence_signals" as never)
     .select("id,observer_site_id,camera_id,signal_type,severity,confidence,review_status,recommended_action,metadata,created_at,clip:digital_observer_event_clips(id,observer_site_id,camera_source_id,signal_id,clip_status,delete_after)")
     .eq("observer_site_id", plan.observerSiteId).eq("metadata->>validated_event", "true")
     .gte("created_at", plan.fromInclusive).lt("created_at", plan.toExclusive);
   current = filters(current).order("created_at", { ascending: false }).order("id").limit(cap + 1);
-  let legacy = db.from("digital_observer_event_clips")
+  let legacy = db.from("digital_observer_event_clips" as never)
     .select("id,observer_site_id,camera_source_id,signal_id,captured_at,clip_status,delete_after,signal:observer_intelligence_signals!inner(id,observer_site_id,camera_id,signal_type,severity,confidence,review_status,recommended_action,metadata,created_at)")
     .eq("observer_site_id", plan.observerSiteId).eq("signal.observer_site_id", plan.observerSiteId)
     .or("metadata->>validated_event.is.null,metadata->>validated_event.neq.true", { referencedTable: "signal" })
@@ -119,10 +144,10 @@ export async function searchGuardJournal(db: any, input: GuardJournalQueryInput,
   legacy = filters(legacy, true).order("captured_at", { ascending: false }).order("id").limit(cap + 1);
   const [currentResult, legacyResult] = await Promise.all([current, legacy]);
   if (currentResult.error || legacyResult.error) throw new Error("GUARD_JOURNAL_UNAVAILABLE");
-  const rows: Row[] = [], clips: Row[] = [];
+  const rows: JournalRow[] = [], clips: ClipRow[] = [];
   let invalidEvidence = 0;
   const from = Date.parse(plan.fromInclusive), to = Date.parse(plan.toExclusive);
-  function append(row: Row, observed: string, basis: string) {
+  function append(row: JournalRow, observed: string, basis: string) {
     const source = scopedCameras.find(item => item.id === rowCamera(row) || item.camera_stream_id === rowCamera(row));
     const time = Date.parse(observed);
     if (row.observer_site_id !== plan.observerSiteId || !source || (camera && source.id !== camera.id)
@@ -131,16 +156,16 @@ export async function searchGuardJournal(db: any, input: GuardJournalQueryInput,
     const timestamp = new Date(time).toISOString();
     rows.push({ ...row, timestamp, metadata: { ...row.metadata, camera_source_id: source.id, first_seen: timestamp, last_seen: timestamp, journal_timestamp_basis: basis } });
   }
-  for (const row of (currentResult.data ?? []).slice(0, cap)) {
+  for (const row of ((currentResult.data ?? []) as unknown as JournalRow[]).slice(0, cap)) {
     // Reject imported/malformed rows that claim validation but used arrival time.
     // The live ingestion contract stores these two timestamps identically.
-    if (row.metadata?.validated_event !== true || Date.parse(row.metadata?.first_seen) !== Date.parse(row.created_at)) { invalidEvidence++; continue; }
-    append(row, row.metadata.first_seen, "validated_observation");
+    if (row.metadata?.validated_event !== true || Date.parse(row.metadata.first_seen as string) !== Date.parse(row.created_at)) { invalidEvidence++; continue; }
+    append(row, row.metadata.first_seen as string, "validated_observation");
     for (const clip of (Array.isArray(row.clip) ? row.clip : row.clip ? [row.clip] : [])) {
       if (clip.observer_site_id === plan.observerSiteId && clip.signal_id === row.id && scopedCameras.some(source => source.id === clip.camera_source_id && [source.id, source.camera_stream_id].includes(rowCamera(row)))) clips.push(clip);
     }
   }
-  for (const clip of (legacyResult.data ?? []).slice(0, cap)) {
+  for (const clip of ((legacyResult.data ?? []) as unknown as ClipRow[]).slice(0, cap)) {
     const row = clip.signal;
     const linkedSource = scopedCameras.find(source => source.id === clip.camera_source_id);
     if (!row || Array.isArray(row) || row.metadata?.validated_event === true || clip.observer_site_id !== plan.observerSiteId

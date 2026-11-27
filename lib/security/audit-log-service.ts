@@ -51,6 +51,7 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}
 
 function safeString(value: string) {
   if (signedUrlPattern.test(value)) return "[redacted-url]";
+  if (uuidPattern.test(value)) return value;
   return value.replace(identityLikePattern, "[redacted-id]");
 }
 
@@ -82,34 +83,51 @@ export function deviceFingerprint(headers: Headers) {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
 
+export function isCanonicalAuditId(value: unknown): value is string {
+  return typeof value === "string" && uuidPattern.test(value);
+}
+
 function uuidOrNull(value: string | null | undefined) {
-  return value && uuidPattern.test(value) ? value : null;
+  return isCanonicalAuditId(value) ? value : null;
+}
+
+function immutableAuditRow(input: AuditInput) {
+  return {
+  event_type: input.eventType,
+  event_category: input.eventCategory,
+  actor_profile_id: input.actorProfileId ?? null,
+  actor_role: input.actorRole ?? null,
+  target_type: input.targetType ?? null,
+  target_id: uuidOrNull(input.targetId),
+  garden_id: uuidOrNull(input.gardenId),
+  child_id: uuidOrNull(input.childId),
+  camera_id: uuidOrNull(input.cameraId),
+  document_id: uuidOrNull(input.documentId),
+  inspection_id: uuidOrNull(input.inspectionId),
+  incident_id: uuidOrNull(input.incidentId),
+  ip_address: input.ipAddress ?? null,
+  user_agent: input.userAgent ?? null,
+  device_fingerprint: input.deviceFingerprint ?? null,
+  request_id: input.requestId ?? null,
+  session_id: input.sessionId ?? null,
+  metadata: sanitizeAuditMetadata({ ...(input.metadata as Record<string, unknown> ?? {}), raw_target_id: uuidOrNull(input.targetId) ? undefined : input.targetId ?? undefined }),
+  risk_level: input.riskLevel ?? "medium"
+  };
+}
+
+/** A critical action can proceed only after the exact inserted row is returned. */
+export async function writeAuditEventAcknowledged(input: AuditInput) {
+  const id = crypto.randomUUID();
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.from("immutable_audit_events")
+    .insert({ id, ...immutableAuditRow(input) }).select("id").single();
+  return !error && data?.id === id;
 }
 
 export async function writeAuditEvent(input: AuditInput) {
   try {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("immutable_audit_events" as any).insert({
-      event_type: input.eventType,
-      event_category: input.eventCategory,
-      actor_profile_id: input.actorProfileId ?? null,
-      actor_role: input.actorRole ?? null,
-      target_type: input.targetType ?? null,
-      target_id: uuidOrNull(input.targetId),
-      garden_id: uuidOrNull(input.gardenId),
-      child_id: uuidOrNull(input.childId),
-      camera_id: uuidOrNull(input.cameraId),
-      document_id: uuidOrNull(input.documentId),
-      inspection_id: uuidOrNull(input.inspectionId),
-      incident_id: uuidOrNull(input.incidentId),
-      ip_address: input.ipAddress ?? null,
-      user_agent: input.userAgent ?? null,
-      device_fingerprint: input.deviceFingerprint ?? null,
-      request_id: input.requestId ?? null,
-      session_id: input.sessionId ?? null,
-      metadata: sanitizeAuditMetadata({ ...(input.metadata as Record<string, unknown> ?? {}), raw_target_id: uuidOrNull(input.targetId) ? undefined : input.targetId ?? undefined }),
-      risk_level: input.riskLevel ?? "medium"
-    });
+    const { error } = await supabase.from("immutable_audit_events").insert(immutableAuditRow(input));
     if (error) console.error("[immutable-audit] write failed", { eventType: input.eventType, code: error.code ?? "AUDIT_WRITE_FAILED" });
   } catch (error) {
     console.error("[immutable-audit] write crashed", { errorType: error instanceof Error ? error.name : typeof error });
@@ -127,7 +145,7 @@ export async function writeMedicalAccessEvent(input: Omit<AuditInput, "eventCate
   });
   try {
     const supabase = createAdminClient();
-    await supabase.from("medical_data_access_logs" as any).insert({
+    await supabase.from("medical_data_access_logs").insert({
       user_id: input.actorProfileId ?? null,
       role: input.actorRole ?? null,
       child_id: input.childId ?? null,
