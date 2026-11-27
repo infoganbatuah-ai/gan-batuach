@@ -77,8 +77,9 @@ const front = createHttpsServer({
     headers
   }, upstreamResponse => {
     const responseHeaders = { ...upstreamResponse.headers };
-    if (String(request.headers.origin || "").replace(/\/$/, "") === browserUrl.origin) {
-      responseHeaders["access-control-allow-origin"] = browserUrl.origin;
+    const requestOrigin = String(request.headers.origin || "").replace(/\/$/, "");
+    if (browserOrigins.has(requestOrigin)) {
+      responseHeaders["access-control-allow-origin"] = requestOrigin;
       responseHeaders.vary = "Origin";
     }
     response.writeHead(upstreamResponse.statusCode || 502, responseHeaders);
