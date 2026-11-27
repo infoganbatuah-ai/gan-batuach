@@ -9,12 +9,31 @@ services/video-gateway/*
 # It contains no camera runtime, credentials, media access or local service state.
 !services/video-gateway/cost-intelligence.mjs
 !services/video-gateway/cost-intelligence.d.mts
+# Exact cloud API import closure. These modules contain no installed Gateway
+# process, media capture, local credentials or generated state. The protected
+# host trust registry is read only behind the loopback-only HOME_QA route gate.
+!services/video-gateway/edge-release-object.mjs
+!services/video-gateway/edge-release-object.d.mts
+!services/video-gateway/home-qa-transition-phase.mjs
+!services/video-gateway/home-qa-transition-phase.d.mts
+!services/video-gateway/edge-r2-download.mjs
+!services/video-gateway/edge-r2-download.d.mts
+!services/video-gateway/edge-release-trust.mjs
+!services/video-gateway/edge-release-trust.d.mts
+!services/video-gateway/home-qa-legacy-proof.mjs
+!services/video-gateway/home-qa-legacy-proof.d.mts
 # Local private camera audits, credentials and generated state are never deployed.
 .env*
 tmp
 temp
 logs
 qa-evidence
+scripts/qa/
+tests/
+review-only/
+development/
+ios/
+android/
 supabase/.temp
 *.sqlite*
 *.log

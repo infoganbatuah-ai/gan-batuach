@@ -14,11 +14,11 @@ export async function POST(request: Request) {
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const payload = schema.parse(await request.json());
     const result = await autocompleteObserverAddress(payload.input, payload.session_token);
-    if (!result.configured) return fail("שירות אימות הכתובת עדיין לא הוגדר. אפשר למלא ידנית ולשמור ככתובת שדורשת אימות.", 503);
+    if (!result.configured) return fail("שירות אימות הכתובת עדיין לא הוגדר. לא ניתן להשלים הקמת אתר בלי כתובת מאומתת.", 503);
     return ok(result);
   } catch (error) {
     if (error instanceof Error && error.message === "ADDRESS_PROVIDER_UNAVAILABLE") {
-      return fail("שירות הכתובות אינו זמין כרגע. נסו שוב או המשיכו במילוי ידני.", 503);
+      return fail("שירות הכתובות אינו זמין כרגע. נסו שוב מאוחר יותר; לא ניתן להמשיך עם כתובת לא מאומתת.", 503);
     }
     return handleRouteError(error);
   }

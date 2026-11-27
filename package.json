@@ -191,6 +191,7 @@
     "qa:digital-observer-camera-connections": "node --test scripts/qa/check-digital-observer-camera-connection-layer.mjs",
     "qa:digital-observer-camera-connections-production": "node scripts/qa/verify-production-camera-connection-layer.mjs",
     "qa:digital-observer-camera-onboarding": "node --test scripts/qa/check-digital-observer-camera-onboarding.mjs",
+    "qa:digital-observer-verified-address": "node --test scripts/qa/check-digital-observer-verified-address.mjs",
     "qa:digital-observer-domain-consolidation": "node scripts/qa/check-digital-observer-domain-consolidation.mjs",
     "qa:software-connector": "node --test scripts/qa/check-software-connector.mjs",
     "qa:software-connector-production": "node scripts/qa/verify-production-software-connector.mjs",
@@ -243,7 +244,7 @@
     "framer-motion": "^12.40.0",
     "hls.js": "^1.7.1",
     "lucide-react": "1.16.0",
-    "next": "16.4.3",
+    "next": "16.4.5",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "resend": "^6.25.0",
@@ -260,7 +261,7 @@
     "@types/react-dom": "19.2.3",
     "braces": "file:vendor/braces",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.4.1",
+    "eslint-config-next": "16.4.5",
     "typescript": "6.0.3"
   },
   "overrides": {

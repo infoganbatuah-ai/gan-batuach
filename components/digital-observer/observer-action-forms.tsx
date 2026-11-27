@@ -120,7 +120,11 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
       setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן להשלים את ההקמה", message: "" });
     }
   }
-  const addressValid = form.city.trim().length >= 2 && form.street.trim().length >= 2 && form.building_number.trim().length >= 1;
+  const addressValid = form.address_verification_status === "suggested"
+    && form.address_place_id.trim().length >= 4
+    && form.city.trim().length >= 2
+    && form.street.trim().length >= 2
+    && form.building_number.trim().length >= 1;
   const detailsStep = defaultType === "home" ? 2 : 1;
   const cameraStep = defaultType === "home" ? 3 : 2;
   const targetsStep = defaultType === "home" ? 1 : 3;
