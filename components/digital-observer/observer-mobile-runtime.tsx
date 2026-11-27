@@ -151,7 +151,7 @@ export function ObserverMobileRuntime() {
     const bootstrap = async () => {
       // Public sign-in and recovery routes must not redirect on an expected 401.
       if (!mobileRuntimeRequiresSession(window.location.pathname)) return;
-      if (disposed || !playbackPublisher.isCurrent()) return;
+      if (disposed || !playbackPublisher.isCurrent() || networkOffline || appInactive) return;
       if (checking) {
         if (checkingVersion !== interruptionVersion) recheckRequested = true;
         return;
@@ -159,24 +159,32 @@ export function ObserverMobileRuntime() {
       checking = true;
       const startedVersion = interruptionVersion;
       checkingVersion = startedVersion;
+      // A response issued before backgrounding or losing connectivity cannot
+      // establish the current account or send the recovered session to login.
+      const isCurrentSessionCheck = () =>
+        !disposed && playbackPublisher.isCurrent() && startedVersion === interruptionVersion;
       setStale(true);
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10_000);
       try {
         const response = await fetch("/api/digital-observer/mobile/runtime", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
-        if (disposed || !playbackPublisher.isCurrent()) return;
+        if (!isCurrentSessionCheck()) return;
         if (!response.ok) throw new Error(response.status === 401 ? "SESSION_REVALIDATION_REQUIRED" : "RUNTIME_UNAVAILABLE");
         const payload = await response.json() as RuntimeResponse;
+        if (!isCurrentSessionCheck()) return;
         const profileId = payload.data?.session?.profile_id;
         if (!profileId) throw new Error("RUNTIME_UNAVAILABLE");
         const previousOwner = await Preferences.get({ key: pushOwnerKey });
+        if (!isCurrentSessionCheck()) return;
         if (previousOwner.value !== profileId) {
           // Native Preferences outlive a web sign-out. Legacy unbound state and
           // another account's pending Push intent must never replay on login.
           await Preferences.remove({ key: pushSiteKey });
           await Preferences.remove({ key: offlineQueueKey });
+          if (!isCurrentSessionCheck()) return;
           await Preferences.set({ key: pushOwnerKey, value: profileId });
         }
+        if (!isCurrentSessionCheck()) return;
         sites = payload.data?.sites ?? [];
         const savedSite = await Preferences.get({ key: pushSiteKey });
         if (savedSite.value && sites.some((site) => site.id === savedSite.value)) {
@@ -196,11 +204,11 @@ export function ObserverMobileRuntime() {
             if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED") return;
           }
         }
-        if (!disposed && playbackPublisher.isCurrent() && !listenerFailure && networkKnown && !networkOffline && !appInactive && startedVersion === interruptionVersion) setStale(false);
+        if (isCurrentSessionCheck() && !listenerFailure && networkKnown && !networkOffline && !appInactive) setStale(false);
       } catch (error) {
-        if (disposed || !playbackPublisher.isCurrent()) return;
+        if (!isCurrentSessionCheck()) return;
         await enqueue("runtime_revalidate");
-        if (disposed || !playbackPublisher.isCurrent()) return;
+        if (!isCurrentSessionCheck()) return;
         setStale(true);
         if (error instanceof Error && error.message === "SESSION_REVALIDATION_REQUIRED"
           && mobileRuntimeRequiresSession(window.location.pathname)) {

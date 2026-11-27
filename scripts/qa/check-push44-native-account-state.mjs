@@ -17,12 +17,20 @@ const siteKey = "digital_observer_native_push_site_v1";
 const ownerKey = "digital_observer_native_push_owner_v1";
 const tick = async () => { for (let i = 0; i < 100; i++) await Promise.resolve(); };
 
-function runtime(initial, permission = {}) {
+function sessionResponse(profileId) {
+  return { ok: true, json: async () => ({ data: {
+    session: { profile_id: profileId }, sites: [{ id: "site-a", name: "QA", timezone: null }]
+  } }) };
+}
+
+function runtime(initial, { check, prompt, session = () => sessionResponse("user-b") } = {}) {
   const values = new Map(initial);
   const calls = [];
   const listeners = new Map();
   const appListeners = new Map();
+  const networkListeners = new Map();
   const results = [];
+  const redirects = [];
   let cleanup;
   let now = 0;
   const preferences = {
@@ -37,18 +45,22 @@ function runtime(initial, permission = {}) {
       return { remove: async () => appListeners.delete(name) };
     }, getLaunchUrl: async () => null,
       getInfo: async () => ({ id: "com.ganbatuach.app", version: "1.0-qa" }) },
-    Network: { addListener: async () => ({ remove: async () => {} }), getStatus: async () => ({ connected: true }) },
+    Network: { addListener: async (name, callback) => {
+      networkListeners.set(name, callback);
+      return { remove: async () => networkListeners.delete(name) };
+    }, getStatus: async () => ({ connected: true }) },
     Device: { getInfo: async () => ({ name: "synthetic" }) }, Preferences: preferences,
     PushNotifications: {
-      checkPermissions: permission.check ?? (async () => ({ receive: "granted" })),
+      checkPermissions: check ?? (async () => ({ receive: "granted" })),
       requestPermissions: async () => {
         calls.push(["push-prompt"]);
-        return permission.prompt?.() ?? { receive: "granted" };
+        return prompt?.() ?? { receive: "granted" };
       },
       register: async () => { calls.push(["push-register"]); },
       addListener: async () => ({ remove: async () => {} }) }
   };
-  const window = { location: { pathname: "/digital-observer/dashboard", search: "", origin: "https://qa.invalid", replace: () => {} },
+  const window = { location: { pathname: "/digital-observer/dashboard", search: "", origin: "https://qa.invalid",
+    replace: (url) => redirects.push(url) },
     addEventListener: (name, callback) => listeners.set(name, callback),
     removeEventListener: (name) => listeners.delete(name),
     dispatchEvent: ({ type, detail }) => {
@@ -70,9 +82,7 @@ function runtime(initial, permission = {}) {
     CustomEvent: class { constructor(type, { detail }) { this.type = type; this.detail = detail; } },
     fetch: async (url) => {
       calls.push(["fetch", url]);
-      if (url === "/api/digital-observer/mobile/runtime") return { ok: true, json: async () => ({ data: {
-        session: { profile_id: "user-b" }, sites: [{ id: "site-a", name: "QA", timezone: null }]
-      } }) };
+      if (url === "/api/digital-observer/mobile/runtime") return session();
       return { ok: true };
     },
     require: (name) => {
@@ -82,9 +92,10 @@ function runtime(initial, permission = {}) {
   }, { timeout: 5000 });
   exports.ObserverMobileRuntime();
   return {
-    values, calls, results,
+    values, calls, results, redirects,
     request: (requestId) => listeners.get("digital-observer:enable-native-push")({ detail: { requestId, siteId: "site-a" } }),
     appState: (isActive) => appListeners.get("appStateChange")({ isActive }),
+    networkState: (connected) => networkListeners.get("networkStatusChange")({ connected }),
     advance: (milliseconds) => { now += milliseconds; },
     unmount: () => cleanup()
   };
@@ -173,4 +184,48 @@ test("native permission granted within the current request window still register
   prompt.resolve({ receive: "granted" });
   await pending;
   assert.equal(h.calls.filter(([kind]) => kind === "push-register").length, 1);
+});
+
+test("pre-suspend 401 cannot redirect a session that revalidates after reconnect", async (t) => {
+  const oldResponse = Promise.withResolvers();
+  let checks = 0;
+  const h = runtime([], { session: () => ++checks === 1 ? oldResponse.promise : sessionResponse("user-b") });
+  t.after(h.unmount);
+  await tick();
+  await h.appState(false);
+  await h.networkState(false);
+  await h.appState(true);
+  assert.equal(checks, 1);
+  await h.networkState(true);
+  oldResponse.resolve({ ok: false, status: 401 });
+  await tick();
+  assert.deepEqual(h.redirects, []);
+  assert.equal(checks, 2);
+  assert.equal(h.values.get(ownerKey), "user-b");
+});
+
+test("a stale success body cannot bind the previous account after resume", async (t) => {
+  const oldBody = Promise.withResolvers();
+  let checks = 0;
+  let readingOldBody = false;
+  const h = runtime([[ownerKey, "user-b"]], { session: () => ++checks === 1
+    ? { ok: true, json: () => { readingOldBody = true; return oldBody.promise; } }
+    : sessionResponse("user-b") });
+  t.after(h.unmount);
+  await tick();
+  assert.equal(readingOldBody, true);
+  await h.appState(false);
+  await h.appState(true);
+  oldBody.resolve(await sessionResponse("user-a").json());
+  await tick();
+  assert.equal(checks, 2);
+  assert.deepEqual(h.calls.filter(([kind, key]) => kind === "set" && key === ownerKey), []);
+  assert.equal(h.values.get(ownerKey), "user-b");
+});
+
+test("a 401 from the current session check still opens Observer login", async (t) => {
+  const h = runtime([], { session: () => ({ ok: false, status: 401 }) });
+  t.after(h.unmount);
+  await tick();
+  assert.deepEqual(h.redirects, ["https://qa.invalid/digital-observer/login?next=%2Fdigital-observer%2Fdashboard"]);
 });

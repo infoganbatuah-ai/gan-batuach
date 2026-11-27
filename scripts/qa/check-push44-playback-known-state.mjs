@@ -71,7 +71,24 @@ test("native inactivity during a pending protected bootstrap blocks a late playe
  const h=setup({connected:true,protectedRoute:true,deferredAuth:true});const r=h.runtime();await tick();assert.deepEqual(h.listening,[true,true]);void h.app(false);await tick();const p=h.player();await tick();assert.deepEqual([h.requests,h.sources,h.plays],[0,0,0]);h.resolveAuth(0);await tick();assert.equal(r.slots[3],true);p.unmount();r.unmount();
 });
 test("late bootstrap cannot remove protection after both causes, and recovery revalidates",async()=>{
- const h=setup({connected:true,protectedRoute:true,deferredAuth:true});const r=h.runtime();await tick();void h.network(false);void h.app(false);await tick();h.resolveAuth(0);await tick();assert.equal(r.slots[3],true);void h.network(true);await tick();assert.equal(r.slots[3],true);h.resolveAuth(1);await tick();assert.equal(r.slots[3],true);void h.app(true);await tick();h.resolveAuth(2);await tick();assert.equal(r.slots[3],false);r.unmount();
+ const h=setup({connected:true,protectedRoute:true,deferredAuth:true});
+ const r=h.runtime();
+ await tick();
+ await h.network(false);
+ await h.app(false);
+ h.resolveAuth(0);
+ await tick();
+ assert.equal(r.slots[3],true);
+ await h.network(true);
+ assert.equal(h.authRequests,1,"network recovery alone must not revalidate in background");
+ assert.equal(r.slots[3],true);
+ const resumed=h.app(true);
+ await tick();
+ assert.equal(h.authRequests,2);
+ h.resolveAuth(1);
+ await resumed;
+ assert.equal(r.slots[3],false);
+ r.unmount();
 });
 test("new network event wins over a pending initial status",async()=>{
  const h=setup({connected:true,deferredStatus:true});const r=h.runtime();await tick();assert.deepEqual(h.listening,[true,true]);void h.network(false);h.resolveStatus(0,true);await tick();const p=h.player();await tick();assert.equal(h.requests,0);assert.equal(r.slots[2],false);p.unmount();r.unmount();
