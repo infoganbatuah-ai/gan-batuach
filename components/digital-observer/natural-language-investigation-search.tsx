@@ -18,6 +18,7 @@ type ApiPayload = {
   status: string;
   compilation: Compilation;
   result: (InvestigationSearchResult & { queryLatencyMs: number }) | null;
+  reportPreviews?: { incidentId: string; contentSha256: string }[];
   incidentReconstructions?: IncidentReconstructions;
   recordingTimeline?: InvestigationRecordingTimeline;
   debug: Record<string, unknown> | null;
@@ -47,11 +48,12 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
   const [submittedSearch, setSubmittedSearch] = useState<{ question: string; cameraSourceId?: string } | null>(null);
   const [timelineSource, setTimelineSource] = useState("");
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function run(options: { cameraSourceId?: string; cursor?: number } = {}) {
     const search = options.cursor == null ? { question, cameraSourceId: options.cameraSourceId } : submittedSearch;
-    if (busy || !search || search.question.trim().length < 2) return;
+    if (busy || exporting || !search || search.question.trim().length < 2) return;
     setBusy(true);
     setError(null);
     try {
@@ -72,12 +74,44 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
     }
   }
 
+  async function downloadReport(incidentId: string, contentSha256: string) {
+    if (!submittedSearch || !payload?.result || busy || exporting) return;
+    setExporting(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/digital-observer/investigation", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          observer_site_id: observerSiteId, question: submittedSearch.question,
+          camera_source_id: submittedSearch.cameraSourceId, cursor: payload.result.pagination.cursor, limit: 20,
+          report: { incident_id: incidentId, content_sha256: contentSha256 },
+        }),
+      });
+      if (!response.ok) {
+        const body = await response.json() as { error?: string };
+        throw new Error(body.error || "לא ניתן להוריד את הדוח.");
+      }
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "observer-incident-report.json";
+      link.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (downloadError) {
+      setError(downloadError instanceof Error ? downloadError.message : "לא ניתן להוריד את הדוח.");
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const result = payload?.result;
   const timeZone = result?.query.timeZone ?? "Asia/Jerusalem";
 
   const timeline = payload?.recordingTimeline ?? [];
   const timelineSources = new Map(timeline.map((row) => [row.sourceId, row.sourceLabel]));
   const reconstructionsById = new Map(payload?.incidentReconstructions?.map((item) => [item.incidentId, item]) ?? []);
+  const reportPreviewsById = new Map(payload?.reportPreviews?.map((item) => [item.incidentId, item.contentSha256]) ?? []);
   const eventsById = new Map(result?.events.map((event) => [event.id, event]) ?? []);
   const visibleTimeline = timelineSource ? timeline.filter((row) => row.sourceId === timelineSource) : timeline;
 
@@ -86,7 +120,7 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
       <div className="do-section-head"><div><h2>מה תרצו לבדוק?</h2><p>החיפוש קורא רק אירועים, תקריות וראיות מורשות שנשמרו באתר {siteName}. הוא אינו מנתח וידאו פרטי בשירות חיצוני ואינו מנחש זהות.</p></div><Search /></div>
       <form className="do-form-section" onSubmit={(event) => { event.preventDefault(); void run(); }}>
         <label className="do-field"><span>שאלת חקירה</span><textarea value={question} onChange={(event) => setQuestion(event.target.value)} rows={3} maxLength={500} placeholder="לדוגמה: מה קרה בכניסה אתמול בלילה?" /></label>
-        <div className="do-button-row"><button className="do-button primary" type="submit" disabled={busy || question.trim().length < 2}>{busy ? <LoaderCircle className="do-spin" /> : <Search />} חיפוש בנתוני אמת</button></div>
+        <div className="do-button-row"><button className="do-button primary" type="submit" disabled={busy || exporting || question.trim().length < 2}>{busy ? <LoaderCircle className="do-spin" /> : <Search />} חיפוש בנתוני אמת</button></div>
       </form>
       <div className="do-button-row">{examples.map((example) => <button className="do-button secondary" type="button" key={example} onClick={() => setQuestion(example)}>{example}</button>)}</div>
       <div className="do-notice info"><ShieldCheck /><span><strong>חיפוש היסטורי ומוגבל</strong><small>אין SQL חופשי, אין פעולה במצלמה, אין זיהוי פנים ואין טענה לכיסוי וידאו רציף.</small></span></div>
@@ -143,6 +177,7 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
 
       {result.incidents.map((incident) => {
         const reconstruction = reconstructionsById.get(incident.id);
+        const reportDigest = reportPreviewsById.get(incident.id);
         return <article className="do-panel" key={incident.id}>
           <div className="do-section-head"><div><h2>{incident.title}</h2><p>{incident.summary}</p></div><span className="do-badge info">{incident.status}</span></div>
           <div className="do-summary-list">
@@ -171,7 +206,10 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
             {reconstruction.omittedObservations > 0 ? <small>{reconstruction.omittedObservations} רשומות מהסיכום לא שובצו בגלל זמן, מקור או קישור שלא אומתו.</small> : null}
             {reconstruction.partialSearch || reconstruction.capped ? <p>מוצג שחזור חלקי לפי תוצאות החיפוש הזמינות.</p> : null}
           </> : null}
-          <div className="do-button-row"><a className="do-button secondary" href={`/digital-observer/incidents?site=${incident.siteId}&incident=${incident.id}`}>פתיחת התקרית</a>{!reconstruction && incident.evidence.playbackPaths[0] ? <a className="do-button primary" href={incident.evidence.playbackPaths[0]} target="_blank" rel="noreferrer"><FileVideo2 /> פתיחת ראיה מורשית</a> : null}</div>
+          <div className="do-button-row"><a className="do-button secondary" href={`/digital-observer/incidents?site=${incident.siteId}&incident=${incident.id}`}>פתיחת התקרית</a>{!reconstruction && incident.evidence.playbackPaths[0] ? <a className="do-button primary" href={incident.evidence.playbackPaths[0]} target="_blank" rel="noreferrer"><FileVideo2 /> פתיחת ראיה מורשית</a> : null}
+            {reportDigest ? <button className="do-button secondary" type="button" disabled={busy || exporting}
+              onClick={() => void downloadReport(incident.id, reportDigest)}>הורדת דוח תצפיות JSON</button> : null}
+          </div>
         </article>;
       })}
 
@@ -179,7 +217,7 @@ export function NaturalLanguageInvestigationSearch({ observerSiteId, siteName, a
       {!payload?.recordingTimeline && result.events.length ? <section className="do-panel"><div className="do-section-head"><div><h2>אירועים עובדתיים</h2><p>Track הוא רצף תצפיות ואינו זהות של אדם.</p></div><CalendarClock /></div><div className="do-row-list">{result.events.map((event) => <div className="do-row" key={event.id}><Camera /><span className="do-row-main"><strong>{event.label} · {event.cameraName}</strong><small>{localTime(event.occurredAt, timeZone)} · {event.confidence == null ? "ללא ציון ביטחון" : `${Math.round(event.confidence * 100)}% ביטחון זיהוי`} · {evidenceLabels[event.evidence.state]}</small></span><span className="do-row-meta">{event.evidence.playbackPath ? <a className="do-link" href={event.evidence.playbackPath} target="_blank" rel="noreferrer">פתיחת ראיה</a> : null}</span></div>)}</div></section> : null}
 
       {result.coverage.scanCapReached ? <div className="do-notice warn"><AlertTriangle /><span>החיפוש הגיע לתקרת הסריקה. מומלץ לצמצם את טווח הזמן או לבחור מצלמה.</span></div> : null}
-      {result.pagination.nextCursor != null ? <button className="do-button secondary" type="button" disabled={busy} onClick={() => void run({ cursor: result.pagination.nextCursor! })}>העמוד הבא</button> : null}
+      {result.pagination.nextCursor != null ? <button className="do-button secondary" type="button" disabled={busy || exporting} onClick={() => void run({ cursor: result.pagination.nextCursor! })}>העמוד הבא</button> : null}
       {adminMode && payload?.debug ? <details className="do-observer-insight-disclosure"><summary><span><Braces /><b>תוכנית חיפוש ו-Grounding</b><small>Admin בלבד</small></span></summary><pre>{JSON.stringify(payload.debug, null, 2)}</pre></details> : null}
     </> : null}
   </div>;

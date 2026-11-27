@@ -108,6 +108,7 @@ export function buildIncidentReconstructions(input: Parameters<typeof buildInves
         sourceLabel: source.display_name ?? source.location_label ?? "מצלמה",
         observedAt: new Date(timestamp).toISOString(), timeBasis: fact.timeBasis,
         evidenceState: entry.evidenceState === "AVAILABLE" && !evidencePath ? "UNAVAILABLE" as const : entry.evidenceState,
+        evidenceId: evidencePath ? fact.evidenceId : null,
         evidencePath,
       }];
     }).sort((a, b) => a.observedAt.localeCompare(b.observedAt) || a.eventId.localeCompare(b.eventId));

@@ -6,6 +6,11 @@ import { guardHistoryPrivacyRestricted } from "@/lib/domain/event-engine/guard-j
 import { compileInvestigationQuery, validateInvestigationQuery, type InvestigationCameraResource } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
 import { buildIncidentReconstructions, buildInvestigationRecordingTimeline } from "@/lib/domain/digital-observer/investigation-recording-timeline";
+import {
+  authorizeInvestigationReportDownload, buildInvestigationIncidentReport, canExportInvestigationReport,
+} from "@/lib/domain/digital-observer/investigation-incident-report";
+import { assertTrustedMutationOrigin, parseBoundedJson } from "@/lib/security/request-guards";
+import { writeAuditEventAcknowledged } from "@/lib/security/audit-log-service";
 import type { InvestigationSource } from "@/lib/domain/digital-observer/investigation-results";
 import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -18,7 +23,11 @@ const requestSchema = z.object({
   question: z.string().trim().min(2).max(500),
   camera_source_id: z.string().uuid().optional(),
   cursor: z.number().int().min(0).max(500).optional(),
-  limit: z.number().int().min(1).max(25).optional()
+  limit: z.number().int().min(1).max(25).optional(),
+  report: z.object({
+    incident_id: z.string().uuid(),
+    content_sha256: z.string().regex(/^[a-f0-9]{64}$/),
+  }).strict().optional()
 }).strict();
 
 type CameraRow = {
@@ -62,18 +71,29 @@ export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const payload = requestSchema.parse(await request.json());
-    const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
+    const payload = requestSchema.parse(await parseBoundedJson(request, 4096));
+    if (payload.report) {
+      assertTrustedMutationOrigin(request);
+      if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type") ?? "") ||
+        request.headers.get("sec-fetch-site") === "cross-site") return fail("ייצוא דוח דורש בקשה מהאפליקציה.", 403);
+    }
+    const observerAdmin = !payload.report && await hasCurrentObserverAdmin(session.user.id);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const site = observerAdmin
       ? (await dataClient.from("observer_sites" as never)
-        .select("id,name,site_type,garden_id,timezone,business_handles_children,vision_privacy_mode")
+        .select("id,name,site_type,garden_id,timezone,business_handles_children,vision_privacy_mode,owner_profile_id")
         .eq("id", payload.observer_site_id).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle()).data
       : await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, { manage: false });
     if (!site) return fail("אין הרשאה לחקור את האתר הזה.", 403);
     try { await assertCommercialEntitlement(createAdminClient(), { siteId: payload.observer_site_id, key: "investigation" }); }
     catch (error) { return fail(error instanceof Error ? error.message : "INVESTIGATION_ENTITLEMENT_DENIED", 403); }
     if (guardHistoryPrivacyRestricted(site)) return fail("חקירת היסטוריית מצלמות אינה זמינה באתר הזה תחת מדיניות הפרטיות הנוכחית.", 403);
+
+    const canExport = canExportInvestigationReport({
+      actorId: session.user.id, siteId: payload.observer_site_id,
+      site: site as { id?: unknown; owner_profile_id?: unknown }, historyAllowed: true,
+    });
+    if (payload.report && !canExport) return fail("ייצוא דוח דורש הרשאת בעלים.", 403);
 
     const camerasResult = await dataClient.from("digital_observer_camera_sources" as never)
       .select("id,observer_site_id,display_name,location_label,camera_stream_id,metadata")
@@ -93,6 +113,7 @@ export async function POST(request: Request) {
       limit: payload.limit
     });
     if (compilation.status !== "READY" || !compilation.query) {
+      if (payload.report) return fail("יש לרענן את תוצאות החיפוש לפני ייצוא הדוח.", 409);
       return ok({
         status: compilation.status,
         compilation,
@@ -112,12 +133,51 @@ export async function POST(request: Request) {
     const now = new Date();
     const result = await searchDigitalObserverInvestigation({ db: dataClient, query: validation.query, sources, now });
     const timelineInput = { result, siteId: payload.observer_site_id, sources, historyAllowed: true, now };
+    const incidentReconstructions = buildIncidentReconstructions(timelineInput);
+    const reports = canExport ? incidentReconstructions.flatMap((reconstruction) => {
+      if (payload.report && reconstruction.incidentId !== payload.report.incident_id) return [];
+      const document = buildInvestigationIncidentReport({
+        siteId: payload.observer_site_id, reconstruction, pagination: result.pagination,
+      });
+      return document ? [document] : [];
+    }) : [];
+    if (payload.report) {
+      const document = reports[0];
+      if (!document) return fail("יש לרענן את תוצאות החיפוש לפני ייצוא הדוח.", 409);
+      const status = await authorizeInvestigationReportDownload({
+        document, requestedDigest: payload.report.content_sha256,
+        writeAudit: () => writeAuditEventAcknowledged({
+          eventType: "observer_incident_report_export",
+          eventCategory: "observer",
+          actorProfileId: session.profile.id,
+          targetType: "observer_incident",
+          targetId: document.report.source.incident_id,
+          metadata: {
+            observer_site_id: payload.observer_site_id,
+            report_version: document.report.version,
+            content_sha256: document.content_sha256,
+            page_cursor: document.report.source.page_cursor,
+          }
+        }),
+      });
+      if (status === "PAGE_CHANGED") return fail("תוצאות החיפוש השתנו. יש לרענן לפני ייצוא הדוח.", 409);
+      if (status !== "READY") return fail("לא ניתן לייצא דוח ללא אישור רישום ביקורת.", 503);
+      return new Response(JSON.stringify(document), { headers: {
+        "content-type": "application/json; charset=utf-8",
+        "content-disposition": 'attachment; filename="observer-incident-report.json"',
+        "cache-control": "private, no-store",
+        "x-content-type-options": "nosniff",
+      } });
+    }
     return ok({
       status: "READY",
       compilation,
       result,
       recordingTimeline: buildInvestigationRecordingTimeline(timelineInput),
-      incidentReconstructions: buildIncidentReconstructions(timelineInput),
+      incidentReconstructions,
+      reportPreviews: reports.map((document) => ({
+        incidentId: document.report.source.incident_id, contentSha256: document.content_sha256,
+      })),
       debug: observerAdmin ? {
         question: payload.question,
         compiler: compilation.compilerVersion,
