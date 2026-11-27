@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -182,4 +182,42 @@ test("accepts a bounded candidate-free offer for one receive-only video stream",
     offer + "m=audio 9 UDP/TLS/RTP/SAVPF 96\r\n", offer.replace("recvonly", "sendrecv"),
     offer + "a=".padEnd(16_384, "x")
   ]) assert.equal(await readCameraPilotOffer(createRequest(input)), null);
+});
+
+test("Observer HTTP fixture receives fixed loopback paths and only server credentials", async () => {
+  const calls = [];
+  const serviceToken = "s".repeat(43);
+  const transport = createCameraPilotLoopbackTransport({
+    origin: "http://127.0.0.1:4444", serviceToken,
+    fetcher: async (url, request) => {
+      calls.push([url.href, request]);
+      return url.pathname.endsWith("revoke") ? new Response(null, { status: 204 }) :
+        new Response("v=0\r\n", { status: 201, headers: {
+          "content-type": "application/sdp", "cache-control": "private, no-store"
+        } });
+    }
+  });
+  const assertion = signCameraPilotAssertion(signingInput);
+  assert.equal(await transport.signal(assertion, "v=0\r\n"), "v=0\r\n");
+  assert.equal(await transport.revoke("h".repeat(43)), true);
+  assert.deepEqual(calls.map(([url]) => url), [
+    "http://127.0.0.1:4444/pilot/whep", "http://127.0.0.1:4444/pilot/revoke"
+  ]);
+  assert.equal(calls[0][1].headers.Authorization, "Bearer " + serviceToken);
+  assert.equal(calls[0][1].headers["X-Gan-Pilot-Assertion"], assertion);
+  assert.equal(calls[0][1].redirect, "error");
+  assert.deepEqual(JSON.parse(calls[1][1].body), { handle: "h".repeat(43) });
+  assert.equal(createCameraPilotLoopbackTransport({ origin: "http://localhost:4444", serviceToken }), null);
+});
+
+test("Observer HTTP fixture refuses a malformed or oversized answer", async () => {
+  for (const [body, cache] of [["v=0", "public"], ["v=0" + "x".repeat(16_384), "private, no-store"]]) {
+    const transport = createCameraPilotLoopbackTransport({
+      origin: "http://127.0.0.1:4444", serviceToken: "s".repeat(43),
+      fetcher: async () => new Response(body, { status: 201, headers: {
+        "content-type": "application/sdp", "cache-control": cache
+      } })
+    });
+    assert.equal(await transport.signal(signCameraPilotAssertion(signingInput), "v=0"), null);
+  }
 });
