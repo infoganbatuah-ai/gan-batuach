@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { cameraPilotGrant } from "../../lib/management/camera-pilot-grant.mjs";
+import { generateKeyPairSync, verify } from "node:crypto";
+import { cameraPilotGrant, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -70,7 +71,7 @@ test("a scoped handle is not redeemable by a different tenant or identity", asyn
 
 for (const patch of [
   { viewerId: "other" }, { role: "manager" }, { gardenId: "other" }, { siteId: "other" },
-  { cameraId: "other" }, { expiresAtMs: 10_000 }, { expiresAtMs: 70_001 },
+  { cameraId: "other" }, { expiresAtMs: 10_000 }, { expiresAtMs: 55_001 },
   { capability: "health" }, { environment: "production" }, { recording: true },
   { protocol: "HLS" }, { operation: "redeem" }, { handle: "https://example.invalid" }
 ]) {
@@ -83,4 +84,39 @@ test("provider failure fails closed", async () => {
   const { options } = fixture();
   options.provider.issue = async () => { throw new Error("offline"); };
   assert.equal(await cameraPilotGrant(options), null);
+});
+
+const { privateKey, publicKey } = generateKeyPairSync("ed25519");
+const signingInput = {
+  environment: "development", qaGardenId: "garden-a", sessionId: "session-a",
+  operation: "issue", privateKey, now: () => 10_000,
+  binding: { viewerId: "viewer-a", role: "parent", gardenId: "garden-a",
+    siteId: "site-a", cameraId: "camera-a", protocol: "WebRTC" }
+};
+
+function verifyEnvelope(assertion) {
+  const [payload, signature] = assertion.split(".");
+  assert.ok(verify(null, Buffer.from(payload), publicKey, Buffer.from(signature, "base64url")));
+  return JSON.parse(Buffer.from(payload, "base64url"));
+}
+
+test("creates signed DO assertions with unique request IDs and bounded lifetime", () => {
+  const issued = verifyEnvelope(signCameraPilotAssertion(signingInput));
+  assert.equal(issued.audience, "digital_observer:gan_camera_pilot");
+  assert.deepEqual(issued.binding, signingInput.binding);
+  assert.equal(issued.sessionId, "session-a");
+  assert.equal(issued.expiresAtMs - issued.issuedAtMs, 45_000);
+  assert.ok(!Object.hasOwn(issued, "handle"));
+  const handle = "a".repeat(48);
+  const redeemed = verifyEnvelope(signCameraPilotAssertion({ ...signingInput, operation: "redeem", handle }));
+  assert.equal(redeemed.handle, handle);
+  assert.equal(redeemed.operation, "redeem");
+  assert.notEqual(redeemed.jti, issued.jti);
+});
+
+test("refuses to sign outside the configured QA garden and trusted session shape", () => {
+  for (const patch of [
+    { environment: "production" }, { qaGardenId: "garden-b" }, { sessionId: "" },
+    { privateKey: publicKey }, { operation: "redeem" }, { handle: "a".repeat(48) }
+  ]) assert.equal(signCameraPilotAssertion({ ...signingInput, ...patch }), null);
 });
