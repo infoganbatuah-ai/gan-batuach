@@ -9,14 +9,15 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { loadTs } from "./digital-guard-test-loader.mjs";
+import { asRole, currentScope, partnerPostgresFixture, partnerPostgresIds } from "./partner-postgres-fixture.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const { DigitalObserverServerClient } = loadTs("packages/digital-observer-sdk/src/index.ts");
 const { DigitalObserverEmbeddedClient } = loadTs("packages/digital-observer-sdk/src/browser.ts");
 const external = "/api/digital-observer/external/v1";
 const embed = "/api/digital-observer/embed/v1/dashboard";
-const owner = "synthetic-tenant";
-const [site, otherSite, cameraA, cameraB, outsider] = Array.from({ length: 5 }, (_, i) =>
+const { orgA: owner, orgB: otherOwner, partnerOrg, partnerId, customer, account, site } = partnerPostgresIds;
+const [otherSite, cameraA, cameraB, outsider] = Array.from({ length: 4 }, (_, i) =>
   `10000000-0000-4000-8000-${String(i + 1).padStart(12, "0")}`);
 const serviceToken = "dosvc_synthetic_next_fixture_only_not_a_real_account";
 const embedToken = "doemb_synthetic_next_only";
@@ -37,10 +38,11 @@ function close(server) {
   return new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
 }
 
-function restFixture(t) {
+function restFixture(t, database) {
   const receipts = [];
   const restErrors = [];
   const audits = [];
+  const meters = [];
   const siteRow = { id: site, digital_observer_organization_id: owner, garden_id: null, site_type: "home" };
   const session = { id: "embedded-session", partner_id: "partner", partner_customer_id: "customer", observer_site_id: site,
     token_hash: digest(embedToken), expires_at: expiresAt, revoked_at: null, audience, allowed_origin: origin, scopes: ["cameras.read"],
@@ -50,13 +52,20 @@ function restFixture(t) {
     audit_logs: audits,
     digital_observer_enterprise_audit_events: [],
     digital_observer_external_api_request_receipts: receipts,
-    digital_observer_service_account_credentials: [{ id: "service-credential", service_account_id: "service-account",
+    digital_observer_service_account_credentials: [{ id: "service-credential", service_account_id: account,
       credential_hash: digest(serviceToken), expires_at: expiresAt, revoked_at: null }],
-    digital_observer_service_accounts: [{ id: "service-account", organization_id: owner, account_status: "active", expires_at: expiresAt,
+    digital_observer_service_accounts: [{ id: account, organization_id: partnerOrg, account_status: "active", expires_at: expiresAt,
       revoked_at: null, all_sites: false, permissions: ["camera.live.view"] }],
-    digital_observer_service_account_sites: [{ service_account_id: "service-account", observer_site_id: site }],
+    digital_observer_service_account_sites: [{ service_account_id: account, observer_site_id: site }],
+    digital_observer_partner_service_accounts: [{ service_account_id: account, partner_id: partnerId, partner_customer_id: customer,
+      access_kind: "customer_resources", digital_observer_partner_customers: { id: customer, partner_id: partnerId,
+        customer_status: "active", customer_organization_id: owner,
+        digital_observer_partners: { organization_id: partnerOrg, partner_status: "sandbox" } } }],
     digital_observer_embedded_sessions: [session],
-    digital_observer_partner_customer_sites: [{ partner_customer_id: "customer", observer_site_id: site }],
+    digital_observer_partner_customer_sites: [
+      { partner_customer_id: "customer", observer_site_id: site },
+      { partner_customer_id: customer, observer_site_id: site },
+    ],
     digital_observer_partner_brand_profiles: [],
     observer_sites: [siteRow],
     observer_site_subscriptions: [{ id: "subscription", observer_site_id: site, commercial_state: "active", entitlement_snapshot: { api_access: true } }],
@@ -76,8 +85,24 @@ function restFixture(t) {
       assert.ok(url.pathname.startsWith("/rest/v1/"));
       if (table === "rpc/record_digital_observer_external_api_usage") {
         assert.equal(method, "POST");
-        request.resume();
-        return response.writeHead(204).end();
+        const args = await jsonBody(request);
+        const values = [
+          args.requested_service_account_id, args.requested_site_id, args.requested_operation,
+          args.requested_bucket_start, args.requested_success,
+        ];
+        assert.deepEqual(values.slice(0, 3), [account, site, "cameras.list"]);
+        assert.equal(typeof args.requested_success, "boolean");
+        response.setHeader("content-type", "application/json");
+        try {
+          const result = await asRole(database, "service_role", "", `
+            select public.record_digital_observer_external_api_usage($1,$2,$3,$4,$5) as receipt`, values);
+          meters.push({ allowed: true, success: args.requested_success });
+          return response.writeHead(200).end(JSON.stringify(result.rows[0].receipt));
+        } catch (error) {
+          if (error.code !== "P0001" || error.message !== "service account/site mismatch") throw error;
+          meters.push({ allowed: false, success: args.requested_success });
+          return response.writeHead(400).end(JSON.stringify({ code: error.code, message: error.message }));
+        }
       }
       assert.ok(Object.hasOwn(tables, table), `Unexpected REST resource: ${table}`);
       if (table === "digital_observer_camera_sources") counters.cameraQueries++;
@@ -97,9 +122,7 @@ function restFixture(t) {
       }));
       if (method === "HEAD") return response.writeHead(200, { "content-range": `*/${rows.length}` }).end();
       if (method === "PATCH" || method === "POST") {
-        const chunks = [];
-        for await (const chunk of request) chunks.push(chunk);
-        const input = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        const input = await jsonBody(request);
         if (method === "POST") {
           rows = [{ id: randomUUID(), created_at: new Date().toISOString(), ...input }];
           tables[table].push(...rows);
@@ -118,7 +141,7 @@ function restFixture(t) {
       const offset = Number(query.get("offset") ?? 0);
       rows = rows.slice(offset, offset + Number(query.get("limit") ?? rows.length));
       const selected = query.get("select");
-      if (selected && selected !== "*") {
+      if (selected && selected !== "*" && table !== "digital_observer_partner_service_accounts") {
         const columns = selected.replaceAll(/\([^)]*\)/g, "").split(",").map((column) => column.split("!")[0]);
         rows = rows.map((row) => Object.fromEntries(columns.filter((column) => Object.hasOwn(row, column)).map((column) => [column, row[column]])));
       }
@@ -130,7 +153,13 @@ function restFixture(t) {
       response.writeHead(500).end();
     }
   });
-  return { server, session, siteRow, audits, restErrors, counters };
+  return { server, session, siteRow, audits, restErrors, counters, meters };
+}
+
+async function jsonBody(request) {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
 async function startNext(t, supabaseUrl) {
@@ -182,8 +211,10 @@ async function startNext(t, supabaseUrl) {
   throw new Error(`Isolated Next did not start: ${logs}`);
 }
 
-test("Next proxy and exact v1 route modules handle paging, then deny revoked or transferred embed access", { timeout: 120_000 }, async (t) => {
-  const fixture = restFixture(t);
+test("SDK requests cross Next middleware and meter only current delegated usage in PostgreSQL", { timeout: 120_000 }, async (t) => {
+  const database = await partnerPostgresFixture(t);
+  await database.exec(currentScope);
+  const fixture = restFixture(t, database);
   const restPort = await open(fixture.server);
   t.after(() => close(fixture.server));
   const { endpoint, logs } = await startNext(t, `http://127.0.0.1:${restPort}`);
@@ -203,6 +234,23 @@ test("Next proxy and exact v1 route modules handle paging, then deny revoked or 
     assert.deepEqual(page2.data.map(({ id }) => id), [cameraB]);
     assert.equal(page2.pagination.next_cursor, null);
     assert.equal(requestIds.size, 2);
+    assert.deepEqual(fixture.meters, [{ allowed: true, success: true }, { allowed: true, success: true }]);
+
+    // Leave the earlier application reads unchanged to isolate the case
+    // where the durable authority changes before the meter runs.
+    const requestDenied = { status: 503, message: "EXTERNAL_API_USAGE_WRITE_FAILED" };
+    await database.query("update public.observer_sites set digital_observer_organization_id=$1 where id=$2", [otherOwner, site]);
+    await assert.rejects(server.cameras(site), requestDenied);
+    assert.deepEqual(fixture.meters.at(-2), { allowed: false, success: true });
+    assert.deepEqual(fixture.meters.at(-1), { allowed: false, success: false });
+    await database.query("update public.observer_sites set digital_observer_organization_id=$1 where id=$2", [owner, site]);
+    await database.query("update public.digital_observer_service_accounts set revoked_at=now(), account_status='revoked' where id=$1", [account]);
+    await assert.rejects(server.cameras(site), requestDenied);
+    assert.deepEqual(fixture.meters.at(-2), { allowed: false, success: true });
+    assert.deepEqual(fixture.meters.at(-1), { allowed: false, success: false });
+    const totals = await database.query(`select sum(request_count)::int as requests, sum(success_count)::int as successes,
+      sum(failure_count)::int as failures from public.digital_observer_external_api_usage_buckets where service_account_id=$1`, [account]);
+    assert.deepEqual(totals.rows, [{ requests: 2, successes: 2, failures: 0 }]);
 
     const preflight = await fetch(`${endpoint}${embed}`, { method: "OPTIONS", headers: {
       origin, "access-control-request-method": "GET", "access-control-request-headers": "authorization,x-do-audience",
