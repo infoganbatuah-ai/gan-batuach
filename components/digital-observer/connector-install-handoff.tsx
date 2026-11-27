@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import { installerPlatform } from "@/lib/domain/digital-observer/connector-installation";
 import type { ConnectivityFamilyId } from "@/lib/domain/digital-observer/connectivity-registry";
@@ -20,6 +20,7 @@ export function ConnectorInstallHandoff({ siteId, family, onOnline, initialInten
   onProductAction?: () => void; onInstallerAction?: () => void; onFailure?: (category: "INSTALLER_UNAVAILABLE" | "ENROLLMENT_EXPIRED") => void;
 }) {
   const [intent, setIntent] = useState(initialIntent ?? "");
+  const currentIntent = useRef(intent);
   const [status, setStatus] = useState<InstallStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -28,9 +29,12 @@ export function ConnectorInstallHandoff({ siteId, family, onOnline, initialInten
     if (!intent) return;
     try {
       const next = await post("/api/digital-observer/connector-installation", { action: "status", observer_site_id: siteId, intent_id: intent });
+      if (currentIntent.current !== intent) return;
       setStatus(next); setError("");
       if (next.stage === "CONNECTOR_FOUND") onOnline(intent);
-    } catch { setError("לא ניתן לקרוא את מצב ההתקנה. ודאו שאתם מחוברים לחשבון שבו התחלתם ונסו שוב."); }
+    } catch {
+      if (currentIntent.current === intent) setError("לא ניתן לקרוא את מצב ההתקנה. ודאו שאתם מחוברים לחשבון שבו התחלתם ונסו שוב.");
+    }
   }, [intent, siteId, onOnline]);
   useEffect(() => {
     if (!intent) return;
@@ -55,7 +59,9 @@ export function ConnectorInstallHandoff({ siteId, family, onOnline, initialInten
       const manifest = manifestBody.data as InstallerManifest | undefined;
       if (!manifestResponse.ok || !manifest?.available || !manifest.download_path) throw new Error(manifest?.reason || "INSTALLER_UNAVAILABLE");
       const data = await post("/api/digital-observer/connector-installation", { action: "create", observer_site_id: siteId, family });
+      currentIntent.current = data.document.intent_id;
       setIntent(data.document.intent_id);
+      setStatus(null);
       const url = new URL(window.location.href); url.searchParams.set("install_intent", data.document.intent_id);
       history.replaceState(null, "", url); // UUID only; no enrollment secret in URL/history.
       const file = new File([JSON.stringify(data.document)], "Digital Observer.observer-connect", { type: "application/vnd.digital-observer.connect+json" });
@@ -91,12 +97,13 @@ export function ConnectorInstallHandoff({ siteId, family, onOnline, initialInten
   return <section className="do-panel do-form-section" aria-live="polite">
     <h3>חיבור המחשב לבית</h3>
     <p>לחיצה אחת מורידה את אפליקציית החיבור ואת בקשת הקישור הקצרה. פתחו את האפליקציה ואת בקשת הקישור; אין להעתיק מזהים או סיסמאות.</p>
-    {!intent || status?.stage === "EXPIRED" ? detectedPlatform === "MOBILE" ? <div className="do-button-row" role="group" aria-label="בחירת המחשב להתקנת רכיב החיבור">
+    {status?.stage === "REVOKED" ? <p>הקישור בוטל. אפשר להתחיל בקשה חדשה.</p> : null}
+    {!intent || status?.stage === "EXPIRED" || status?.stage === "REVOKED" ? detectedPlatform === "MOBILE" ? <div className="do-button-row" role="group" aria-label="בחירת המחשב להתקנת רכיב החיבור">
       <button type="button" className="do-button secondary" disabled={busy} onClick={() => void begin("macos-arm64")}>שליחה ל‑Mac</button>
       <button type="button" className="do-button secondary" disabled={busy} onClick={() => void begin("windows-x64")}>שליחה ל‑Windows</button>
     </div> : <button type="button" className="do-button secondary" disabled={busy} onClick={() => void begin()}>
       התקן והמשך
-    </button> : <p>{status?.stage === "CONFIRM_COMPUTER" ? "המחשב נמצא. אשרו רק אם פתחתם בו כעת את בקשת ההתקנה." : status?.stage === "REVOKED" ? "הקישור בוטל. יש להתחיל בקשה מורשית חדשה." : "מחכים לרכיב החיבור…"}</p>}
+    </button> : <p>{status?.stage === "CONFIRM_COMPUTER" ? "המחשב נמצא. אשרו רק אם פתחתם בו כעת את בקשת ההתקנה." : "מחכים לרכיב החיבור…"}</p>}
     {status?.stage === "CONFIRM_COMPUTER" ? <button type="button" className="do-button primary" disabled={busy} onClick={() => void confirm()}>אישור חיבור המחשב לבית הזה</button> : null}
     {error ? <div role="alert"><p>{error}</p><button type="button" disabled={busy} onClick={() => void refresh()}>נסה שוב</button></div> : null}
   </section>;
