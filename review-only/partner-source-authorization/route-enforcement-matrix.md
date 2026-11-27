@@ -39,3 +39,11 @@ The new isolated SDK/handler test loads a synthetic Incident whose primary sourc
 4. Keep derived paths closed until they prove all contributing provenance and link destinations. Prioritize Events, then Evidence metadata, then Incidents/investigation. Independently verify both storage paths before any delivery. No archive endpoint is required for these steps.
 
 No database, live partner, grant issuance, provider transport or media was used for this qualification.
+
+## Disconnected camera read qualification
+
+[The read model](camera-read-model.mjs) exercises inventory, detail and health after a trusted caller has supplied the current account, Site, grant and ownership facts. The reader receives the exact Tenant, Site, source and ownership versions after authorization. The real backend must enforce those predicates at the persistence boundary. Missing or stale grants and reader failures cannot fall through to the Site reader. Existing Site mode delegates to its existing reader and cursor contract.
+
+The first restricted scope fits one result, returns a terminal cursor and rejects every continuation, including a Site cursor. It projects only reviewed inventory or detail fields. Health needs both camera read and a separate explicit health permission on the account and grant. Mixed resources, Evidence/media, archive and product/provider links are outside this model's operation allowlist. The test uses synthetic data and does not connect either SDK, API handler, embed route or a database to the model. The current external SDK still uses the inventory route for health. Any future implementation must qualify an explicit operation/projection for the restricted health case while preserving existing Site behavior.
+
+Run `node --test scripts/qa/check-partner-source-camera-reads.mjs` to exercise exact-source lookup, cursor denial, separate health authorization, the closed operation boundary and Site compatibility.
