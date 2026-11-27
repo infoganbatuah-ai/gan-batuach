@@ -1,0 +1,54 @@
+{
+  "status": "PASS",
+  "qualifiedCommit": "53f5272ba2dd8f941eff6ccd85f22b6fef69ef08",
+  "observedAt": "2026-11-27T16:45:43Z",
+  "environment": "DISPOSABLE LOCAL DEVELOPMENT / SYNTHETIC",
+  "runtime": {
+    "supabaseCli": "2.122.1",
+    "postgres": "17.11",
+    "postgresPackage": "17.11.0.006-r0",
+    "postgrestPackage": "v16.5-r0",
+    "platform": "darwin-arm64",
+    "distribution": "official Supabase CLI and verified native service archives"
+  },
+  "replay": {
+    "baseline": "development-c0cf2de7-20260919-v1",
+    "baselineMappings": 227,
+    "approvedPostBaselineExecuted": 47,
+    "candidateMigrationsExecuted": 1,
+    "postBaselineSkipped": 0,
+    "verifiedBaselineSchemaSha256": "998fe1f6d4f933fa59f35c844a781cfc8f782f8986216545df8567600df7a9d3",
+    "verifiedBaselineAclSha256": "f46f41ce836d5be981ffed74ee17af5cf35fbd71ec7015a64b0375d457afece9",
+    "orderedAppliedNamesSha256": "02d461e3932505953f97448d9e7a9b158f9ea9fa4ec76ddf3a1f4abc4eb5dc5e",
+    "candidate": "20261127162335_digital_observer_push43_current_usage_scope.sql",
+    "candidateSha256": "04243b504949b993a72a0c7ebb77dea8212006929cec0a73184e88cdb524d004"
+  },
+  "authorization": {
+    "partnerTablesWithRls": 8,
+    "partnerOwnerReadsOwnSiteLink": "PASS",
+    "unrelatedAuthenticatedUserSeesNoRows": "PASS",
+    "anonymousSiteLinkReadDenied": "PASS",
+    "embeddedSessionTableDeniedToApplicationRoles": "PASS",
+    "meterExecuteRoles": ["service_role"],
+    "meterOwner": "postgres",
+    "meterSecurity": "SECURITY DEFINER; search_path=public; row_security=off",
+    "localDataApiServiceMeter": "PASS"
+  },
+  "concurrency": {
+    "independentPostgresBackendsAndBlockingPidsObserved": true,
+    "transferCommitsBeforeMeter": "DENIED; NO COUNTER CHANGE",
+    "revocationCommitsBeforeMeter": "DENIED; NO COUNTER CHANGE",
+    "meterCommitsBeforeRevocation": "ONE COUNT; REVOCATION WAITS; LATER DATA API WRITE DENIED",
+    "finalFixtureCounts": { "requests": 2, "successes": 2, "failures": 0 }
+  },
+  "cleanup": {
+    "loopbackEndpointsClosed": true,
+    "temporaryDatabaseAndGeneratedCredentialFilesRemoved": true
+  },
+  "limitations": [
+    "Canonical baseline mappings represent derived schema, not re-execution of historical SQL.",
+    "The native PostgreSQL 17 package matches the Development major version. It is not the existing release image or a promoted database.",
+    "The native run exercised the SQL and local Supabase Data API. It did not re-run the partner SDK or browser against this instance.",
+    "No live partner, media, Production, Home, shared Development database or deployment was used."
+  ]
+}
