@@ -63,7 +63,7 @@ test("independent recipient acknowledges a bounded retry, deduplicates the same 
   assert.equal(endpoint.receive(sign(delivery)), 503);
   assert.equal(endpoint.accepted.size, 0);
   const policy = { maxAttempts: 2, expiresAt: new Date(start.getTime() + 300_000).toISOString() };
-  const retry = transitionForProviderOutcome({ ...policy, outcome: "transient_failure", attemptCount: 1, now: start });
+  const retry = transitionForProviderOutcome({ ...policy, outcome: "temporary_failure", attemptCount: 1, now: start });
   assert.equal(retry.status, "retry_scheduled");
   const nextAttempt = new Date(retry.retryAt);
   assert.ok(nextAttempt > start && nextAttempt < new Date(policy.expiresAt));
@@ -79,7 +79,7 @@ test("independent recipient acknowledges a bounded retry, deduplicates the same 
   assert.equal(endpoint.receive(sign({ ...delivery, organizationId: "tenant-b" }, nextAttempt)), 403);
   assert.equal(endpoint.receive({ ...signed, now: signed.timestamp + 301 }), 401);
   assert.equal(endpoint.accepted.get(delivery.id), signed.payload);
-  const exhausted = transitionForProviderOutcome({ ...policy, outcome: "transient_failure", attemptCount: 2, now: nextAttempt });
+  const exhausted = transitionForProviderOutcome({ ...policy, outcome: "temporary_failure", attemptCount: 2, now: nextAttempt });
   assert.equal(exhausted.status, "dead_letter");
   assert.equal(exhausted.retryAt, null);
   assert.equal(transitionForProviderOutcome({ ...policy, outcome: "unknown_outcome", attemptCount: 1, now: start }).retryAt, null);
