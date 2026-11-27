@@ -12,6 +12,8 @@ import {
   externalApiMeta, recordExternalApiUsage, registerExternalWebhook, type ExternalApiActor
 } from "@/lib/domain/digital-observer/external-api-service";
 import { compileInvestigationQuery, validateInvestigationQuery, type InvestigationCameraResource } from "@/lib/domain/digital-observer/investigation-query";
+import { buildExternalInvestigationReport } from "@/lib/domain/digital-observer/external-investigation-report";
+import { guardHistoryPrivacyRestricted } from "@/lib/domain/digital-observer/investigation-history-policy";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
 import { compileAuthorizedWatchRule, simulateWatchRuleAgainstRealHistory } from "@/lib/domain/digital-observer/watch-rule-service";
 import { createSupabaseStorageBackend } from "@/lib/domain/digital-observer/storage-contract.mjs";
@@ -174,6 +176,7 @@ function cameraResources(rows: any[]): InvestigationCameraResource[] {
 async function investigation(request: Request, body: string) {
   const input = investigationRequestSchema.parse(JSON.parse(body));
   return runAuthorized(request, body, input.site_id, "investigations.run", "investigations.search", async ({ admin, actor, site }) => {
+    if (guardHistoryPrivacyRestricted(site)) throw new Error("EXTERNAL_API_INVESTIGATION_PRIVACY_PERMISSION_DENIED");
     const cameras = await admin.from("digital_observer_camera_sources")
       .select("id,observer_site_id,display_name,location_label,camera_stream_id").eq("observer_site_id", input.site_id).order("created_at");
     if (cameras.error) throw new Error("EXTERNAL_API_INVESTIGATION_SOURCES_FAILED");
@@ -188,8 +191,7 @@ async function investigation(request: Request, body: string) {
         display_name: camera.display_name, location_label: camera.location_label, camera_stream_id: camera.camera_stream_id })) });
     const investigationId = createHash("sha256").update(`${actor.organizationId}:${input.site_id}:${JSON.stringify(validation.query)}`).digest("hex");
     return response({ investigation_id: investigationId, status: "COMPLETED", compilation, result,
-      report: { format: "grounded_result_v1", evidence_reference_count: result.grounding.evidenceIds.length,
-        source_recording_retrieval_supported: false, unsupported_capabilities: ["face_recognition", "person_re_id", "vehicle_re_id"] },
+      report: buildExternalInvestigationReport(result),
       identity_or_movement_inference_is_certain: false, ...externalApiMeta(actor) });
   });
 }

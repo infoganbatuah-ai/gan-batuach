@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { buildGuardJournalQuery, type GuardJournalQueryInput, type GuardQueryContext } from "../digital-observer/guard-chat-query";
 import { GUARD_EVENT_TYPES, type GuardEventType } from "../digital-observer/guard-event-types";
+import { guardHistoryPrivacyRestricted } from "../digital-observer/investigation-history-policy";
 import { eventJournalService } from "./event-journal-service";
 import { cameraZoneMapper } from "./camera-zone-mapper";
 
 type Row = Record<string, any>;
 export type GuardJournalContext = GuardQueryContext & { privacyRestricted: boolean };
-export function guardHistoryPrivacyRestricted(site: Row) {
-  return !["home", "business"].includes(site.site_type) || Boolean(site.garden_id) || site.business_handles_children === true || site.vision_privacy_mode === "skeleton_only";
-}
+export { guardHistoryPrivacyRestricted };
 // Public intent names are never interpolated into database filters. A sighting
 // is deliberately NOT an entry, exit, verified face or authorized vehicle.
 export const GUARD_STORAGE_EVENT_TYPES: Record<GuardEventType, readonly string[]> = {

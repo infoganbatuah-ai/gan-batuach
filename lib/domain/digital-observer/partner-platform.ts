@@ -6,6 +6,15 @@ export const partnerTypes = ["manufacturer", "security_company", "monitoring_cen
 export const embeddedScopes = ["cameras.read", "camera_health.read", "events.read", "incidents.read", "evidence.read", "investigations.read", "alerts.read"] as const;
 export type EmbeddedScope = (typeof embeddedScopes)[number];
 
+export function embeddedDashboardReadScopes(scopes: readonly EmbeddedScope[], historyAllowed: boolean) {
+  return {
+    cameraHealth: scopes.includes("camera_health.read"),
+    events: historyAllowed && scopes.includes("events.read"),
+    incidents: historyAllowed && scopes.includes("incidents.read"),
+    evidence: historyAllowed && scopes.includes("evidence.read"),
+  };
+}
+
 const httpsOrLocal = z.string().url().max(1000).refine((value) => {
   const url = new URL(value);
   return url.protocol === "https:" || (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname));
