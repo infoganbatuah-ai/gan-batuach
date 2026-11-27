@@ -263,21 +263,23 @@ export function ObserverMobileRuntime() {
       }
       pendingPushRequest = request;
       pendingPushDeadline = Date.now() + 30_000;
+      const isCurrentPermissionRequest = () =>
+        !disposed && pendingPushRequest === request && Date.now() < pendingPushDeadline;
       try {
         let permission = await PushNotifications.checkPermissions();
+        if (!isCurrentPermissionRequest()) return;
         if (permission.receive === "prompt" || permission.receive === "prompt-with-rationale") {
           permission = await PushNotifications.requestPermissions();
+          if (!isCurrentPermissionRequest()) return;
         }
         if (permission.receive !== "granted") {
-          if (pendingPushRequest === request) {
-            pendingPushRequest = null;
-            emit("digital-observer:native-push-result", nativePushResult(request, false, "permission_denied"));
-          }
+          pendingPushRequest = null;
+          emit("digital-observer:native-push-result", nativePushResult(request, false, "permission_denied"));
           return;
         }
         await PushNotifications.register();
       } catch {
-        if (pendingPushRequest === request) {
+        if (isCurrentPermissionRequest()) {
           pendingPushRequest = null;
           emit("digital-observer:native-push-result", nativePushResult(request, false, "registration_failed"));
         }
