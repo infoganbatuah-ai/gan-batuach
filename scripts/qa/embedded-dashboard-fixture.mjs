@@ -7,6 +7,7 @@ export const token = "doemb_synthetic_only";
 const pepper = "synthetic-local-pepper";
 const sessionTable = "digital_observer_embedded_sessions";
 const linkTable = "digital_observer_partner_customer_sites";
+const customerTable = "digital_observer_partner_customers";
 export const camerasTable = "digital_observer_camera_sources";
 
 export function embeddedDashboardFixture(allowedOrigin) {
@@ -15,13 +16,14 @@ export function embeddedDashboardFixture(allowedOrigin) {
     id: "session", partner_id: "partner", partner_customer_id: "customer", observer_site_id: "site",
     token_hash: hashEmbeddedToken(token, pepper), allowed_origin: allowedOrigin, audience, scopes: ["cameras.read"],
     expires_at: expiresAt, revoked_at: null,
-    digital_observer_partner_customers: { partner_id: "partner", customer_status: "active", customer_organization_id: "tenant" },
+    digital_observer_partner_customers: { id: "customer", partner_id: "partner", customer_status: "active", customer_organization_id: "tenant" },
     digital_observer_partners: { partner_status: "sandbox", allowed_embed_origins: [allowedOrigin] },
   };
   const state = { session, linked: true, siteOrg: "tenant", reads: [], duringCameraRead: () => {}, confirmError: false };
   function rows(table) {
     switch (table) {
       case sessionTable: return [session];
+      case customerTable: return [session.digital_observer_partner_customers];
       case linkTable: return state.linked ? [{ partner_customer_id: "customer", observer_site_id: "site" }] : [
         { partner_customer_id: "another-customer", observer_site_id: "site" },
         { partner_customer_id: "customer", observer_site_id: "another-site" },
@@ -43,10 +45,12 @@ export function embeddedDashboardFixture(allowedOrigin) {
   const admin = {
     from(table) {
       state.reads.push(table);
+      if (table === "digital_observer_enterprise_audit_events") return { insert: async () => ({ error: null }) };
       const filters = [];
       let values;
       function result(single) {
         if (values && state.confirmError) return { data: null, error: { code: "fixture_error" } };
+        if (table === sessionTable && values?.revoked_at && state.revocationError) return { data: null, error: { code: "fixture_error" } };
         const selected = rows(table).filter((row) => filters.every((matches) => matches(row)));
         if (values) selected.forEach((row) => Object.assign(row, values));
         return { data: single ? selected[0] ?? null : selected, error: null };
@@ -61,6 +65,7 @@ export function embeddedDashboardFixture(allowedOrigin) {
         limit() { return this; },
         update(data) { values = data; return this; },
         async maybeSingle() { return result(true); },
+        async single() { return result(true); },
         then(resolve) { return Promise.resolve(result(false)).then(resolve); },
       };
     },
@@ -69,5 +74,5 @@ export function embeddedDashboardFixture(allowedOrigin) {
     process: { env: { DIGITAL_OBSERVER_ENTERPRISE_CREDENTIAL_PEPPER: pepper } },
     "@/lib/supabase/admin": { createAdminClient: () => admin, isAdminClientConfigured: () => true },
   });
-  return { state, GET, OPTIONS };
+  return { state, admin, GET, OPTIONS };
 }

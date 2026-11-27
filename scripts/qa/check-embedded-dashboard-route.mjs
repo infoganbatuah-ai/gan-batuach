@@ -4,13 +4,18 @@ import { loadTs } from "./digital-guard-test-loader.mjs";
 import { audience, camerasTable, embeddedDashboardFixture, token } from "./embedded-dashboard-fixture.mjs";
 
 const { DigitalObserverEmbeddedClient } = loadTs("packages/digital-observer-sdk/src/browser.ts");
+const { transitionPartnerCustomer } = loadTs("lib/domain/digital-observer/partner-platform-service.ts", { "@/lib/supabase/admin": {} });
 const endpoint = "https://observer.example.invalid/api/digital-observer/embed/v1/dashboard";
 const allowedOrigin = "https://partner.example.invalid";
 
 function fixture() {
-  const { state, GET, OPTIONS } = embeddedDashboardFixture(allowedOrigin);
+  const { state, admin, GET, OPTIONS } = embeddedDashboardFixture(allowedOrigin);
   return {
     state,
+    transition(status) {
+      return transitionPartnerCustomer(admin, { partnerId: "partner", organizationId: "partner-org", actorId: "fixture-owner",
+        actorRole: "organization_owner", customerId: "customer", status, reason: "fixture lifecycle", correlationId: "fixture-trace" });
+    },
     preflight(origin = allowedOrigin, method = "GET", headers = "authorization,x-do-audience") {
       return OPTIONS(new Request(endpoint, { method: "OPTIONS", headers: {
         origin, "access-control-request-method": method, "access-control-request-headers": headers,
@@ -107,4 +112,21 @@ test("a failure confirming the completed read withholds the dashboard", async ()
   const { dashboard, state } = fixture();
   state.confirmError = true;
   await assert.rejects(dashboard(), { message: "EMBEDDED_SESSION_UNAVAILABLE" });
+});
+
+test("suspension with an incomplete token revocation cannot revive a previously issued token", async () => {
+  const { dashboard, transition, state } = fixture();
+  assert.equal((await dashboard()).site.id, "site");
+  state.revocationError = true;
+  await assert.rejects(transition("suspended"), /PARTNER_CUSTOMER_SESSION_REVOCATION_FAILED/);
+  assert.equal(state.session.revoked_at, null);
+  assert.equal(state.session.digital_observer_partner_customers.customer_status, "suspended");
+  await assert.rejects(transition("active"), /PARTNER_CUSTOMER_SESSION_REVOCATION_FAILED/);
+  assert.equal(state.session.digital_observer_partner_customers.customer_status, "suspended");
+  await assert.rejects(dashboard(), /EMBEDDED_SESSION_INACTIVE/);
+
+  state.revocationError = false;
+  assert.equal((await transition("active")).customer_status, "active");
+  assert.ok(state.session.revoked_at);
+  await assert.rejects(dashboard(), /EMBEDDED_SESSION_INACTIVE/);
 });

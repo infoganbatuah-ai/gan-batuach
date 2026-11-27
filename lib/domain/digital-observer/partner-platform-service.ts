@@ -94,14 +94,26 @@ export async function transitionPartnerCustomer(admin: Admin, input: { partnerId
   if (!current.data) throw new Error("PARTNER_CUSTOMER_NOT_FOUND");
   partnerCustomerTransition(current.data.customer_status, input.status);
   const now = new Date().toISOString();
+  const revokeSessions = (reason: string) => (admin as any).from("digital_observer_embedded_sessions")
+    .update({ revoked_at: now, revocation_reason: reason })
+    .eq("partner_id", input.partnerId).eq("partner_customer_id", input.customerId).is("revoked_at", null);
+  if (input.status === "active" && current.data.customer_status === "suspended") {
+    const revocation = await revokeSessions("customer_reactivation");
+    if (revocation.error) throw new Error("PARTNER_CUSTOMER_SESSION_REVOCATION_FAILED");
+  }
   const fields = input.status === "active" ? { customer_status: input.status, activated_at: now, suspended_at: null, suspension_reason: null }
     : input.status === "suspended" ? { customer_status: input.status, suspended_at: now, suspension_reason: input.reason }
       : { customer_status: input.status, deprovisioned_at: now, suspension_reason: input.reason };
-  const changed = await (admin as any).from("digital_observer_partner_customers").update(fields).eq("id", input.customerId).eq("partner_id", input.partnerId).select("id,customer_status,activated_at,suspended_at,deprovisioned_at").single();
-  if (changed.error) throw new Error("PARTNER_CUSTOMER_TRANSITION_FAILED");
-  if (input.status !== "active") await (admin as any).from("digital_observer_embedded_sessions").update({ revoked_at: now, revocation_reason: input.reason }).eq("partner_customer_id", input.customerId).is("revoked_at", null);
+  const changed = await (admin as any).from("digital_observer_partner_customers").update(fields)
+    .eq("id", input.customerId).eq("partner_id", input.partnerId).eq("customer_status", current.data.customer_status)
+    .select("id,customer_status,activated_at,suspended_at,deprovisioned_at").single();
+  if (changed.error || !changed.data) throw new Error("PARTNER_CUSTOMER_TRANSITION_FAILED");
+  const revocation = input.status !== "active" ? await revokeSessions(input.reason) : null;
   await audit(admin, { organizationId: input.organizationId, actorId: input.actorId, resourceType: "partner_customer", resourceId: input.customerId,
-    action: `partner_customer.${input.status}`, correlationId: input.correlationId, metadata: { reason: input.reason.slice(0, 120) } });
+    action: `partner_customer.${input.status}`, correlationId: input.correlationId, metadata: {
+      reason: input.reason.slice(0, 120), ...(revocation ? { embedded_session_revocation_complete: !revocation.error } : {})
+    } });
+  if (revocation?.error) throw new Error("PARTNER_CUSTOMER_SESSION_REVOCATION_FAILED");
   return changed.data;
 }
 
