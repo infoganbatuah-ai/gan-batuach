@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -169,4 +169,17 @@ test("adapter skips authorization and transport when the pilot is unavailable", 
   assert.equal(await requestCameraPilotPlayback(request), null);
   assert.equal(await requestCameraPilotPlayback({ ...request, transport: undefined }), null);
   assert.equal(calls, 0);
+});
+
+test("accepts a bounded candidate-free offer for one receive-only video stream", async () => {
+  const offer = "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n";
+  const createRequest = (body, type = "application/sdp") =>
+    new Request("http://127.0.0.1/pilot", { method: "POST", headers: { "content-type": type }, body });
+  assert.equal(await readCameraPilotOffer(createRequest(offer)), offer);
+  assert.equal(await readCameraPilotOffer(createRequest(offer, "text/plain")), null);
+  for (const input of [
+    offer + "a=candidate:1\r\n", offer + "a=remote-candidates:1\r\n",
+    offer + "m=audio 9 UDP/TLS/RTP/SAVPF 96\r\n", offer.replace("recvonly", "sendrecv"),
+    offer + "a=".padEnd(16_384, "x")
+  ]) assert.equal(await readCameraPilotOffer(createRequest(input)), null);
 });
