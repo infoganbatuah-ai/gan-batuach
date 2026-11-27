@@ -40,7 +40,7 @@ jobs:
       - name: Check out the pinned recovery issuer
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 08f48e40a59b0c28d4ededa8bd8844af18013f2a
+          ref: 5dc9ad1c489c72ecd42d9a389a5d60a39eb74ce2
           path: home-media-signing-source
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -51,13 +51,13 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$HOME_MEDIA_APPROVED_SHA"
           git ls-files --error-unmatch .github/signing-requests/home-media-recovery.json >/dev/null
-          test "$(git -C home-media-signing-source rev-parse HEAD)" = 08f48e40a59b0c28d4ededa8bd8844af18013f2a
+          test "$(git -C home-media-signing-source rev-parse HEAD)" = 5dc9ad1c489c72ecd42d9a389a5d60a39eb74ce2
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import { readFileSync } from 'node:fs';
           import { BACKEND_SOURCE, CLIENT_SOURCE } from './home-media-signing-source/scripts/release/issue-home-media-recovery.mjs';
           assert.deepEqual(JSON.parse(readFileSync('.github/signing-requests/home-media-recovery.json')), {
-            backend: BACKEND_SOURCE, client: CLIENT_SOURCE, max_kms_calls: 6
+            backend: BACKEND_SOURCE, client: CLIENT_SOURCE, max_kms_calls: 6, transport_revision: 2
           });
           JS
       - name: Check the protected baseline and the encrypted return route
