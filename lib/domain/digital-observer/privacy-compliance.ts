@@ -74,11 +74,13 @@ export type PrivacyGateDecision = {
   reason:
     | "APPROVED"
     | "SCOPE_REQUIRED"
+    | "UNSUPPORTED_SCOPE"
     | "PURPOSE_REQUIRED"
     | "POLICY_INACTIVE"
     | "EXTERNAL_APPROVAL_REQUIRED"
     | "PROHIBITED"
     | "APPROVAL_SCOPE_MISMATCH"
+    | "APPROVAL_EXPIRY_INVALID"
     | "APPROVAL_EXPIRED"
     | "HUMAN_REVIEW_REQUIRED";
   consentAloneIsSufficient: false;
@@ -99,13 +101,22 @@ export function evaluatePrivacyGate(input: PrivacyGateInput, now = new Date()): 
   });
 
   if (!input.tenantId || !input.siteId) return deny("SCOPE_REQUIRED");
+  // Compile-time unions do not validate values rehydrated from stored policy
+  // rows or other runtime inputs. Unknown contexts/capabilities cannot inherit
+  // an otherwise approved decision.
+  if (!(privacyContexts as readonly string[]).includes(input.context) ||
+      !(sensitiveCapabilities as readonly string[]).includes(input.capability)) return deny("UNSUPPORTED_SCOPE");
   if (!input.purpose?.trim()) return deny("PURPOSE_REQUIRED");
   if (!input.policyActive) return deny("POLICY_INACTIVE");
   if (input.decisionState === "PROHIBITED") return deny("PROHIBITED");
   if (input.context === "KINDERGARTEN" && childRestricted.has(input.capability)) return deny("PROHIBITED");
   if (input.decisionState !== "EXTERNALLY_APPROVED") return deny("EXTERNAL_APPROVAL_REQUIRED");
   if (!input.approvalScopeMatches) return deny("APPROVAL_SCOPE_MISMATCH");
-  if (input.approvalExpiresAt && new Date(input.approvalExpiresAt).getTime() <= now.getTime()) return deny("APPROVAL_EXPIRED");
+  if (input.approvalExpiresAt) {
+    const expiresAt = Date.parse(input.approvalExpiresAt);
+    if (!Number.isFinite(expiresAt)) return deny("APPROVAL_EXPIRY_INVALID");
+    if (expiresAt <= now.getTime()) return deny("APPROVAL_EXPIRED");
+  }
   if (input.humanReviewRequired && !input.humanReviewerId) return deny("HUMAN_REVIEW_REQUIRED");
   return { allowed: true, reason: "APPROVED", consentAloneIsSufficient: false };
 }
@@ -121,8 +132,13 @@ export type RetentionDecisionInput = {
 
 export function evaluateRetentionDisposition(input: RetentionDecisionInput, now = new Date()) {
   if (input.activeLegalHold) return { action: "PRESERVE", reason: "LEGAL_HOLD" } as const;
+  if (!(retentionDataClasses as readonly string[]).includes(input.dataClass))
+    return { action: "REVIEW", reason: "UNSUPPORTED_DATA_CLASS" } as const;
   if (input.policyDecision !== "EXTERNALLY_APPROVED") return { action: "REVIEW", reason: "POLICY_NOT_APPROVED" } as const;
-  if (!input.expiresAt || new Date(input.expiresAt).getTime() > now.getTime()) return { action: "PRESERVE", reason: "NOT_EXPIRED" } as const;
+  if (!input.expiresAt) return { action: "PRESERVE", reason: "NOT_EXPIRED" } as const;
+  const expiresAt = Date.parse(input.expiresAt);
+  if (!Number.isFinite(expiresAt)) return { action: "REVIEW", reason: "INVALID_EXPIRY" } as const;
+  if (expiresAt > now.getTime()) return { action: "PRESERVE", reason: "NOT_EXPIRED" } as const;
   if (input.externalSystemOwnsData && !input.externalDeletionConfirmed) {
     return { action: "RECORD_EXTERNAL_PENDING", reason: "EXTERNAL_DELETION_UNVERIFIED" } as const;
   }
