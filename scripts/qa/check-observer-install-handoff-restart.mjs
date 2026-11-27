@@ -39,8 +39,8 @@ function mount(stage, { installerAvailable = true, lateStatus } = {}) {
   const exports = {};
   runInNewContext(script, {
     exports, URL, File,
-    window: { location: { href: "https://qa.invalid/digital-observer/cameras/add?install_intent=old" }, open: () => {} },
-    history: { replaceState: (_state, _title, url) => redirects.push(url.searchParams.get("install_intent")) },
+    window: { location: { href: "https://qa.invalid/digital-observer/cameras/add?site=previous-site&install_intent=old" }, open: () => {} },
+    history: { replaceState: (_state, _title, url) => redirects.push(Object.fromEntries(url.searchParams)) },
     navigator: { userAgent: "Synthetic Mobile", canShare: () => true, share: async ({ files }) => { shared.push(files[0].name); } },
     document: { hidden: false },
     setTimeout: (callback) => timers.push(callback), setInterval: (callback) => { poll = callback; },
@@ -102,7 +102,7 @@ for (const stage of ["REVOKED", "EXPIRED"]) {
     await drain();
     assert.deepEqual(h.actions, ["status", "manifest", "create"]);
     assert.deepEqual(h.shared, ["Digital Observer.observer-connect"]);
-    assert.deepEqual(h.redirects, ["new"]);
+    assert.deepEqual(h.redirects, [{ site: "site-a", install_intent: "new" }]);
     assert.equal(h.online, 0);
     const current = h.render();
     assert.equal(buttons(current, "שליחה ל‑Mac").length, 0, "old terminal status must not outlive replacement");

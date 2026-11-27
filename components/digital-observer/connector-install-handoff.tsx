@@ -62,8 +62,10 @@ export function ConnectorInstallHandoff({ siteId, family, onOnline, initialInten
       currentIntent.current = data.document.intent_id;
       setIntent(data.document.intent_id);
       setStatus(null);
-      const url = new URL(window.location.href); url.searchParams.set("install_intent", data.document.intent_id);
-      history.replaceState(null, "", url); // UUID only; no enrollment secret in URL/history.
+      const url = new URL(window.location.href);
+      url.searchParams.set("site", siteId);
+      url.searchParams.set("install_intent", data.document.intent_id);
+      history.replaceState(null, "", url); // IDs only; no enrollment secret in URL/history.
       const file = new File([JSON.stringify(data.document)], "Digital Observer.observer-connect", { type: "application/vnd.digital-observer.connect+json" });
       if (detectedPlatform === "MOBILE" && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: "חיבור המחשב ל-Digital Observer",

@@ -11,7 +11,7 @@ const script = ts.transpileModule(source, {
 const siteId = "11111111-1111-4111-8111-111111111111";
 const sessionId = "22222222-2222-4222-8222-222222222222";
 
-function mount(startData) {
+function mount(startData, props = {}) {
   const slots = [];
   const actions = [];
   const bridgeCalls = [];
@@ -49,8 +49,13 @@ function mount(startData) {
       }
     } },
     async fetch(url, options) {
-      assert.equal(url, "/api/digital-observer/mobile-camera-setup");
       const body = JSON.parse(options.body);
+      if (url === "/api/digital-observer/connection-assessment") {
+        assert.equal(body.action, "plan");
+        assert.equal(body.observer_site_id, "site-b");
+        return { ok: true, json: async () => ({ data: { plan: { nextAction: "INSTALL_CONNECTOR" } } }) };
+      }
+      assert.equal(url, "/api/digital-observer/mobile-camera-setup");
       assert.equal(body.observer_site_id, siteId);
       actions.push(body.action);
       if (body.action === "submit") {
@@ -66,7 +71,7 @@ function mount(startData) {
   }, { timeout: 1000 });
   function render() {
     cursor = 0;
-    return exports.UniversalCameraOnboarding({ sites: [{ id: siteId, name: "Synthetic" }] });
+    return exports.UniversalCameraOnboarding({ sites: [{ id: siteId, name: "Synthetic" }], ...props });
   }
   return { actions, bridgeCalls, render };
 }
@@ -104,4 +109,21 @@ test("an enabled and scoped start preserves the native permission receipt and fa
   assert.deepEqual(h.bridgeCalls, [{ sessionId, siteId }]);
   assert.deepEqual(h.actions, ["start", "submit"]);
   assert.equal(findNodes(h.render(), (node) => node.type === "p" && node.props.children === "SYNTHETIC_FALLBACK").length, 1);
+});
+
+test("a resumed computer handoff stays with its original site when the wizard switches sites", async () => {
+  const h = mount(null, {
+    initialSiteId: siteId,
+    initialIntent: sessionId,
+    sites: [{ id: siteId, name: "Home A" }, { id: "site-b", name: "Home B" }]
+  });
+  const handoff = () => findNodes(h.render(), (node) => node.type === "handoff")[0];
+  assert.equal(handoff().props.initialIntent, sessionId);
+  const [siteSelect] = findNodes(h.render(), (node) => node.type === "select");
+  siteSelect.props.onChange({ target: { value: "site-b" } });
+  const [assess] = findNodes(h.render(), (node) => node.type === "button" && node.props.className === "do-button primary");
+  assess.props.onClick();
+  for (let i = 0; i < 24; i++) await Promise.resolve();
+  assert.equal(handoff().props.siteId, "site-b");
+  assert.equal(handoff().props.initialIntent, undefined);
 });

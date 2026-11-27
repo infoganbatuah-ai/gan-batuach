@@ -85,6 +85,7 @@ export function UniversalCameraOnboarding({ sites, initialSiteId, initialIntent 
     } catch { void reportFailure("LOCAL_PERMISSION_DENIED"); setError("לא ניתן להשלים חיפוש מקומי בטלפון. אפשר להמשיך לפי שם האפליקציה או היצרן."); }
     finally { setBusy(false); }
   }
+  const resumeIntent = siteId === initialSiteId ? initialIntent : undefined;
   const showDiscovery = installedOnline || (result?.plan.nextAction === "DISCOVER" && result.connector_online);
   return <div className="do-page-stack">
     <section className="do-panel do-form-section" aria-label="הוספת מצלמות">
@@ -118,7 +119,7 @@ export function UniversalCameraOnboarding({ sites, initialSiteId, initialIntent 
         <p>איתור והערכת חיבור אינם אישור שהניטור פעיל.</p>
       </details>
     </section> : null}
-    {(result?.plan.nextAction === "INSTALL_CONNECTOR" || (initialIntent && siteId === initialSiteId)) && !installedOnline ? <ConnectorInstallHandoff key={siteId} siteId={siteId} family={family} initialIntent={initialIntent} onOnline={connectorFound} onProductAction={productAction} onInstallerAction={installerAction} onFailure={category => void reportFailure(category)} /> : null}
+    {(result?.plan.nextAction === "INSTALL_CONNECTOR" || resumeIntent) && !installedOnline ? <ConnectorInstallHandoff key={siteId} siteId={siteId} family={family} initialIntent={resumeIntent} onOnline={connectorFound} onProductAction={productAction} onInstallerAction={installerAction} onFailure={category => void reportFailure(category)} /> : null}
     {showDiscovery ? <SoftwareConnectorOnboarding key={`${siteId}:${activeIntent}`} siteId={siteId} installIntentId={activeIntent || undefined} onProductAction={productAction} measuredEffort={measuredEffort} onFailure={category => void reportFailure(category)} /> : null}
   </div>;
 }
