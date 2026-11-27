@@ -25,8 +25,8 @@ function client() {
     communication_preferences: { data: { receive_push: true }, error: null },
     push_category_preferences: { data: { enabled: true }, error: null },
     push_device_tokens: { data: [
-      { id: "device-1", platform: "ios", device_token: "token-1" },
-      { id: "device-2", platform: "ios", device_token: "token-2" }
+      { id: "device-1", platform: "web", device_token: "token-1", metadata: { source: "fcm_web" } },
+      { id: "device-2", platform: "web", device_token: "token-2", metadata: { source: "fcm_web" } }
     ], error: null }
   };
   return {
@@ -35,6 +35,7 @@ function client() {
       return {
         select() { return this; },
         eq() { return this; },
+        contains() { return this; },
         maybeSingle() { return Promise.resolve(results[table]); },
         insert(rows) {
           logs.push(...(Array.isArray(rows) ? rows : [rows]));

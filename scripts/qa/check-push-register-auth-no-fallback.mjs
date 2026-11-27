@@ -10,7 +10,7 @@ const compiled = ts.transpileModule(source, {
   compilerOptions: { module: ts.ModuleKind.CommonJS }
 }).outputText;
 
-const payload = { platform: "ios", device_token: "test-token-12345678" };
+const payload = { platform: "ios", device_token: "test-token-12345678", metadata: { source: "digital_observer_native" } };
 
 function route({ observer = null, cookie = { profile: { id: "cookie-user", role: "parent" } } } = {}) {
   const calls = [];
@@ -88,4 +88,10 @@ test("late native callback cannot register account A token under account B sessi
   assert.deepEqual(h.calls, ["cookie-auth"]);
   const own = await h.post(null, { ...payload, expected_profile_id: accountB });
   assert.equal(own.status, 200);
+});
+
+test("source-less registration is rejected before a token can be written", async () => {
+  const h = route();
+  await assert.rejects(() => h.post(null, { platform: "ios", device_token: "test-token-12345678" }));
+  assert.deepEqual(h.calls, ["cookie-auth"]);
 });

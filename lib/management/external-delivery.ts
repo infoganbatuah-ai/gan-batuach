@@ -72,7 +72,11 @@ async function decideDelivery(db: ReturnType<typeof createAdminClient>, intent: 
     return { status: "failed_permanent", provider: "resend", code: result.failureReason ?? "provider_rejected_or_unknown" };
   }
   if (intent.channel === "push") {
-    const tokenResult = await admin.from("push_device_tokens").select("id,platform,device_token").eq("profile_id", recipient.id).eq("is_active", true).order("last_seen_at", { ascending: false }).limit(20);
+    // The currently implemented Management registration path is web FCM only.
+    // metadata.source is a consistency marker, not trusted app attestation.
+    const tokenResult = await admin.from("push_device_tokens").select("id,platform,device_token")
+      .eq("profile_id", recipient.id).eq("is_active", true).eq("platform", "web")
+      .contains("metadata", { source: "fcm_web" }).order("last_seen_at", { ascending: false }).limit(20);
     if (tokenResult.error || !tokenResult.data?.length) return { status: "unavailable", provider: "fcm", code: "no_active_device" };
     let accepted = 0; let firstMessageId: string | null = null;
     for (const token of tokenResult.data as Array<{ id: string; platform: PushPlatform; device_token: string }>) {
@@ -84,7 +88,9 @@ async function decideDelivery(db: ReturnType<typeof createAdminClient>, intent: 
       } catch (error) {
         const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
         if (code === "messaging/registration-token-not-registered" || code === "messaging/invalid-registration-token") {
-          await admin.from("push_device_tokens").update({ is_active: false, disabled_reason: "provider_invalid_token", revoked_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", token.id).eq("profile_id", recipient.id);
+          await admin.from("push_device_tokens").update({ is_active: false, disabled_reason: "provider_invalid_token", revoked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("id", token.id).eq("profile_id", recipient.id).eq("platform", "web")
+            .contains("metadata", { source: "fcm_web" });
         }
       }
     }

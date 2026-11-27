@@ -45,16 +45,26 @@ function hashDeviceToken(token: string) {
 }
 
 export async function registerPushDevice(supabase: SupabaseLike, input: RegisterPushDeviceInput) {
+  const source = input.metadata?.source;
+  // Source is a consistency marker, not product attestation. Require the
+  // marker on every write so an unlabelled row cannot be claimed by either
+  // product through the shared registration endpoint.
+  const validSource = (input.platform === "web" && (source === "fcm_web" || source === "digital_observer_fcm")) ||
+    ((input.platform === "ios" || input.platform === "android") && source === "digital_observer_native");
+  if (!validSource) return { ok: false, device: null, error: "push_source_required" };
   const now = new Date().toISOString();
   const table = supabase.from("push_device_tokens");
-  const existing = await table.select("id, profile_id, device_trust_status")
+  const existing = await table.select("id, profile_id, device_trust_status, platform, device_id, metadata")
     .eq("device_token", input.deviceToken).maybeSingle();
   if (existing.error) return { ok: false, device: null, error: existing.error.message };
   // A token cannot transfer to another account through registration. A
   // blocked/revoked trust decision cannot be cleared by a client re-registering.
   if (existing.data && (existing.data.profile_id !== input.profileId ||
       existing.data.device_trust_status === "blocked" ||
-      existing.data.device_trust_status === "revoked")) {
+      existing.data.device_trust_status === "revoked" ||
+      existing.data.platform !== input.platform ||
+      (existing.data.device_id && existing.data.device_id !== input.deviceId) ||
+      existing.data.metadata?.source !== source)) {
     return { ok: false, device: null, error: "push_token_registration_denied" };
   }
   const values = {
@@ -84,11 +94,18 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
     metadata: input.metadata ?? {}
   };
   const columns = "id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata";
-  const result = existing.data
-    ? await table.update(values).eq("id", existing.data.id)
+  let update = existing.data
+    ? table.update(values).eq("id", existing.data.id)
       .eq("profile_id", input.profileId).eq("device_token", input.deviceToken)
+      .eq("platform", existing.data.platform)
       .eq("device_trust_status", existing.data.device_trust_status)
-      .select(columns).maybeSingle()
+    : null;
+  if (update) {
+    update = existing.data.device_id === null ? update.is("device_id", null) : update.eq("device_id", existing.data.device_id);
+    update = update.contains("metadata", { source });
+  }
+  const result = update
+    ? await update.select(columns).maybeSingle()
     : await table.insert(values).select(columns).single();
 
   return {
@@ -100,7 +117,7 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
   };
 }
 
-export async function unregisterPushDevice(supabase: SupabaseLike, profileId: string, deviceToken?: string | null, deviceId?: string | null) {
+export async function unregisterPushDevice(supabase: SupabaseLike, profileId: string, deviceToken?: string | null, deviceId?: string | null, expectedSource?: string | null) {
   // This operation removes one current device. An empty selector must not
   // silently revoke every Gan and Observer token belonging to the profile.
   if (!deviceToken && !deviceId) return { ok: false, rows: [], error: "push_device_selector_required" };
@@ -109,13 +126,18 @@ export async function unregisterPushDevice(supabase: SupabaseLike, profileId: st
     // device_id is client-supplied and not a product identity. Never let a
     // native logout revoke several token rows with the same local reference.
     const match = await supabase.from("push_device_tokens")
-      .select("id").eq("profile_id", profileId).eq("device_id", deviceId)
+      .select("id, metadata").eq("profile_id", profileId).eq("device_id", deviceId)
       .eq("is_active", true).limit(2);
     if (match.error) return { ok: false, rows: [], error: match.error.message };
     if ((match.data ?? []).length > 1) {
       return { ok: false, rows: [], error: "push_device_id_ambiguous" };
     }
     if (!(match.data ?? []).length) return { ok: true, rows: [], error: null };
+    // This is an accidental cross-product revocation fence, not proof of app
+    // identity: metadata.source was originally supplied by a client. A
+    // server-owned product binding is still required for attestation.
+    if (expectedSource && match.data[0].metadata?.source !== expectedSource)
+      return { ok: false, rows: [], error: "push_device_source_mismatch" };
     exactTokenId = match.data[0].id;
   }
   let query = supabase.from("push_device_tokens").update({
@@ -126,14 +148,17 @@ export async function unregisterPushDevice(supabase: SupabaseLike, profileId: st
   }).eq("profile_id", profileId);
 
   if (deviceToken) query = query.eq("device_token", deviceToken);
-  else if (exactTokenId) query = query.eq("id", exactTokenId).eq("is_active", true);
+  else if (exactTokenId) {
+    query = query.eq("id", exactTokenId).eq("is_active", true);
+    if (expectedSource) query = query.contains("metadata", { source: expectedSource });
+  }
   else query = query.eq("is_active", true);
 
   const result = await query.select("id, is_active");
   return {
-    ok: !result.error,
+    ok: !result.error && (!expectedSource || !exactTokenId || (result.data ?? []).length === 1),
     rows: result.data ?? [],
-    error: result.error?.message ?? null
+    error: result.error?.message ?? (expectedSource && exactTokenId && !(result.data ?? []).length ? "push_device_source_conflict" : null)
   };
 }
 
@@ -205,7 +230,9 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
     .from("push_device_tokens")
     .select("id, platform, device_token, is_active")
     .eq("profile_id", input.profileId)
-    .eq("is_active", true);
+    .eq("is_active", true)
+    .eq("platform", "web")
+    .contains("metadata", { source: "fcm_web" });
 
   if (tokensError) {
     const log = await supabase.from("push_notification_logs").insert({

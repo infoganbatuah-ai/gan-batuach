@@ -20,8 +20,8 @@ function route({ userId = "profile-a", revokeOk = true, signOutError = null } = 
   const modules = {
     "next/server": { NextResponse: { json: (payload, options = {}) => new Response(JSON.stringify(payload), { status: options.status ?? 200 }) } },
     "@/lib/supabase/server": { createClient: async () => supabase },
-    "@/lib/domain/push-service": { unregisterPushDevice: async (client, profileId, token, currentDeviceId) => {
-      assert.equal(client, supabase); calls.push(["revoke", profileId, token, currentDeviceId]); return { ok: revokeOk, rows: [] };
+    "@/lib/domain/push-service": { unregisterPushDevice: async (client, profileId, token, currentDeviceId, expectedSource) => {
+      assert.equal(client, supabase); calls.push(["revoke", profileId, token, currentDeviceId, expectedSource]); return { ok: revokeOk, rows: [] };
     } },
     zod: require("zod")
   };
@@ -45,13 +45,13 @@ test("current-device logout revokes only authenticated user's exact device befor
   const h = route();
   const response = await h.post({ observer_push_device_id: deviceId });
   assert.equal(response.status, 200);
-  assert.deepEqual(h.calls, ["auth", ["revoke", "profile-a", null, deviceId], "signOut"]);
+  assert.deepEqual(h.calls, ["auth", ["revoke", "profile-a", null, deviceId, "digital_observer_native"], "signOut"]);
 });
 
 test("failed revocation and absent session fail closed without sign-out", async () => {
   const failure = route({ revokeOk: false });
   assert.equal((await failure.post({ observer_push_device_id: deviceId })).status, 503);
-  assert.deepEqual(failure.calls, ["auth", ["revoke", "profile-a", null, deviceId]]);
+  assert.deepEqual(failure.calls, ["auth", ["revoke", "profile-a", null, deviceId, "digital_observer_native"]]);
   const unauthenticated = route({ userId: null });
   assert.equal((await unauthenticated.post({ observer_push_device_id: deviceId })).status, 401);
   assert.deepEqual(unauthenticated.calls, ["auth"]);
@@ -89,6 +89,7 @@ test("actual unregister query resolves one active device row before exact-id rev
   const query = {
     select: () => query,
     eq: (name, value) => { filters.push([name, value]); return query; },
+    contains: (name, value) => { filters.push([name, value]); return query; },
     limit: async () => ({ data: [{ id: "token-row-1" }], error: null }),
     update: (value) => { assert.equal(value.is_active, false); return query; }
   };
@@ -142,6 +143,50 @@ test("duplicate active tokens sharing a device id fail closed without revoking e
   assert.deepEqual(filters, [
     ["profile_id", "profile-a"], ["device_id", deviceId], ["is_active", true]
   ]);
+});
+
+test("Observer logout cannot revoke a sole Gan token sharing profile and device id", async () => {
+  const serviceSource = readFileSync(new URL("../../lib/domain/push-service.ts", import.meta.url), "utf8");
+  const serviceJs = ts.transpileModule(serviceSource, { compilerOptions: {
+    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS
+  } }).outputText;
+  const exports = {};
+  vm.runInNewContext(serviceJs, { exports, require: (name) => {
+    if (name === "crypto") return require("node:crypto");
+    if (name === "./push-provider") return { getPushProviderForPlatform: () => ({ name: "mock" }) };
+    assert.fail(`unexpected dependency: ${name}`);
+  } }, { timeout: 1000 });
+
+  for (const { source, changeDuringUpdate, expectedOk } of [
+    { source: "fcm_web", changeDuringUpdate: false, expectedOk: false },
+    { source: "digital_observer_native", changeDuringUpdate: false, expectedOk: true },
+    { source: "digital_observer_native", changeDuringUpdate: true, expectedOk: false }
+  ]) {
+    const row = { id: "token-row", profile_id: "profile-a", device_id: deviceId,
+      is_active: true, metadata: { source } };
+    let updates = 0;
+    const query = {
+      filters: [],
+      select() { return this; },
+      eq(name, value) { this.filters.push([name, value]); return this; },
+      contains(name, value) { this.filters.push([name, value]); return this; },
+      async limit() { this.filters = []; return { data: [{ id: row.id, metadata: { ...row.metadata } }], error: null }; },
+      update(values) { updates++; this.values = values; this.filters = []; return this; },
+      then(resolve) {
+        if (changeDuringUpdate) row.metadata.source = "fcm_web";
+        const matches = this.filters.every(([name, value]) => name === "metadata"
+          ? row.metadata.source === value.source : row[name] === value);
+        if (matches) Object.assign(row, this.values);
+        resolve({ data: matches ? [{ id: row.id, is_active: row.is_active }] : [], error: null });
+      }
+    };
+    const result = await exports.unregisterPushDevice({ from: (table) => {
+      assert.equal(table, "push_device_tokens"); return query;
+    } }, "profile-a", null, deviceId, "digital_observer_native");
+    assert.equal(result.ok, expectedOk);
+    assert.equal(updates, source === "fcm_web" ? 0 : 1);
+    assert.equal(row.is_active, !expectedOk);
+  }
 });
 
 test("missing device selector cannot revoke all tokens for a profile", async () => {

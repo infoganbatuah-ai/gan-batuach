@@ -26,7 +26,7 @@ function client({ communication = { data: { receive_push: true }, error: null },
   const results = {
     communication_preferences: communication,
     push_category_preferences: category,
-    push_device_tokens: { data: [{ id: "device-1", platform: "ios", device_token: "token" }], error: null }
+    push_device_tokens: { data: [{ id: "device-1", platform: "web", device_token: "token", metadata: { source: "fcm_web" } }], error: null }
   };
   return {
     logs,
@@ -36,6 +36,7 @@ function client({ communication = { data: { receive_push: true }, error: null },
       return {
         select() { return this; },
         eq() { return this; },
+        contains() { return this; },
         maybeSingle() { return Promise.resolve(results[table]); },
         insert(row) {
           logs.push(row);
