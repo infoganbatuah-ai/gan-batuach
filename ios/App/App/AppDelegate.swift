@@ -284,3 +284,39 @@ enum QaSecureEnclaveProof {
     }
 }
 #endif
+
+#if PERSONAL_TEAM_QA
+import CryptoKit
+
+// Control-only candidate. Nothing in the WebView exports a general signing method.
+// Read the original private-marker installation's key without creating another one.
+enum ObserverPendingInstallationSigner {
+    enum Failure: Error { case missingInstallation, missingKey, denied }
+
+    static func sign(nonce: String, expectedDigest: Data) throws -> Data {
+        guard nonce.utf8.count == 64,
+              nonce.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) })
+        else { throw Failure.denied }
+        let directory = try FileManager.default.url(for: .applicationSupportDirectory,
+            in: .userDomainMask, appropriateFor: nil, create: false)
+        let file = directory.appendingPathComponent("private-marker/installation")
+        guard let id = UUID(uuidString: try String(contentsOf: file, encoding: .utf8))
+        else { throw Failure.missingInstallation }
+        let tag = Data(("com.digitalobserver.app.qa.private-marker." + id.uuidString).utf8)
+        let query: [CFString: Any] = [kSecClass: kSecClassKey, kSecAttrKeyClass: kSecAttrKeyClassPrivate,
+            kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom, kSecAttrTokenID: kSecAttrTokenIDSecureEnclave,
+            kSecAttrApplicationTag: tag, kSecReturnRef: true]
+        var result: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess, let item = result,
+              CFGetTypeID(item) == SecKeyGetTypeID() else { throw Failure.missingKey }
+        let key = item as! SecKey
+        guard let pub = SecKeyCopyPublicKey(key), let raw = SecKeyCopyExternalRepresentation(pub,nil) as Data?,
+              Data(SHA256.hash(data: try P256.Signing.PublicKey(x963Representation: raw).derRepresentation)) == expectedDigest
+        else { throw Failure.denied }
+        let message = Data(("digital-observer.hosted-qa.pending-proof.v1\n" + nonce).utf8)
+        guard let signature = SecKeyCreateSignature(key,.ecdsaSignatureMessageX962SHA256,message as CFData,nil) as Data?
+        else { throw Failure.denied }
+        return signature
+    }
+}
+#endif

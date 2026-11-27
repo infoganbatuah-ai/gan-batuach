@@ -1,0 +1,165 @@
+# Static manifest. Number = top-level statement in the corresponding guarded fragment.
+# SQL after AS <body> and DO blocks are pinned in full by the file hash.
+INSTALL existing-catalog.sql -> base-bootstrap.sql -> atomic.sql -> ownership-window-open.sql -> writer.sql -> ownership-window-close.sql -> generic-execute.sql -> writer-policies.sql -> ownership-window-open.sql -> pair-forward.sql -> ownership-window-close.sql -> boundary-check.sql
+WITHDRAW withdrawal-gate.sql -> boundary-check.sql -> installed-original-surface -> installed-catalog.sql -> membership-close.sql -> pair-rollback.sql -> writer-policies-rollback.sql -> base-withdraw.sql -> existing-catalog.sql
+
+existing-catalog.sql  sha256=648d1878b310715486af86b477cea3bbc323ca9a21cbc610dc473dc098f62c2b
+01 do <body>
+
+base-bootstrap.sql  sha256=5dbdccbdd8e848aa1e17d45a30ce8aa549b76e41dc2edb58e0112f82dbaaeec3
+01 do <body>
+02 create role observer_site_save_executor nologin noinherit nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+03 create role observer_site_save_caller nologin noinherit nosuperuser nocreatedb nocreaterole noreplication nobypassrls
+04 do <body>
+05 grant observer_site_save_caller to authenticator with inherit false, set true, admin false
+06 do <body>
+07 grant usage on schema public,auth,extensions to observer_site_save_executor
+08 grant usage on schema public to observer_site_save_caller
+09 grant execute on function public.digital_observer_current_session_active() to observer_site_save_executor
+10 grant select on public.profiles to observer_site_save_executor
+11 grant select,update(profile_id) on public.digital_observer_accounts to observer_site_save_executor
+12 grant select,update(id) on public.observer_monitoring_packages to observer_site_save_executor
+13 grant select,insert,update on public.observer_sites,public.observer_site_onboarding_drafts,public.observer_monitoring_schedules to observer_site_save_executor
+14 grant select,insert,update(id) on public.observer_site_subscriptions to observer_site_save_executor
+15 grant insert on public.observer_site_memberships,public.digital_observer_entitlement_grants,public.digital_observer_financial_audit to observer_site_save_executor
+
+atomic.sql  sha256=3981a5d3c672bfb1d9081d83588e0fec1d403f0f75e1e6bb90c07051b15dae1d
+01 create function public.save_observer_onboarding_atomic( target_site uuid, target_package uuid, site_patch jsonb, schedule_mode_input text, monitoring_targets jsonb ) returns jsonb language plpgsql security invoker set search_path = '' as <body>
+02 revoke all on function public.save_observer_onboarding_atomic(uuid,uuid,jsonb,text,jsonb) from public,anon,authenticated,service_role
+
+ownership-window-open.sql  sha256=324fea891ee4069c4d841d178d3f2ea4a9222c30521070781aeacb250e4e33a5
+01 grant create on schema public to observer_site_save_executor
+
+writer.sql  sha256=8e4428e9a5cf891048b22ed9e1f093d91f767c1894e6625bad86fdeba9793e8d
+01 do <body>
+02 create schema observer_site_save_private
+03 revoke all on schema observer_site_save_private from public,anon,authenticated,service_role
+04 create table observer_site_save_private.receipts ( actor uuid not null, submission uuid not null, request_digest text not null, site_id uuid not null references public.observer_sites(id), result jsonb not null, primary key(actor,submission) )
+05 revoke all on observer_site_save_private.receipts from public,anon,authenticated,service_role
+06 grant usage on schema observer_site_save_private to observer_site_save_executor
+07 grant select,insert on observer_site_save_private.receipts to observer_site_save_executor
+08 grant execute on function public.save_observer_onboarding_atomic(uuid,uuid,jsonb,text,jsonb) to observer_site_save_executor
+09 create function public.submit_observer_site_save( verified_actor uuid, verified_session uuid, token_exp bigint, submission uuid, request_digest text, target_site uuid, target_package uuid, site_patch jsonb, schedule_mode_input text, monitoring_targets jsonb ) returns jsonb language plpgsql security definer set search_path='' as <body>
+10 alter function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) owner to observer_site_save_executor
+11 revoke all on function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) from public,anon,authenticated,service_role
+12 grant execute on function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) to observer_site_save_caller
+
+ownership-window-close.sql  sha256=011faf0b9d3e7d1fc09528fc54bc62f0a07f6ee984453e358edfc2072c678024
+01 revoke create on schema public from observer_site_save_executor restrict
+02 do <body>
+
+generic-execute.sql  sha256=97faabddd6fb8da15641b25a9a82ffbacdd0a541d117fc3023d8e9d3b5bb3b82
+01 revoke execute on function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) from postgres restrict
+
+writer-policies.sql  sha256=1a51b15d476a34497b8a2f62ef8c0a3d887383ca36b12800271b62579478b080
+01 do <body>
+02 grant execute on function public.can_access_observer_site(uuid),public.can_manage_observer_site(uuid) to observer_site_save_executor
+03 do <body>
+04 grant select(observer_site_id,profile_id,active) on public.observer_site_memberships to observer_site_save_executor
+05 create policy observer_standalone_insert_requires_writer on public.observer_sites as restrictive for insert to anon, authenticated with check (garden_id is not null or site_type = 'kindergarten')
+06 create policy observer_writer_lock_account on public.digital_observer_accounts for update to observer_site_save_executor using (profile_id = auth.uid()) with check (false)
+07 create policy observer_writer_lock_package on public.observer_monitoring_packages for update to observer_site_save_executor using (active) with check (false)
+08 create policy observer_writer_read_subscription on public.observer_site_subscriptions for select to observer_site_save_executor using (exists (select 1 from public.observer_sites s where s.id=observer_site_id and s.owner_profile_id=auth.uid() and s.garden_id is null and s.site_type<>'kindergarten'))
+09 create policy observer_writer_lock_subscription on public.observer_site_subscriptions for update to observer_site_save_executor using (exists (select 1 from public.observer_sites s where s.id=observer_site_id and s.owner_profile_id=auth.uid() and s.garden_id is null and s.site_type<>'kindergarten')) with check (false)
+10 create policy observer_writer_start_trial on public.observer_site_subscriptions for insert to observer_site_save_executor with check (commercial_state='trial' and payment_provider_mode='disabled' and exists ( select 1 from public.observer_sites s where s.id=observer_site_id and s.owner_profile_id=auth.uid() and s.garden_id is null and s.site_type<>'kindergarten'))
+11 create policy observer_writer_trial_grant on public.digital_observer_entitlement_grants for insert to observer_site_save_executor with check (exists (select 1 from public.observer_site_subscriptions sub where sub.id=subscription_id and sub.observer_site_id=digital_observer_entitlement_grants.observer_site_id and sub.commercial_state='trial'))
+12 create policy observer_writer_trial_audit on public.digital_observer_financial_audit for insert to observer_site_save_executor with check (actor_profile_id=auth.uid() and operation='trial_activated' and entity_type='subscription' and exists ( select 1 from public.observer_site_subscriptions sub where sub.id::text=entity_id and sub.observer_site_id=digital_observer_financial_audit.observer_site_id and sub.commercial_state='trial'))
+
+pair-forward.sql  sha256=3cc478d3d322a7cf880feb892fe79b60d5c422e50d06acc0b4afe3058804410e
+01 create function observer_site_save_private.check_pair_acl(installed boolean) returns void language plpgsql security invoker set search_path='' as <body>
+02 revoke all on function observer_site_save_private.check_pair_acl(boolean) from public,anon,authenticated,service_role,observer_site_save_caller,observer_site_save_executor
+03 select observer_site_save_private.check_pair_acl(false)
+04 revoke execute on function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) from observer_site_save_caller
+05 create table observer_site_save_private.pair_pin ( singleton boolean primary key default true check (singleton), actor uuid not null, session_id uuid not null, submission uuid not null, source_id uuid not null, package_id uuid not null, fixture_label text collate "C" not null check (length(fixture_label) between 2 and 100 and btrim(fixture_label)=fixture_label), expires_at timestamptz not null check (isfinite(expires_at) and expires_at<=clock_timestamp()+interval '300 seconds') )
+06 revoke all on observer_site_save_private.pair_pin from public,anon,authenticated,service_role,observer_site_save_caller,observer_site_save_executor
+07 alter table observer_site_save_private.pair_pin enable row level security
+08 create function observer_site_save_private.lock_pair_pin(wanted_submission uuid, wanted_label text) returns setof observer_site_save_private.pair_pin language sql volatile security definer set search_path='' as <body>
+09 revoke all on function observer_site_save_private.lock_pair_pin(uuid,text) from public,anon,authenticated,service_role,observer_site_save_caller
+10 grant execute on function observer_site_save_private.lock_pair_pin(uuid,text) to observer_site_save_executor
+11 create table observer_site_save_private.pair_receipts ( actor uuid not null, submission uuid not null, session_id uuid not null, site_id uuid not null unique, source_id uuid not null unique, package_id uuid not null, fixture_label text collate "C" not null, primary key(actor,submission), foreign key(actor,submission) references observer_site_save_private.receipts(actor,submission) )
+12 revoke all on observer_site_save_private.pair_receipts from public,anon,authenticated,service_role,observer_site_save_caller,observer_site_save_executor
+13 alter table observer_site_save_private.pair_receipts enable row level security
+14 create policy pair_history_read on observer_site_save_private.pair_receipts for select to observer_site_save_executor using (actor=auth.uid())
+15 create policy pair_history_insert on observer_site_save_private.pair_receipts for insert to observer_site_save_executor with check ( actor=auth.uid() and session_id::text=current_setting('request.jwt.claims',true)::jsonb->>'session_id' and source_id::text=current_setting('observer_pair.source_id',true) and site_id::text=current_setting('observer_pair.site_id',true))
+16 grant select,insert on observer_site_save_private.pair_receipts to observer_site_save_executor
+17 grant select(id,observer_site_id),insert(id,observer_site_id,created_by,display_name,source_mode,status,engine_mode),update(id) on public.digital_observer_camera_sources to observer_site_save_executor
+18 create policy pair_source_scope on public.digital_observer_camera_sources to observer_site_save_executor using ( id::text=current_setting('observer_pair.source_id',true) and observer_site_id::text=current_setting('observer_pair.site_id',true) and created_by=auth.uid())
+19 create policy pair_source_inert on public.digital_observer_camera_sources as restrictive to observer_site_save_executor using ( id::text=current_setting('observer_pair.source_id',true) and observer_site_id::text=current_setting('observer_pair.site_id',true) and created_by=auth.uid() and display_name collate "C"=current_setting('observer_pair.label',true) and connector_type='demo' and connector_provider='generic' and source_mode='sandbox' and status='disabled' and health_status='unknown' and engine_mode='standard_biometric' and camera_stream_id is null and location_label is null and stream_protocol is null and gateway_provider is null and secret_reference is null and preview_scene is null and last_health_check_at is null and last_seen_at is null and last_error_code is null and last_error_message is null and capabilities='{}'::jsonb and monitoring_targets='[]'::jsonb and metadata='{}'::jsonb)
+20 create policy pair_source_lock_only on public.digital_observer_camera_sources as restrictive for update to observer_site_save_executor using (true) with check (false)
+21 create function public.submit_qa_site_source_pair( verified_actor uuid, verified_session uuid, token_exp bigint, submission uuid, fixture_label text ) returns jsonb language plpgsql security definer set search_path='' set observer_pair.site_id='' set observer_pair.source_id='' set observer_pair.label='' as <body>
+22 alter function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text) owner to observer_site_save_executor
+23 revoke all on function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text) from public,anon,authenticated,service_role,postgres
+24 grant execute on function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text) to observer_site_save_caller
+25 select observer_site_save_private.check_pair_acl(true)
+
+boundary-check.sql  sha256=e4790143168972840529b6bdc331dae2c7d2ef3adda75efec4632db187e4f8f4
+01 do <body>
+
+withdrawal-gate.sql  sha256=0ccc431be1aafa0404cd1df935c7a2c2ef1aaa809b7a07d4913fc3557eab4794
+01 lock table observer_site_save_private.pair_pin in access exclusive mode nowait
+02 do <body>
+
+installed-original-surface  sha256=648d1878b310715486af86b477cea3bbc323ca9a21cbc610dc473dc098f62c2b
+01 do <body>
+
+installed-catalog.sql  sha256=6099314039328685e1af3b38216cbb91aa6decb3fe578dfc916db65e968a8a27
+01 do <body>
+
+membership-close.sql  sha256=d7791628dddc4f3da407f0e5b4a223cd2d6ae478532cf38c2f8a5f399618bf89
+01 revoke observer_site_save_caller from authenticator restrict
+02 do <body>
+
+pair-rollback.sql  sha256=b6c5d860cd963750400b8419162f14d23b1733f821d58cc5b4b240f621a8573b
+01 lock table observer_site_save_private.pair_pin in access exclusive mode
+02 select observer_site_save_private.check_pair_acl(true)
+03 revoke execute on function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text) from observer_site_save_caller
+04 drop function public.submit_qa_site_source_pair(uuid,uuid,bigint,uuid,text)
+05 drop policy pair_source_lock_only on public.digital_observer_camera_sources
+06 drop policy pair_source_inert on public.digital_observer_camera_sources
+07 drop policy pair_source_scope on public.digital_observer_camera_sources
+08 revoke select(id,observer_site_id),insert(id,observer_site_id,created_by,display_name,source_mode,status,engine_mode),update(id) on public.digital_observer_camera_sources from observer_site_save_executor
+09 revoke select,insert on observer_site_save_private.pair_receipts from observer_site_save_executor
+10 drop policy pair_history_insert on observer_site_save_private.pair_receipts
+11 drop policy pair_history_read on observer_site_save_private.pair_receipts
+12 drop function observer_site_save_private.lock_pair_pin(uuid,text)
+13 drop table observer_site_save_private.pair_pin
+14 grant execute on function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) to observer_site_save_caller
+15 select observer_site_save_private.check_pair_acl(false)
+16 drop function observer_site_save_private.check_pair_acl(boolean)
+
+writer-policies-rollback.sql  sha256=b7429cb7ef5f5847dc2a90d20740ce3a713ccbbfa7991e3c3c9c03381632c181
+01 drop policy observer_writer_trial_audit on public.digital_observer_financial_audit
+02 drop policy observer_writer_trial_grant on public.digital_observer_entitlement_grants
+03 drop policy observer_writer_start_trial on public.observer_site_subscriptions
+04 drop policy observer_writer_lock_subscription on public.observer_site_subscriptions
+05 drop policy observer_writer_read_subscription on public.observer_site_subscriptions
+06 drop policy observer_writer_lock_package on public.observer_monitoring_packages
+07 drop policy observer_writer_lock_account on public.digital_observer_accounts
+08 drop policy observer_standalone_insert_requires_writer on public.observer_sites
+09 revoke select(observer_site_id,profile_id,active) on public.observer_site_memberships from observer_site_save_executor
+10 revoke execute on function public.can_access_observer_site(uuid), public.can_manage_observer_site(uuid) from observer_site_save_executor
+
+base-withdraw.sql  sha256=af577f88b21bc0616352fc72e51d9ef16661c94a2a00bb00004714a42b28f486
+01 do <body>
+02 revoke execute on function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) from observer_site_save_caller restrict
+03 drop function public.submit_observer_site_save(uuid,uuid,bigint,uuid,text,uuid,uuid,jsonb,text,jsonb) restrict
+04 revoke execute on function public.save_observer_onboarding_atomic(uuid,uuid,jsonb,text,jsonb) from observer_site_save_executor restrict
+05 drop function public.save_observer_onboarding_atomic(uuid,uuid,jsonb,text,jsonb) restrict
+06 lock table observer_site_save_private.pair_receipts, observer_site_save_private.receipts in access exclusive mode
+07 revoke select,insert on observer_site_save_private.receipts from observer_site_save_executor restrict
+08 revoke usage on schema observer_site_save_private from observer_site_save_executor restrict
+09 revoke insert on public.observer_site_memberships,public.digital_observer_entitlement_grants,public.digital_observer_financial_audit from observer_site_save_executor restrict
+10 revoke select,insert,update(id) on public.observer_site_subscriptions from observer_site_save_executor restrict
+11 revoke select,insert,update on public.observer_sites,public.observer_site_onboarding_drafts,public.observer_monitoring_schedules from observer_site_save_executor restrict
+12 revoke select,update(id) on public.observer_monitoring_packages from observer_site_save_executor restrict
+13 revoke select,update(profile_id) on public.digital_observer_accounts from observer_site_save_executor restrict
+14 revoke select on public.profiles from observer_site_save_executor restrict
+15 revoke execute on function public.digital_observer_current_session_active() from observer_site_save_executor restrict
+16 revoke usage on schema public from observer_site_save_caller restrict
+17 revoke usage on schema public,auth,extensions from observer_site_save_executor restrict
+18 do <body>
+   conditional drop table observer_site_save_private.pair_receipts restrict;
+   conditional drop table observer_site_save_private.receipts restrict;
+   conditional drop schema observer_site_save_private restrict;
+19 drop role observer_site_save_caller
+20 drop role observer_site_save_executor
