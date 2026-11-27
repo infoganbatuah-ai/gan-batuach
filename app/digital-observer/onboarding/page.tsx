@@ -22,7 +22,7 @@ export default async function DigitalObserverOnboardingPage({ searchParams }: Pa
       <div className="do-onboarding-content">
         <header className="do-intro"><span className="do-badge info">מסלול {defaultType === "home" ? "ביתי" : "עסקי"} · 4 שלבים</span><h1>הגדרת {defaultType === "home" ? "הבית" : "העסק"} שלך</h1><p>{defaultType === "home" ? "ממשק פשוט למשפחה, אזורי הבית ואנשים מורשים." : "ניהול אתרים, תבניות ענפיות, צוות והרשאות עסקיות."} זהו חשבון תצפיתן עצמאי שאינו מחובר למסלול גננת או לגן בטוח.</p></header>
         {params?.error ? <div className="do-notice bad" role="alert"><span>{params.error}</span></div> : null}
-        <ObserverOnboardingWizard packages={runtime.packages} defaultType={defaultType} />
+        <ObserverOnboardingWizard profileId={profile.id} packages={runtime.packages} defaultType={defaultType} />
         <ObserverAuthDevicePreview screen={defaultType === "home" ? "home-onboarding" : "business-onboarding"} />
       </div>
     </main>

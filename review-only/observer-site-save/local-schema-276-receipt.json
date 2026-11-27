@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-25",
+  "scope": "Local isolated QA, direct Auth and PostgREST, synthetic accounts. No product deployment.",
+  "pr_head_tested": "d1ec18a261fc62cb6c8e4f70665c86bea675c14c",
+  "local_parent": "429877729c519a420f79ff2078810fd045f0a8aa",
+  "source_tree": "99bcbdcd5d0fc2d6779ec6ce79bc5fb840669cda",
+  "postgres_version": "17.6",
+  "migrations": {
+    "ordered_source_count": 276,
+    "applied": 276,
+    "ordered_manifest_sha256": "7554ae34747b95026a5d9aded39a53198522bbafdbf16775007767a60312b05a",
+    "all_local_file_hashes_match": true
+  },
+  "baseline": {
+    "receipt_sha256": "e0897c27c81748fe9fdca05bc4a0e583711d762d7846a8d5547fe91956e451d6",
+    "pre_test_users_sites_sources": [
+      0,
+      0,
+      0
+    ],
+    "self_insert_http": 201,
+    "partial_site_membership_subscription_receipt_counts": [
+      1,
+      0,
+      0,
+      0
+    ],
+    "writer_owner_http": 403,
+    "writer_sqlstate": "42501",
+    "valid_session": true,
+    "account_visible_without_lock": 1,
+    "account_visible_for_update": 0
+  },
+  "corrected": {
+    "direct_insert_HTTP": {
+      "owner": 403,
+      "nonowner": 403,
+      "anon": 401,
+      "caller": 403
+    },
+    "race": {
+      "independent_waiting_backends": [
+        "7221",
+        "7228"
+      ],
+      "results": [
+        [
+          200,
+          null,
+          null
+        ],
+        [
+          200,
+          null,
+          null
+        ]
+      ]
+    },
+    "outcome": {
+      "sites_receipts_subscriptions_audits": "1|1|1|1",
+      "identical_replies": true,
+      "lost_response_replay": true,
+      "owner_reload": true,
+      "nonowner_hidden_and_edit_denied": true,
+      "changed_request_denied": true
+    }
+  },
+  "pristine_dump_sha256": "cc0a5ed5dd959b4c5184e9c6532368f69e64d7af7a64a207fd13a8228039c617",
+  "rollback": {
+    "all_policy_definitions_match_snapshot": true,
+    "five_executor_privileges_restored": true,
+    "counts_preserved": "3|2|2",
+    "guarded_files_abort": true,
+    "forward_sha256": "1a51b15d476a34497b8a2f62ef8c0a3d887383ca36b12800271b62579478b080"
+  },
+  "rollback_sql_sha256": "b7429cb7ef5f5847dc2a90d20740ce3a713ccbbfa7991e3c3c9c03381632c181",
+  "cleanup": {
+    "bound_host_ports": 0,
+    "host_binds": 0,
+    "running_containers": 0,
+    "active_synthetic_sessions": 0,
+    "writer_role_removed_from_rest": true,
+    "test_tokens_file_removed": true,
+    "vm_stopped": true
+  },
+  "not_run": [
+    "Next.js save over the Product ingress",
+    "physical iPhone save",
+    "hosted verification",
+    "CH1 or media"
+  ]
+}

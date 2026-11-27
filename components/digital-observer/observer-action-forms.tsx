@@ -85,7 +85,7 @@ function ResultMessage({ state }: { state: ActionState }) {
   return null;
 }
 
-export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { packages: any[]; defaultType?: "home" | "business" }) {
+export function ObserverOnboardingWizard({ profileId, packages, defaultType = "home" }: { profileId: string; packages: any[]; defaultType?: "home" | "business" }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
@@ -109,11 +109,15 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
   async function submit() {
     setState({ busy: true, error: "", message: "" });
     try {
+      const storageKey = `observer:site-submission:${profileId}:${defaultType}`;
+      const submission = sessionStorage.getItem(storageKey) || crypto.randomUUID();
+      sessionStorage.setItem(storageKey, submission);
       const data = await postJson(
         "/api/digital-observer/onboarding",
-        { ...form, package_id: form.package_id || null }
+        { ...form, submission_id: submission, package_id: form.package_id || null }
       );
       setState({ busy: false, error: "", message: "האתר הוקם ותקופת ניסיון של 14 יום נפתחה ללא חיוב." });
+      sessionStorage.removeItem(storageKey);
       router.push(data.next);
       router.refresh();
     } catch (error) {
