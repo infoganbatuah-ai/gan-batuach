@@ -6,6 +6,7 @@ const { DigitalObserverServerClient } = loadTs("packages/digital-observer-sdk/sr
 const { hashEnterpriseCredential } = loadTs("lib/domain/digital-observer/enterprise-identity.ts");
 const uuid = (n) => `10000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 const [org, otherOrg, partnerOrg, site, otherSite, camera, anotherCamera, service, evidence] = Array.from({ length: 9 }, (_, i) => uuid(i + 1));
+const siblingEvidence = uuid(19);
 const credential = "dosvc_local_fixture_only_not_a_real_account";
 const pepper = "synthetic-local-pepper";
 const base = "https://observer.example.invalid/api/digital-observer/external/v1";
@@ -43,10 +44,12 @@ function fixture() {
       case "digital_observer_camera_sources":
         state.cameraReads++;
         return [camera, anotherCamera].map((id) => ({ id, observer_site_id: site, source_mode: "demo" }));
-      case "digital_observer_event_clips": return [{
-        id: evidence, observer_site_id: site, camera_source_id: camera, signal_id: uuid(15), clip_status: "available",
-        storage_bucket: "fixture-private", storage_path: "never-return",
-      }];
+      case "digital_observer_event_clips": return [
+        { id: evidence, observer_site_id: site, camera_source_id: camera, signal_id: uuid(15), clip_status: "available",
+          storage_bucket: "fixture-private", storage_path: "never-return" },
+        { id: siblingEvidence, observer_site_id: site, camera_source_id: anotherCamera, signal_id: uuid(20), clip_status: "available",
+          storage_bucket: "sibling-private", storage_path: "never-return" },
+      ];
       case "digital_observer_external_api_request_receipts": return [];
       default: throw Error(`unexpected read ${table}`);
     }
@@ -114,6 +117,19 @@ test("signed SDK enters the actual v1 route; a camera filter narrows results but
   assert.equal(clip.evidence.media_embedded, false);
   assert.doesNotMatch(JSON.stringify(clip), /fixture-private|never-return/);
   assert(state.auditWrites >= 3);
+});
+
+test("a delegated service account's camera filter does not narrow a later v1 evidence read", async () => {
+  const { client, state } = fixture();
+  state.accountOrg = partnerOrg;
+  const selected = await client.request(`/cameras?site_id=${site}&camera_id=${camera}`);
+  assert.deepEqual(selected.data.map(({ id }) => id), [camera]);
+  const sibling = await client.evidence(site, siblingEvidence);
+  assert.equal(sibling.evidence.camera_id, anotherCamera);
+  assert.equal(sibling.evidence.media_embedded, false);
+  assert.doesNotMatch(JSON.stringify(sibling), /sibling-private|never-return/);
+  state.partnerLinked = false;
+  await assert.rejects(client.evidence(site, siblingEvidence), { status: 403 });
 });
 
 test("expired, invalid-expiry and revoked service credentials/accounts are denied before camera access", async () => {
