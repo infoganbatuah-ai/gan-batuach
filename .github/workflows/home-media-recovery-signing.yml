@@ -28,7 +28,7 @@ jobs:
       HOME_MEDIA_SIGNING_INPUT_MODE: DETACHED
       HOME_MEDIA_RETURN_KEY_SHA256: ${{ vars.HOME_MEDIA_RETURN_KEY_SHA256 }}
       HOME_MEDIA_APPROVED_SHA: ${{ vars.HOME_MEDIA_APPROVED_SHA }}
-      HOME_MEDIA_CLIENT_SHA: a605ea6834f9537d5526cfa5ea0d0db2b003992d
+      HOME_MEDIA_CLIENT_SHA: 37f76e5ea79320fcd7a850546e58e8bef0ba3b28
       HOME_MEDIA_BACKEND_SHA: b9a2001cfd1fab3d24966083a785734f147657e8
       SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
       SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
@@ -40,7 +40,7 @@ jobs:
       - name: Check out the pinned recovery issuer
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 5dc9ad1c489c72ecd42d9a389a5d60a39eb74ce2
+          ref: 58c08a676328eb594234580d846b7da9c68759a2
           path: home-media-signing-source
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -51,13 +51,13 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$HOME_MEDIA_APPROVED_SHA"
           git ls-files --error-unmatch .github/signing-requests/home-media-recovery.json >/dev/null
-          test "$(git -C home-media-signing-source rev-parse HEAD)" = 5dc9ad1c489c72ecd42d9a389a5d60a39eb74ce2
+          test "$(git -C home-media-signing-source rev-parse HEAD)" = 58c08a676328eb594234580d846b7da9c68759a2
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import { readFileSync } from 'node:fs';
           import { BACKEND_SOURCE, CLIENT_SOURCE } from './home-media-signing-source/scripts/release/issue-home-media-recovery.mjs';
           assert.deepEqual(JSON.parse(readFileSync('.github/signing-requests/home-media-recovery.json')), {
-            backend: BACKEND_SOURCE, client: CLIENT_SOURCE, max_kms_calls: 6, transport_revision: 2
+            backend: BACKEND_SOURCE, client: CLIENT_SOURCE, max_kms_calls: 6, transport_revision: 3
           });
           JS
       - name: Check the protected baseline and the encrypted return route
