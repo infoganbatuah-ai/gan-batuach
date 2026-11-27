@@ -30,7 +30,7 @@ The default application-side ceiling is 120 requests per Service Account per min
 
 ## Resources
 
-- `GET /cameras`: bounded Camera Source inventory and health metadata.
+- `GET /cameras`: bounded Camera Source inventory and health metadata. In v1 the server SDK's `cameraHealth(siteId)` calls this same Site-scoped list with the `cameras.read` authorization. Camera assignment contributes to server-side health projection. Unassigned live or gateway-test channels report `unassigned` and `unknown`, and the list does not expose raw assignment metadata. This method does not issue source-only authority.
 - `GET /events`: canonical Events; observed fields and inferred risk remain distinct.
 - `GET /incidents`: canonical Incident state, timeline and verification metadata.
 - `GET /evidence/{id}`: metadata and an authorized media path; no media is embedded.

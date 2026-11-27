@@ -82,12 +82,16 @@ async function listCameras(request: Request, body: string) {
   const input = queryInput(new URL(request.url)); const offset = parseCursor(input.cursor);
   return runAuthorized(request, body, input.site_id, "cameras.read", "cameras.list", async ({ admin, actor }) => {
     let query = admin.from("digital_observer_camera_sources")
-      .select("id,observer_site_id,display_name,location_label,status,health_status,source_mode,last_health_check_at,last_seen_at,created_at")
+      .select("id,observer_site_id,display_name,location_label,status,health_status,source_mode,last_health_check_at,last_seen_at,created_at,metadata")
       .eq("observer_site_id", input.site_id).order("created_at", { ascending: false }).range(offset, offset + input.limit);
     if (input.camera_id) query = query.eq("id", input.camera_id);
     const result = await query;
     if (result.error) throw new Error("EXTERNAL_API_CAMERA_READ_FAILED");
-    return response({ ...page((result.data ?? []).map(truthfulCameraStatus), offset, input.limit), ...externalApiMeta(actor) });
+    const cameras = (result.data ?? []).map(({ metadata, ...camera }: any) => {
+      const { status, health_status } = truthfulCameraStatus({ ...camera, metadata });
+      return { ...camera, status, health_status };
+    });
+    return response({ ...page(cameras, offset, input.limit), ...externalApiMeta(actor) });
   });
 }
 

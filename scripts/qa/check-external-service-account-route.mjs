@@ -18,7 +18,7 @@ function fixture() {
     credentialRevoked: null, accountRevoked: null, credentialExpiry: undefined, accountExpiry: undefined,
     partnerStatus: "sandbox", mappingPartnerId: uuid(18), partnerOwnerOrg: partnerOrg, customerStatus: "active", partnerLinked: true,
     accountOrg: org, siteOrg: org, siteIds: [site], cameraReads: 0, auditWrites: 0,
-    permissions: ["camera.live.view", "events.view", "evidence.view"],
+    permissions: ["camera.live.view", "events.view", "evidence.view"], cameraRows: null,
   };
   const data = (table) => {
     switch (table) {
@@ -44,7 +44,7 @@ function fixture() {
         return state.partnerLinked ? [{ partner_customer_id: uuid(12), observer_site_id: site }] : [];
       case "digital_observer_camera_sources":
         state.cameraReads++;
-        return [camera, anotherCamera].map((id) => ({ id, observer_site_id: site, source_mode: "demo" }));
+        return state.cameraRows ?? [camera, anotherCamera].map((id) => ({ id, observer_site_id: site, source_mode: "demo" }));
       case "digital_observer_event_clips": return [
         { id: evidence, observer_site_id: site, camera_source_id: camera, signal_id: uuid(15), clip_status: "available",
           storage_bucket: "fixture-private", storage_path: "never-return" },
@@ -65,9 +65,14 @@ function fixture() {
     from(table) {
       const filters = [];
       let operation = "read";
-      const rows = () => data(table).filter((row) => filters.every((predicate) => predicate(row)));
+      let columns = [];
+      const rows = () => {
+        const matches = data(table).filter((row) => filters.every((predicate) => predicate(row)));
+        if (table !== "digital_observer_camera_sources") return matches;
+        return matches.map((row) => Object.fromEntries(Object.entries(row).filter(([key]) => columns.includes(key))));
+      };
       const builder = {
-        select() { return this; },
+        select(value) { columns = value.split(","); return this; },
         eq(key, value) { filters.push((row) => row[key] === value); return this; },
         is(key, value) { return this.eq(key, value); },
         neq(key, value) { filters.push((row) => row[key] !== value); return this; },
@@ -150,6 +155,24 @@ test("a Site-scoped incident exposes secondary provenance in both list and direc
   const detail = await client.request(`/incidents/${mixedIncident}?site_id=${site}`);
   assert.deepEqual(detail.incident, listed.data[0]);
   assert.deepEqual(detail.incident.timeline_summary, { observations: 2 });
+});
+
+test("the SDK v1 health page recognizes an unassigned channel without returning assignment metadata", async () => {
+  const { client, state } = fixture();
+  state.accountOrg = partnerOrg;
+  const lastSeen = new Date().toISOString();
+  const freshRow = { observer_site_id: site, source_mode: "live", status: "connected", health_status: "healthy", last_seen_at: lastSeen };
+  state.cameraRows = [
+    { ...freshRow, id: camera, metadata: { channel_assignment: "CHANNEL_EMPTY", private_fixture: "never-return" } },
+    { ...freshRow, id: anotherCamera, metadata: { physical_camera_attached: true, private_fixture: "never-return" } },
+  ];
+  const health = await client.cameraHealth(site);
+  assert.equal(health.api_version, "2026-10-19.v1");
+  assert.equal(health.data.length, 2);
+  const [empty, assigned] = health.data;
+  assert.deepEqual([empty.id, empty.status, empty.health_status], [camera, "unassigned", "unknown"]);
+  assert.deepEqual([assigned.id, assigned.status, assigned.health_status], [anotherCamera, "connected", "healthy"]);
+  assert.doesNotMatch(JSON.stringify(health), /metadata|private_fixture|CHANNEL_EMPTY|physical_camera_attached|never-return/);
 });
 
 test("expired, invalid-expiry and revoked service credentials/accounts are denied before camera access", async () => {
