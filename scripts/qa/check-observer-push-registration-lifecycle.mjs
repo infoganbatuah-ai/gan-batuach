@@ -47,6 +47,7 @@ function text(value) {
 function fixture({ native = false, pauseAt = null, initialRegistered = false, support = true, permission = "granted", token = "SYNTHETIC_FCM", serverError = false, existingReference = null, unsubscribeThrows = false } = {}) {
   const counts = {}, reads = {}, calls = [], writes = [], requests = [], notifications = [], subscriptions = [];
   const gates = new Map(), listeners = new Set(), retained = [], removes = new Map(), timers = new Map(), clears = new Map();
+  const focusListeners = new Set();
   const storage = new Map(existingReference ? [["digital_observer_device_reference", existingReference]] : []);
   const pending = [], fibers = [];
   let nativeRequest;
@@ -64,6 +65,13 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
   } });
   const same = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((item, index) => Object.is(item, b[index]));
   const React = {
+    useCallback: (callback, deps) => {
+      const index = cursor++;
+      const previous = fiber.slots[index];
+      if (previous && same(previous.deps, deps)) return previous.callback;
+      fiber.slots[index] = { kind: "callback", deps, callback };
+      return callback;
+    },
     useState: (initialValue) => {
       const own = fiber, index = cursor++;
       if (!own.slots[index]) own.slots[index] = { kind: "state", value: typeof initialValue === "function" ? initialValue() : initialValue };
@@ -128,8 +136,8 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
     },
     setTimeout: (fn, delay) => { assert.equal(delay, 30000); const id = ++timerId; timers.set(id, fn); count("timer.add"); return id; },
     clearTimeout: (id) => { clears.set(id, (clears.get(id) ?? 0) + 1); timers.delete(id); count("timer.clear"); },
-    addEventListener: (name, callback, options) => { assert.equal(name, "digital-observer:native-push-result"); assert.notEqual(options?.once, true); listeners.add(callback); retained.push(callback); count("listener.add"); },
-    removeEventListener: (name, callback) => { assert.equal(name, "digital-observer:native-push-result"); listeners.delete(callback); removes.set(callback, (removes.get(callback) ?? 0) + 1); count("listener.remove"); },
+    addEventListener: (name, callback, options) => { if (name === "focus") { focusListeners.add(callback); return; } assert.equal(name, "digital-observer:native-push-result"); assert.notEqual(options?.once, true); listeners.add(callback); retained.push(callback); count("listener.add"); },
+    removeEventListener: (name, callback) => { if (name === "focus") { focusListeners.delete(callback); return; } assert.equal(name, "digital-observer:native-push-result"); listeners.delete(callback); removes.set(callback, (removes.get(callback) ?? 0) + 1); count("listener.remove"); },
     dispatchEvent: (event) => { assert.equal(event.type, "digital-observer:enable-native-push"); assert.equal(event.detail.siteId, siteId); assert.equal(typeof event.detail.requestId, "string"); assert.ok(event.detail.requestId.length > 0 && event.detail.requestId.length <= 128); nativeRequest = { siteId, requestId: event.detail.requestId }; count("native.dispatch"); return true; }
   };
   const exports = {};
@@ -184,6 +192,8 @@ function fixture({ native = false, pauseAt = null, initialRegistered = false, su
     result: (detail) => { for (const callback of [...listeners]) callback({ detail: { ...nativeRequest, ...detail } }); },
     timeout: () => { assert.equal(timers.size, 1); [...timers.values()][0](); },
     setNotificationPermission: (value) => { notificationPermission = value; },
+    focus: () => { for (const callback of [...focusListeners]) callback(); },
+    focusListeners,
     unmount,
     snapshot: () => plain({ counts, reads, calls, writes, requests, notifications, listeners: listeners.size, timers: timers.size,
       subscriptions: subscriptions.map((sub) => ({ active: sub.active, removed: sub.removed })) }),
@@ -343,6 +353,39 @@ test("current dry-run contract and Site initialRegistered semantics", async (t) 
   assert.match(h.ui().message, /SYNTHETIC_DRY_RUN_ONLY/); assert.equal(h.ui().testing, false);
   h.scope("site-b", false); assert.deepEqual(h.ui(), { busy: false, testDisabled: true, testing: false, message: "", error: "" });
   h.scope("site-c", true); assert.equal(h.ui().testDisabled, false);
+});
+test("Web permission withdrawn while away invalidates the in-flight test on focus", async (t) => {
+  const h = fixture({ pauseAt: "test.fetch.1" });
+  t.after(() => h.cleanup());
+  await h.register();
+  const oldTest = h.send();
+  await drain();
+  assert.equal(h.ui().testing, true);
+  h.setNotificationPermission("denied");
+  h.focus();
+  assert.equal(h.ui().testDisabled, true);
+  assert.equal(h.ui().testing, false);
+  assert.match(h.ui().error, /הרשאת ההתראות/);
+  h.release("test.fetch.1");
+  await oldTest;
+  assert.equal(h.ui().message, "");
+  assert.equal(h.counts["test.body"] ?? 0, 0);
+  h.setNotificationPermission("granted");
+  h.focus();
+  assert.equal(h.ui().testDisabled, false);
+  await h.send();
+  assert.match(h.ui().message, /SYNTHETIC_DRY_RUN_ONLY/);
+  h.unmount();
+  assert.equal(h.focusListeners.size, 0);
+});
+
+test("Web test rechecks permission even without a focus event", async (t) => {
+  const h = fixture({ initialRegistered: true });
+  t.after(() => h.cleanup());
+  h.setNotificationPermission("denied");
+  await h.send();
+  assert.equal(h.counts["test.fetch"] ?? 0, 0);
+  assert.equal(h.ui().testDisabled, true);
 });
 test("current dry-run server error remains visible and testing clears", async (t) => {
   const h = fixture({ initialRegistered: true, serverError: true }); t.after(() => h.cleanup()); await h.send();

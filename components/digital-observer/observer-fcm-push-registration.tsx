@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { getApps, initializeApp } from "firebase/app";
 import { getMessaging, getToken, isSupported, onMessage } from "firebase/messaging";
@@ -50,9 +50,25 @@ export function ObserverFcmPushRegistration({ siteId, initialRegistered = false 
 function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; initialRegistered: boolean }) {
   const [state, setState] = useState<ActionState>({ ...initialState, registered: initialRegistered });
   const [testing, setTesting] = useState(false);
+  const [browserPermissionBlocked, setBrowserPermissionBlocked] = useState(false);
   const lifetime = useRef({ active: true, registration: 0, test: 0, registered: initialRegistered, registrationInFlight: false, testInFlight: false,
     cancelNative: null as (() => void) | null,
     unsubscribe: null as (() => void) | null });
+
+  const checkBrowserPermission = useCallback(() => {
+    const owner = lifetime.current;
+    if (!owner.active || !owner.registered || Capacitor.isNativePlatform()) return true;
+    const allowed = typeof Notification !== "undefined" && Notification.permission === "granted";
+    setBrowserPermissionBlocked(!allowed);
+    if (!allowed) {
+      // Keep the durable registration. Only invalidate the local test and its feedback.
+      owner.test++;
+      owner.testInFlight = false;
+      setTesting(false);
+      setState((current) => current.message ? { ...current, message: "" } : current);
+    }
+    return allowed;
+  }, []);
 
   const stopForeground = () => {
     const unsubscribe = lifetime.current.unsubscribe;
@@ -63,7 +79,12 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
   useEffect(() => {
     const owner = lifetime.current;
     owner.active = true;
+    if (!Capacitor.isNativePlatform()) {
+      window.addEventListener("focus", checkBrowserPermission);
+      checkBrowserPermission();
+    }
     return () => {
+      window.removeEventListener("focus", checkBrowserPermission);
       owner.active = false;
       owner.registration++;
       owner.test++;
@@ -74,7 +95,7 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
       owner.unsubscribe = null;
       try { unsubscribe?.(); } catch { /* Best-effort cleanup, without retries. */ }
     };
-  }, []);
+  }, [checkBrowserPermission]);
 
   async function register() {
     const owner = lifetime.current;
@@ -88,6 +109,7 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
     owner.cancelNative?.();
     stopForeground();
     setTesting(false);
+    setBrowserPermissionBlocked(false);
     setState({ busy: true, registered: false, message: "", error: "" });
     try {
       if (Capacitor.isNativePlatform()) {
@@ -202,6 +224,7 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
   async function sendTest() {
     const owner = lifetime.current;
     if (!owner.active || owner.testInFlight || owner.registrationInFlight || !owner.registered) return;
+    if (!checkBrowserPermission()) return;
     owner.testInFlight = true;
     const generation = ++owner.test;
     const registration = owner.registration;
@@ -210,7 +233,7 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
     setState((current) => ({ ...current, message: "", error: "" }));
     try {
       const result = await postJson("/api/digital-observer/notifications/push-test", { observer_site_id: siteId }, isCurrent);
-      if (!isCurrent()) return;
+      if (!isCurrent() || !checkBrowserPermission()) return;
       setState((current) => ({ ...current, registered: true, message: result.message || "התראת הבדיקה נשלחה.", error: "" }));
     } catch (error) {
       if (!isCurrent()) return;
@@ -227,10 +250,11 @@ function SitePushRegistration({ siteId, initialRegistered }: { siteId: string; i
     <button className="do-button secondary" type="button" onClick={register} disabled={state.busy}>
       {state.busy ? <LoaderCircle className="do-spin" /> : <Smartphone />} הפעלת Push במכשיר הזה
     </button>
-    <button className="do-button primary" type="button" onClick={sendTest} disabled={testing || !state.registered}>
+    <button className="do-button primary" type="button" onClick={sendTest} disabled={testing || !state.registered || browserPermissionBlocked}>
       {testing ? <LoaderCircle className="do-spin" /> : <Send />} בדיקת חוזה Push ללא שליחה
     </button>
     {state.message ? <p className="do-notice success"><BellRing /> {state.message}</p> : null}
-    {state.error ? <p className="do-notice warn"><BellRing /> {state.error}</p> : null}
+    {browserPermissionBlocked ? <p className="do-notice warn"><BellRing /> הרשאת ההתראות כבויה בדפדפן.</p>
+      : state.error ? <p className="do-notice warn"><BellRing /> {state.error}</p> : null}
   </div>;
 }
