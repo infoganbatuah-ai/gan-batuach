@@ -30,7 +30,7 @@ assert.equal(new Set(contract.sensitiveCapabilities).size, 13);
 
 const base = { capability: "FACE_RECOGNITION", context: "HOME", purpose: "authorized household access",
   tenantId: "tenant", siteId: "site", policyActive: true, decisionState: "EXTERNALLY_APPROVED",
-  approvalScopeMatches: true, humanReviewRequired: true, humanReviewerId: "reviewer" };
+  approvalScopeMatches: true, approvalEffectiveAt: "2020-01-01T00:00:00Z", humanReviewRequired: true, humanReviewerId: "reviewer" };
 assert.deepEqual(contract.evaluatePrivacyGate(base).reason, "APPROVED");
 assert.deepEqual(contract.evaluatePrivacyGate({ ...base, decisionState: "LEGAL_REVIEW_PENDING" }).reason, "EXTERNAL_APPROVAL_REQUIRED");
 assert.deepEqual(contract.evaluatePrivacyGate({ ...base, approvalScopeMatches: false }).reason, "APPROVAL_SCOPE_MISMATCH");
