@@ -1,6 +1,7 @@
 import { request as httpRequest } from "node:http";
 import { createServer as createHttpsServer } from "node:https";
-import { readFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { once } from "node:events";
 import { isIP } from "node:net";
 import { createPlaybackIngress, playbackIngressAllows } from "../../services/video-gateway/playback-ingress.mjs";
@@ -18,6 +19,28 @@ const bindAddress = String(args.get("bind-address") || "");
 const keyPath = String(args.get("tls-key") || "");
 const certPath = String(args.get("tls-cert") || "");
 const browserOrigin = String(args.get("browser-origin") || "");
+const requiredVolume = String(args.get("required-volume") || "");
+const logFile = String(args.get("log-file") || "");
+if (logFile && !/^\/Volumes\/DIGITAL_OBSERVER\/Projects\/Gan-Batuach\/\.dev-cache\/media-ingress\/logs\/[A-Za-z0-9._-]+\.log$/.test(logFile))
+  throw new Error("PUSH38_MEDIA_LOG_PATH_INVALID");
+function log(event, details = {}) {
+  const line = `${JSON.stringify({ time: new Date().toISOString(), event, ...details })}\n`;
+  if (logFile) appendFileSync(logFile, line, { mode: 0o600 });
+  else process.stdout.write(line);
+}
+process.on("uncaughtException", error => {
+  try { log("fatal", { code: String(error?.code || error?.name || "unknown") }); } catch { /* exit anyway */ }
+  process.exit(1);
+});
+function volumeMounted() {
+  if (!requiredVolume) return true;
+  if (!/^\/Volumes\/[A-Za-z0-9_-]+$/.test(requiredVolume)) return false;
+  try {
+    return execFileSync("/sbin/mount", [], { encoding: "utf8", timeout: 3000 })
+      .split("\n").some(line => line.includes(` on ${requiredVolume} (`));
+  } catch { return false; }
+}
+if (!volumeMounted()) throw new Error("PUSH38_REQUIRED_VOLUME_UNAVAILABLE");
 if (!hostnamePattern.test(gatewayHost) || !hostnamePattern.test(connectorHost) || gatewayHost === connectorHost)
   throw new Error("PUSH38_MEDIA_HOSTS_INVALID");
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("PUSH38_MEDIA_PORT_INVALID");
@@ -95,7 +118,10 @@ const front = createHttpsServer({
 front.on("tlsClientError", () => {});
 front.listen({ port, host: bindAddress, ipv6Only: true });
 await once(front, "listening");
-process.stdout.write(`${JSON.stringify({
+if (requiredVolume) setInterval(() => {
+  if (!volumeMounted()) process.exit(1);
+}, 10_000).unref();
+log("started", {
   contract: "observer-push38-https-playback-ingress-v1",
   bind: `[${bindAddress === "::1" ? "loopback" : "configured-ipv6"}]:${port}`,
   hosts: profiles.map(({ hostname, profile }) => ({ hostname, profile })),
@@ -105,7 +131,7 @@ process.stdout.write(`${JSON.stringify({
   rate_limited: true,
   tls_minimum: "TLSv1.2",
   recurring_cost_introduced: false
-})}\n`);
+});
 
 const close = async () => {
   front.close();
