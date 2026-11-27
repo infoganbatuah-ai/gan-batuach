@@ -2,6 +2,19 @@ import { z } from "zod";
 import { connectivityFamilyIds } from "./connectivity-registry";
 
 export const connectorInstallVersion = "connector-install-v1";
+
+const installHandoffPath = "/digital-observer/cameras/add";
+const installHandoffIdentity = z.object({ site: z.string().uuid(), install_intent: z.string().uuid() }).strict();
+
+export function connectorInstallResumePath(next: unknown) {
+  const prefix = `${installHandoffPath}?`;
+  if (typeof next !== "string" || !next.startsWith(prefix) || next.length > 256) return null;
+  const params = new URLSearchParams(next.slice(prefix.length));
+  if (params.size !== 2) return null;
+  const identity = installHandoffIdentity.safeParse(Object.fromEntries(params));
+  return identity.success ? `${prefix}${new URLSearchParams(identity.data)}` : null;
+}
+
 export const connectorInstallDocumentSchema = z.object({
   version: z.literal(connectorInstallVersion), intent_id: z.string().uuid(),
   observer_site_id: z.string().uuid(), secret: z.string().regex(/^[A-Za-z0-9_-]{43}$/),

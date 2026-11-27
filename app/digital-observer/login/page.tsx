@@ -5,6 +5,7 @@ import { LockKeyhole, MapPinned, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { ObserverAuthDevicePreview } from "@/components/digital-observer/observer-auth-device-preview";
 import { ObserverLoginForm } from "@/components/digital-observer/observer-login-form";
+import { connectorInstallResumePath } from "@/lib/domain/digital-observer/connector-installation";
 
 type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; password_updated?: string; next?: string; type?: string }> };
 
@@ -20,7 +21,9 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
   const params = await searchParams;
   // Native QA opens this route on every launch. Resume only a verified,
   // active Observer session; explicit errors still render the login form.
-  if (!params?.error && await getDigitalObserverApiUser()) redirect("/digital-observer/dashboard");
+  if (!params?.error && await getDigitalObserverApiUser()) {
+    redirect(connectorInstallResumePath(params?.next) ?? "/digital-observer/dashboard");
+  }
   const initialType = params?.type === "business" ? "business" : "home";
   return (
     <main className="do-auth-page" dir="rtl">
