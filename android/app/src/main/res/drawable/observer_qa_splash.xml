@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#071d35" />
+        </shape>
+    </item>
+    <item>
+        <bitmap android:src="@drawable/observer_qa_launch_mark" android:gravity="center" />
+    </item>
+</layer-list>

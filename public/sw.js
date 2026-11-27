@@ -1,6 +1,20 @@
 const CACHE_NAME = 'gan-batuach-static-v2';
 const STATIC_ASSETS = ['/assets/company-symbol.png', '/assets/company-name.png'];
 
+function safeNotificationTarget(raw) {
+  const fallback = new URL('/dashboard', self.location.origin).href;
+  try {
+    const url = new URL(raw, self.location.origin);
+    if (url.origin !== self.location.origin || url.username || url.password ||
+        url.hash || url.pathname.startsWith('/api/')) return fallback;
+    const path = url.pathname;
+    return path === '/dashboard' || path.startsWith('/dashboard/') ||
+      path === '/parent-onboarding' || path.startsWith('/parent-onboarding/') ||
+      path === '/onboarding/kindergarten' || path === '/onboarding/staff'
+      ? url.href : fallback;
+  } catch { return fallback; }
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting()));
 });
@@ -70,7 +84,7 @@ self.addEventListener('notificationclick', (event) => {
   const targetUrl = event.notification.data?.url || '/dashboard';
   event.waitUntil((async () => {
     const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const absoluteUrl = new URL(targetUrl, self.location.origin).href;
+    const absoluteUrl = safeNotificationTarget(targetUrl);
     for (const client of clientsList) {
       if ('focus' in client && client.url === absoluteUrl) return client.focus();
     }

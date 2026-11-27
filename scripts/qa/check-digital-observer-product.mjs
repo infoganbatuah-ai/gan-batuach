@@ -189,7 +189,7 @@ record(
   "Clip rows adapt to mobile and never expose a download action without a signed file URL"
 );
 record("Service worker never caches authenticated navigation", serviceWorkerSource.includes("if (request.mode === 'navigate')") && !serviceWorkerSource.includes("cache.put(request, copy)") && !serviceWorkerSource.includes("caches.match('/')"), "Navigation is network-only and the offline response is product-aware; only static assets are cached");
-record("Observer admin uses a product-scoped signed claim", observerAdminAccessSource.includes('DIGITAL_OBSERVER_ADMIN_METADATA_KEY = "digital_observer_admin"') && observerAdminAccessSource.includes("session.user.app_metadata") && observerAdminAccessSource.includes('mediaAccess: false') && observerAdminAccessSource.includes('secretAccess: false'), "Dedicated Digital Observer admin access is granted by signed app metadata and does not imply media or secret access");
+record("Observer admin rechecks the current product-scoped Auth record", observerAdminAccessSource.includes('DIGITAL_OBSERVER_ADMIN_METADATA_KEY = "digital_observer_admin"') && observerAdminAccessSource.includes("auth.admin.getUserById(userId)") && observerAdminAccessSource.includes("await hasCurrentObserverAdmin(session.user.id)") && observerAdminAccessSource.includes('mediaAccess: false') && observerAdminAccessSource.includes('secretAccess: false'), "Dedicated Digital Observer admin access requires the current server-owned Auth record and does not imply media or secret access");
 record("Observer admin has a complete control center", ["תמונת מצב מערכת", "מפת לקוחות ואתרים מורשים", "אירועים ומגמה", "בריאות מנוע ושירותים", "תורים ובקרות תצפיתן", "אתרים, מצלמות ומנויים"].every((label) => observerAdminSource.includes(label)), "System state, authorized locations, trends, services, queues and source records are visible in the admin center");
 record("Observer admin reads safe metadata only", !/(rtsp|password|secret|credential|stream_url|access_token)/i.test(observerAdminRuntimeSource) && observerAdminRuntimeSource.includes('is("garden_id", null)') && observerAdminRuntimeSource.includes('neq("site_type", "kindergarten")'), "Admin runtime explicitly selects non-secret observer metadata and excludes Gan Batuach kindergarten sites");
 record("Observer admin routes have dedicated loading and recovery states", existsSync("app/digital-observer/admin/loading.tsx") && existsSync("app/digital-observer/admin/error.tsx"), "The control center has honest loading and retry UI");
@@ -218,10 +218,11 @@ record(
     && authCallbackSource.includes('typeValue === "email"')
     && authCallbackSource.includes('type: "signup"')
     && authConfirmRouteSource.includes('request.cookies.get("auth_callback_product")')
-    && authConfirmRouteSource.includes('data.user.user_metadata?.product === "digital_observer"')
-    && authConfirmRouteSource.includes('data.user.app_metadata?.digital_observer_admin === true')
+    && authConfirmRouteSource.includes('verifiedCallbackProduct(data.user)')
+    && !authConfirmRouteSource.includes('confirmedObserver = observerRequest')
+    && authCallbackSource.includes('verifiedCallbackProduct(user)')
     && authConfirmRouteSource.includes('response.cookies.delete("auth_callback_product")'),
-  "Direct signup/recovery links are verified server-side, legacy email-type signup links retry only as signup, route by signed identity plus the requesting product, then clear the short-lived routing hint"
+  "Direct signup/recovery links are verified server-side, legacy email-type signup links retry only as signup, route by verified user context rather than URL/cookie hints, then clear the short-lived routing hint"
 );
 record(
   "Supabase redirect uses the exact allow-listed callback",
@@ -266,11 +267,11 @@ record(
   "Users can compare monthly and annual database prices while plan changes remain no-charge mock requests"
 );
 record(
-  "Logout redirect remains product-scoped",
-  logoutRouteSource.includes('requested?.startsWith("/digital-observer")')
-    && logoutRouteSource.includes('!requested.startsWith("//")')
-    && logoutRouteSource.includes(': "/login"'),
-  "Logout may return to an internal Digital Observer path only and rejects protocol-relative redirects"
+  "Logout requires POST and cannot bypass device cleanup via GET",
+  logoutRouteSource.includes('export function GET()')
+    && logoutRouteSource.includes('status: 405')
+    && logoutRouteSource.includes('Allow: "POST"'),
+  "GET is read-only and returns 405; the button-owned POST path handles session and current-device token cleanup"
 );
 record(
   "Duplicate page routes are absent",

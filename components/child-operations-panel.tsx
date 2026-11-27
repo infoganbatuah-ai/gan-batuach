@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import { Baby, Bell, CheckCircle2, Moon, Smile, Utensils } from "lucide-react";
-import { ChildPaymentActions } from "@/components/child-payment-actions";
 
 const chips = {
   meals: ["אכל הכל", "אכל חלקית", "לא אכל", "לא רלוונטי"],
@@ -73,7 +73,7 @@ export function ChildOperationsPanel({ child, gardenId }: { child: any; gardenId
       </article>
 
       <article className="card action-panel">
-        <div className="section-heading"><h2><Baby size={20} /> בגדים להחלפה ותשלום</h2><p>לילדים צעירים חשוב לוודא בגדים להחלפה; חסר יוצר התראה להורה.</p></div>
+        <div className="section-heading"><h2><Baby size={20} /> בגדים להחלפה ושכר לימוד</h2><p>לילדים צעירים חשוב לוודא בגדים להחלפה; חסר יוצר התראה להורה.</p></div>
         <div className="sync-choice-box">
           <strong>סטטוס בגדים להחלפה</strong>
           <label><input checked={clothes} onChange={() => setClothes(true)} name="clothes" type="radio" /> יש בגדים להחלפה</label>
@@ -82,10 +82,13 @@ export function ChildOperationsPanel({ child, gardenId }: { child: any; gardenId
           <button className="button secondary" type="button" disabled={pending} onClick={saveClothes}><Bell size={15} /> שמירת סטטוס</button>
         </div>
         <div className="payment-profile-box">
-          <h3>תשלום ילד</h3>
-          <p>מחיר בפועל: ₪{child.actual_monthly_fee ?? child.monthly_fee ?? 0} · חוב: ₪{child.debt_amount ?? 0}</p>
-          <p>{child.payments_paused ? "תשלומים נעצרו" : "תשלומים פעילים"} · תוקף עד {child.valid_until ?? "-"}</p>
-          <ChildPaymentActions childId={child.id} amount={Number(child.actual_monthly_fee ?? child.monthly_fee ?? 0)} />
+          <h3>שכר לימוד לפי תקופת חיוב</h3>
+          <p>יתרה, סטטוס ופעולות תשלום מוצגים לפי תקופה בספר שכר הלימוד.</p>
+          <div className="profile-actions">
+            <Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}?tab=tuition`}>הצגת תקופות הילד/ה</Link>
+            <Link className="button primary tiny" href="/dashboard/garden/tuition-ledger">פתיחת ספר שכר לימוד</Link>
+          </div>
+          <small>בספר יש לבחור ילד/ה ותקופת חיוב לפני רישום תשלום ידני שכבר התקבל.</small>
         </div>
       </article>
     </section>

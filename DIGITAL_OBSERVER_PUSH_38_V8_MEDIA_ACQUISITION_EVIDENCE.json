@@ -1,0 +1,82 @@
+{
+  "contract": "digital-observer-push38-v8-media-acquisition-evidence-v1",
+  "recorded_at": "2026-10-07T19:27:30Z",
+  "branch": "codex/push-38t-qualification",
+  "source_parent_sha": "aa39a330efc83a6f3d617c6d659b4abfce9cc00d",
+  "push38_status": "NOT_DONE",
+  "v8_status": "FAILED_STOPPED_NOT_REUSABLE",
+  "failed_run": {
+    "run_id": "push38-gateway-0.2.90-host-isolated-v8-20261007T122423Z",
+    "gateway_version": "0.2.90-p38-health",
+    "connector_version": "0.2.40-p38-health",
+    "started_at": "2026-10-07T12:24:40.839Z",
+    "stopped_at": "2026-10-07T19:16:54.157Z",
+    "elapsed_ms": 24733318,
+    "checkpoints": 413,
+    "camera_sample_availability": 0.9958177415804534,
+    "gateway_component_unavailable_checkpoints": 0,
+    "gateway_source_degraded_checkpoints": 9,
+    "gateway_supervisor_restarts": 0,
+    "gateway_runtime_restarts": 0,
+    "playback": "PASS_77_OF_77",
+    "ai": "PASS_77_OF_77",
+    "result_sha256": "7a76fd4531972a6f4797355928c8a0f8e1a65a71faa3ba027ecb954570b355d8",
+    "checkpoints_sha256": "0686138a4a5ad3947bb6588db37917865d4e9d46022ac27f6d237d1166b0875c",
+    "state_sha256": "0470e7b5ce7109cccd41ea5859ef2a33d8966e170e9e3f409845312d962236e2",
+    "restricted_evidence_path_class": "exports/restricted/push38-gateway-0.2.90-host-isolated-v8-20261007T122423Z",
+    "gate_failures": [
+      "SOAK_EVIDENCE_INCOMPLETE",
+      "EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT",
+      "HOST_QUALIFICATION_INTERFERENCE"
+    ]
+  },
+  "channel_3_failure": {
+    "failed_checkpoints_before_host_interference": [236, 250, 251],
+    "later_failed_checkpoints": [307, 327, 336, 380, 381],
+    "final_external_stop_checkpoint_excluded_from_cause": 413,
+    "handoff_mode": "OUTPUT_RESCUE",
+    "handoff_path": "EXCLUSIVE_OUTPUT_RESCUE",
+    "handoff_failure": "EXCLUSIVE_RESCUE_ACQUISITION_FAILED",
+    "acquisition_failure": "source_timeout",
+    "generic_response_header_timeout_ms": 3500,
+    "observed_handoff_duration_ms": "approximately 3511 at failed acquisitions",
+    "retries_before_recovery": "5_to_8",
+    "shared_recorder_heartbeat": "HEALTHY_DURING_FAILURES",
+    "authentication_rejections": 0,
+    "process_restarts": 0
+  },
+  "root_cause": {
+    "classification": "EXCLUSIVE_MEDIA_REACQUISITION_USED_GENERIC_PROBE_TIMEOUT",
+    "confidence": "CAUSALLY_NARROWED",
+    "summary": "After an authoritative finite media response ended or an exclusive rescue released the prior response owner, the next recorder media fetch still used the generic 3500 ms read-only probe deadline. The recorder did not return response headers inside that generic deadline, so CH3 repeatedly entered EXCLUSIVE_RESCUE_ACQUISITION_FAILED and remained ownerless for minute checkpoints even though the shared recorder heartbeat remained healthy and no authentication or process failure occurred.",
+    "host_boundary": "The run is independently failed for 110 forbidden-workload checkpoints and 20 saturated checkpoints. CH3 failed at checkpoints 236, 250 and 251 before forbidden workloads appeared at checkpoint 302, so host interference is not a sufficient explanation for the media acquisition defect.",
+    "excluded_primary_causes": [
+      "DVR_AUTHENTICATION_REJECTION",
+      "GATEWAY_PROCESS_RESTART",
+      "SHARED_LOGIN_ROTATION_AS_PRIMARY_CAUSE",
+      "HOST_INTERFERENCE_AS_SOLE_CAUSE"
+    ]
+  },
+  "remediation": {
+    "ordinary_probe_timeout_ms": 3500,
+    "finite_or_exclusive_output_rescue_timeout_ms": 14000,
+    "exclusive_session_sweep_timeout_ms": 9000,
+    "policy": "Reuse existing qualified handoff acquisition budgets only after an authoritative finite-response boundary or exact old-owner release. Concurrent and ordinary probes retain the generic timeout.",
+    "threshold_weakened": false,
+    "duplicate_owner_allowed": false,
+    "diagnostic_added": "last_response_header_timeout_ms",
+    "focused_tests": "PASS_72_OF_72"
+  },
+  "host_cleanup": {
+    "stopped": [
+      "NON_QUALIFICATION_COLIMA_GBI"
+    ],
+    "preserved": [
+      "LIVE_GATEWAY",
+      "LIVE_CONNECTOR",
+      "PUSH38T_QUALIFICATION_DATABASE"
+    ],
+    "new_recurring_cost_usd": 0
+  },
+  "next_gate": "FULL_REGRESSION_THEN_IMMUTABLE_SIGNED_SUCCESSOR_AND_NEW_CANARY_FROM_ZERO"
+}

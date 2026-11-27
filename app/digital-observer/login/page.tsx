@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
 import { LockKeyhole, MapPinned, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { ObserverAuthDevicePreview } from "@/components/digital-observer/observer-auth-device-preview";
@@ -8,6 +10,7 @@ type PageProps = { searchParams?: Promise<{ error?: string; registered?: string;
 
 const loginErrors: Record<string, string> = {
   not_observer_account: "החשבון הזה אינו רשום למוצר התצפיתן הדיגיטלי.",
+  existing_account_sign_in: "כתובת המייל אומתה. כדי להצטרף לתצפיתן עם חשבון קיים, התחברו כאן במפורש עם הסיסמה של אותו חשבון. לא נוצר חשבון תצפיתן מהקישור בלבד.",
   observer_setup_required: "אימות המייל הצליח, אך הכנת חשבון התצפיתן טרם הושלמה. נסו להתחבר שוב; אם התקלה חוזרת, פנו לתמיכה.",
   email_not_confirmed: "כתובת המייל עדיין לא אומתה. אשרו את הקוד או את הקישור שנשלח למייל ואז נסו שוב.",
   invalid_login: "פרטי ההתחברות אינם נכונים. בדקו את כתובת המייל והסיסמה ונסו שוב.",
@@ -16,6 +19,9 @@ const loginErrors: Record<string, string> = {
 
 export default async function DigitalObserverLoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  // Native QA opens this route on every launch. Resume only a verified,
+  // active Observer session; explicit errors still render the login form.
+  if (!params?.error && await getDigitalObserverApiUser()) redirect("/digital-observer/dashboard");
   const initialType = params?.type === "business" ? "business" : "home";
   return (
     <main className="do-auth-page" dir="rtl">

@@ -6,7 +6,8 @@ import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/c
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { guardianChildIds } from "@/lib/management/family-link";
-import { findEligibleGardensForChild } from "@/lib/domain/child-garden-discovery";
+import { discoveryAgeGroup, findEligibleGardensForChild } from "@/lib/domain/child-garden-discovery";
+import { kindergartenAgeGroups } from "@/lib/domain/kindergarten-onboarding";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 
 const enrollmentLabels: Record<string, string> = {
@@ -27,6 +28,7 @@ const matchLabels: Record<string, string> = {
 export default async function DiscoverKindergartensPage({ searchParams }: { searchParams?: Promise<{ city?: string; age?: string; q?: string; child?: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const params = await searchParams;
+  const ageGroup = discoveryAgeGroup(params?.age);
   const userSupabase = await createClient();
   const childFileIds = await guardianChildIds(userSupabase, profile.id);
   const childProfiles = childFileIds.length ? await userSupabase.from("permanent_child_files" as any)
@@ -38,7 +40,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
   const children = (childProfiles.data ?? []) as any[];
   const selectedChild = children.find((child) => child.id === params?.child) ?? children[0] ?? null;
   const discovery = selectedChild
-    ? await findEligibleGardensForChild(userSupabase, profile.id, selectedChild.id, { city: params?.city, query: params?.q })
+    ? await findEligibleGardensForChild(userSupabase, profile.id, selectedChild.id, { city: params?.city, query: params?.q, ageGroup })
     : { kind: "ok" as const, matches: [] as any[] };
   const gardens = discovery.kind === "ok" ? discovery.matches as any[] : [];
 
@@ -51,10 +53,13 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           <button className="parent-filter-button" type="submit"><SlidersHorizontal size={22} /> סינון</button>
           <label>
             <Search size={24} />
-            <input name="q" placeholder="חפש גן ילדים, עיר או שכונה..." defaultValue={params?.q ?? ""} />
+            <input name="q" aria-label="חיפוש גן ילדים, עיר או שכונה" placeholder="חפש גן ילדים, עיר או שכונה..." defaultValue={params?.q ?? ""} />
           </label>
-          <input name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />
-          <input name="age" placeholder="קבוצת גיל" defaultValue={params?.age ?? ""} />
+          <input name="city" aria-label="סינון לפי עיר" placeholder="עיר" defaultValue={params?.city ?? ""} />
+          <select className="parent-discovery-age" name="age" aria-label="סינון לפי קבוצת גיל" defaultValue={ageGroup ?? ""}>
+            <option value="">כל קבוצות הגיל</option>
+            {kindergartenAgeGroups.map(({ key, label }) => <option key={key} value={key}>{label}</option>)}
+          </select>
           <select name="child" defaultValue={selectedChild?.id ?? ""} aria-label="בחירת ילד">
             {children.map((child) => <option key={child.id} value={child.id}>{cleanSyntheticLabel(child.full_name, "ילד/ה")}</option>)}
           </select>
@@ -62,7 +67,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
         </form>
 
         <nav className="parent-discovery-pills" aria-label="סינון מהיר">
-          <span><UsersRound size={18} /> כל הגילים</span>
+          <span><UsersRound size={18} /> {kindergartenAgeGroups.find(({ key }) => key === ageGroup)?.label ?? "כל הגילים"}</span>
           <span><Star size={18} /> פרופיל ציבורי</span>
           <span><MapPin size={18} /> עיר / אזור</span>
           <span><ShieldCheck size={18} /> מומלץ</span>
@@ -110,7 +115,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
                 </article>
               );
             })}
-            {gardens.length === 0 ? <ParentEmptyState title={selectedChild ? "לא נמצאו התאמות" : "נדרש כרטיס ילד"} text={selectedChild ? "אפשר לשנות עיר או חיפוש. גן מלא, סגור או לא תואם מסומן באופן מפורש." : "יש ליצור או לקשר כרטיס ילד מורשה לפני הצגת התאמות."} /> : null}
+            {gardens.length === 0 ? <ParentEmptyState title={discovery.kind === "birth_date_required" ? "נדרש תאריך לידה" : selectedChild ? "לא נמצאו התאמות" : "נדרש כרטיס ילד"} text={discovery.kind === "birth_date_required" ? "כדי להתאים גנים לגיל הילד/ה, יש להשלים את תאריך הלידה בכרטיס הילד מול הגן." : selectedChild ? "אפשר לשנות עיר, חיפוש או קבוצת גיל. גן מלא, סגור או לא תואם מסומן באופן מפורש." : "יש ליצור או לקשר כרטיס ילד מורשה לפני הצגת התאמות."} /> : null}
           </div>
         </ParentSection>
       </ParentAppFrame>

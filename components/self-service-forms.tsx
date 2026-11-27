@@ -2,9 +2,10 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, MapPin, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/components/gan-batuach-design-system";
-import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
+import { GanAddressFields } from "@/components/gan-address-fields";
 
 type ApiState = { ok: boolean; message: string; href?: string };
 export type SelfServiceAccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager" | "kindergarten_owner";
@@ -44,7 +45,6 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
   const [busy, setBusy] = useState(false);
   const [accountType, setAccountType] = useState<SelfServiceAccountType>(fixedAccountType ?? "parent");
   const isFixedRole = Boolean(fixedAccountType);
-  const cities = knownKindergartenCities();
   const activeRole = registrationRoles.find((role) => role.type === accountType) ?? { type: "kindergarten_owner" as const, icon: Building2, title: "בעל/ת גן", text: "", cta: "הרשמה כבעל/ת גן" };
 
   useEffect(() => {
@@ -92,6 +92,8 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
         email: formValue(form, "email"),
         phone: formValue(form, "phone") || undefined,
         city: formValue(form, "city") || undefined,
+        address_place_id: formValue(form, "address_place_id") || undefined,
+        address_session_token: formValue(form, "address_session_token") || undefined,
         password: formValue(form, "password"),
         invitation_token: invitationToken || undefined,
         identity_number: formValue(form, "identity_number") || undefined,
@@ -151,18 +153,13 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
           <FormField icon={Mail} label="כתובת דוא״ל *" name="email" type="email" required autoComplete="username" dir="ltr" />
           <FormField icon={UserRound} label="מספר טלפון *" name="phone" required autoComplete="tel" dir="ltr" />
           <FormField icon={BadgeCheck} label={accountType === "parent" ? "תעודת זהות" : "תעודת זהות *"} name="identity_number" required={accountType !== "parent"} inputMode="numeric" dir="ltr" />
-          {accountType === "kindergarten_manager" || accountType === "inspector_candidate" ? (
-            <FormField icon={MapPin} as="select" label="עיר *" name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></FormField>
-          ) : (
-            <FormField icon={MapPin} label="עיר" name="city" list="known-cities" />
-          )}
+          <GanAddressFields mode="city" requiredCity={accountType === "kindergarten_manager" || accountType === "inspector_candidate"} />
           {accountType === "staff_candidate" ? <FormField as="textarea" className="wide" label="ניסיון קודם קצר" name="previous_experience" rows={3} placeholder="ספרו בקצרה על ניסיון בגן או עבודה עם ילדים" /> : null}
           {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="אזורים מועדפים" name="preferred_regions" rows={3} placeholder="מרכז, שרון, ירושלים" /> : null}
           {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="ניסיון מקצועי" name="previous_experience" rows={3} placeholder="פיקוח, חינוך, בטיחות, תפעול או ניסיון רלוונטי" /> : null}
           <FormField icon={KeyRound} label="סיסמה *" name="password" type="password" required minLength={8} autoComplete="new-password" hint="לפחות 8 תווים" />
           <FormField icon={KeyRound} label="אימות סיסמה *" name="confirm_password" type="password" required minLength={8} autoComplete="new-password" />
         </div>
-        <datalist id="known-cities">{cities.map((city) => <option value={city} key={city} />)}</datalist>
         <label className="terms-check"><input name="terms_approved" type="checkbox" required /> אני מאשר/ת שימוש בפרטים לצורך הפעלת השירות, שיוך לגן או בדיקת מועמדות, בהתאם למדיניות הפרטיות ותנאי השימוש.</label>
         <div className="register-helper-row">
           <Link href="/trust">מדיניות פרטיות ואמון</Link>
@@ -253,6 +250,7 @@ export function ParentChildProfileForm() {
 export function EnrollmentRequestButton({ gardenId, childProfiles, feeGroups }: { gardenId: string; childProfiles: any[]; feeGroups: any[] }) {
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
+  const router = useRouter();
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -267,6 +265,7 @@ export function EnrollmentRequestButton({ gardenId, childProfiles, feeGroups }: 
       });
       setState({ ok: true, message: "בקשת ההצטרפות נשלחה למנהלת הגן." });
       form.reset();
+      router.refresh();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "שליחת הבקשה נכשלה" });
     } finally {
@@ -293,6 +292,40 @@ export function EnrollmentRequestButton({ gardenId, childProfiles, feeGroups }: 
       {state ? <small className={state.ok ? "pill good" : "pill bad"}>{state.message}</small> : null}
     </form>
   );
+}
+
+export function ParentEnrollmentInformationForm({ requestId }: { requestId: string }) {
+  const [state, setState] = useState<ApiState | null>(null);
+  const [busy, setBusy] = useState(false);
+  const router = useRouter();
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    const form = event.currentTarget;
+    try {
+      const response = await fetch("/api/parent/enrollment-requests", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "respond_information", request_id: requestId, response: formValue(form, "response") })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error ?? "שליחת התשובה נכשלה");
+      setState({ ok: true, message: "התשובה נשלחה והבקשה חזרה לבדיקת הגן." });
+      form.reset();
+      router.refresh();
+    } catch (error) {
+      setState({ ok: false, message: error instanceof Error ? error.message : "שליחת התשובה נכשלה" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <form className="form compact-form" onSubmit={submit}>
+    <label>תשובה למנהלת הגן<textarea name="response" maxLength={4000} minLength={1} required rows={3} /></label>
+    <button className="button primary" disabled={busy} type="submit">{busy ? "שולח..." : "שליחת תשובה"}</button>
+    {state ? <p role="status" className={state.ok ? "pill good" : "pill bad"}>{state.message}</p> : null}
+  </form>;
 }
 
 export function StaffApplicationForm({ opening }: { opening: any }) {
@@ -436,7 +469,8 @@ export function InspectorApplicationForm({ application }: { application?: any })
   );
 }
 
-export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: { endpoint: string; actions: Array<{ value: string; label: string }>; classrooms?: Array<{ id: string; name: string }> }) {
+export function ApplicationDecisionForm({ endpoint, actions, classrooms = [], classroomFieldName = "assigned_classroom_id" }: { endpoint: string; actions: Array<{ value: string; label: string }>; classrooms?: Array<{ id: string; name: string }>; classroomFieldName?: "assigned_classroom_id" | "classroom_id" }) {
+  const router = useRouter();
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -448,12 +482,13 @@ export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: 
         action: formValue(form, "action"),
         decision_reason: formValue(form, "decision_reason") || undefined,
         assigned_age_group: formValue(form, "assigned_age_group") || undefined,
-        assigned_classroom_id: formValue(form, "assigned_classroom_id") || undefined,
+        [classroomFieldName]: formValue(form, classroomFieldName) || undefined,
         assigned_role: formValue(form, "assigned_role") || undefined,
         assigned_regions: formValue(form, "assigned_regions").split(",").map((item) => item.trim()).filter(Boolean),
         garden_ids: formValue(form, "garden_ids").split(",").map((item) => item.trim()).filter(Boolean)
       });
       setState({ ok: true, message: "ההחלטה נשמרה." });
+      router.refresh();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "שמירת ההחלטה נכשלה" });
     } finally {
@@ -463,12 +498,13 @@ export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: 
   return (
     <form className="form compact-form" onSubmit={submit}>
       <select name="action" required>{actions.map((action) => <option key={action.value} value={action.value}>{action.label}</option>)}</select>
-      {classrooms.length ? <select name="assigned_classroom_id" defaultValue=""><option value="">בחירת כיתה בעת אישור</option>{classrooms.map((classroom) => <option value={classroom.id} key={classroom.id}>{classroom.name}</option>)}</select> : <>
+      {classrooms.length > 0 && actions.some((action) => action.value === "approve") ? <select name={classroomFieldName} defaultValue=""><option value="">בחירת כיתה בעת אישור</option>{classrooms.map((classroom) => <option value={classroom.id} key={classroom.id}>{classroom.name}</option>)}</select> : null}
+      {classrooms.length === 0 ? <>
         <input name="assigned_age_group" placeholder="קבוצת גיל / כיתה" />
         <input name="assigned_role" placeholder="תפקיד צוות" />
         <input name="assigned_regions" placeholder="אזורי מפקח, מופרדים בפסיק" />
         <input name="garden_ids" placeholder="מזהי גנים לשיוך, מופרדים בפסיק" />
-      </>}
+      </> : null}
       <textarea name="decision_reason" placeholder="הערת החלטה" />
       <button className="button secondary tiny" disabled={busy} type="submit"><BriefcaseBusiness size={14} /> שמירה</button>
       {state ? <small className={state.ok ? "pill good" : "pill bad"}>{state.message}</small> : null}

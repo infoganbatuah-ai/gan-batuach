@@ -5,6 +5,8 @@ import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
+type StaffShiftRow = { id: string; shift_date: string; planned_start: string | null; planned_end: string | null; actual_start: string | null; actual_end: string | null; total_minutes: number | null; approved_at: string | null; status: string };
+
 function shortTime(value?: string | null) {
   return value ? value.slice(0, 5) : "—";
 }
@@ -12,8 +14,8 @@ function shortTime(value?: string | null) {
 export default async function Page() {
   const { employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as any).select("id, full_name, garden_id").eq("id", employment!.staff_id).eq("garden_id", employment!.garden_id).maybeSingle();
-  const staff = staffRes.data as any;
+  const staffRes = await supabase.from("staff" as never).select("id, full_name, garden_id" as never).eq("id", employment!.staff_id).eq("garden_id", employment!.garden_id).maybeSingle();
+  const staff = staffRes.data as { id: string; full_name?: string; garden_id: string } | null;
   if (!staff?.id || !staff?.garden_id) {
     return (
       <StaffAppFrame active="home" mode="candidate">
@@ -24,8 +26,8 @@ export default async function Page() {
       </StaffAppFrame>
     );
   }
-  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, total_minutes, approved_at, status").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
-  const rows = (shiftsRes.data ?? []) as any[];
+  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as never).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, total_minutes, approved_at, status" as never).eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [], error: null };
+  const rows = (shiftsRes.data ?? []) as unknown as StaffShiftRow[];
   const monthKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit" }).format(new Date());
   const monthHours = rows.filter((row) => row.shift_date.startsWith(monthKey)).reduce((sum, row) => sum + (row.actual_end ? Number(row.total_minutes ?? 0) / 60 : 0), 0);
   const lateCount = rows.filter((row) => row.status === "late").length;
@@ -76,7 +78,7 @@ export default async function Page() {
         <Link className="gb-primary-button" href="/dashboard/staff/attendance">{openShift ? "יציאה / פרטי נוכחות" : "כניסה למשמרת"}</Link>
       </section>
       <StaffSection title="היסטוריית משמרות">
-        {rows.length === 0 ? (
+        {shiftsRes.error ? <p role="alert" className="ux07-local-error">לוח המשמרות אינו זמין כרגע. נסו שוב.</p> : rows.length === 0 ? (
           <StaffEmpty title="אין משמרות להצגה" text="לאחר שהמנהלת תגדיר משמרות או שתבוצע החתמה, שעות העבודה יופיעו כאן." icon={CalendarDays} />
         ) : (
           <div className="staff-task-list-ref">
@@ -84,9 +86,9 @@ export default async function Page() {
               <ListRowCard
                 key={row.id}
                 title={new Date(row.shift_date).toLocaleDateString("he-IL")}
-                subtitle={`מתוכנן ${row.planned_start ?? "-"}-${row.planned_end ?? "-"}`}
-                meta={`בפועל ${row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}-${row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}`}
-                status={<StatusChip tone={row.actual_start && !row.actual_end ? "warning" : "success"}>{row.actual_start && !row.actual_end ? "חסרה החתמת יציאה" : `${(Number(row.total_minutes ?? 0) / 60).toFixed(1)} שעות`}</StatusChip>}
+                subtitle={<>מתוכנן <bdi dir="ltr">{shortTime(row.planned_start)}–{shortTime(row.planned_end)}</bdi></>}
+                meta={<>בפועל <bdi dir="ltr">{row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}–{row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}</bdi></>}
+                status={<StatusChip tone={row.actual_start && !row.actual_end ? "warning" : !row.actual_start ? "info" : "success"}>{row.actual_start && !row.actual_end ? "חסרה החתמת יציאה" : !row.actual_start ? "מתוכנן" : `${(Number(row.total_minutes ?? 0) / 60).toFixed(1)} שעות`}</StatusChip>}
               />
             ))}
           </div>

@@ -6,6 +6,7 @@ import { ParentTrustCenterActions } from "@/components/parent-trust-center-actio
 import { ParentActionTile, ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { parentTrustGardenIds, resolveParentTrustGarden } from "@/lib/domain/parent-trust-garden";
 import { complaintParentStatus, parentTrustTone, parentTrustVisibilityRules, trustBadgeLabel, trustFeedLabel } from "@/lib/domain/parent-trust";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -43,26 +44,29 @@ function ActionCard({ title, href, icon }: { title: string; text?: string; href:
   return <ParentActionTile title={title} href={href} icon={icon} tone="purple" />;
 }
 
-export default async function ParentTrustCenterV2Page() {
+export default async function ParentTrustCenterV2Page({ searchParams }: { searchParams: Promise<{ garden?: string | string[] }> }) {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
-  const gardenId = family.gardenIds[0] ?? profile.garden_id ?? "";
+  const eligibleGardenIds = parentTrustGardenIds(family);
+  const requestedGarden = (await searchParams).garden;
+  const gardenId = resolveParentTrustGarden(typeof requestedGarden === "string" ? requestedGarden : null, eligibleGardenIds)
+    ?? (!requestedGarden && eligibleGardenIds.length > 1 ? eligibleGardenIds[0] : "");
   const parentIds = family.parentIds;
 
   const [trustRes, transparencyRes, feedRes, inspectionsRes, complaintsRes, educationRes, announcementsRes, calendarRes, surveysRes, feedbackRes, requestsRes, participationRes] = await Promise.all([
     gardenId ? supabase.from("parent_trust_profiles" as any).select("*, gardens(name,city,safe_status)").eq("garden_id", gardenId).maybeSingle() : Promise.resolve({ data: null }),
     gardenId ? supabase.from("parent_transparency_scores" as any).select("*").eq("garden_id", gardenId).order("calculated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
     gardenId ? supabase.from("parent_trust_feed" as any).select("*").eq("garden_id", gardenId).eq("approved_for_parents", true).order("occurred_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
-    family.gardenIds.includes(gardenId) ? createAdminClient().from("inspections" as any).select("id,weighted_score,completed_at,violation_count,status").eq("garden_id", gardenId).eq("status", "done").order("completed_at", { ascending: false }).limit(5) : Promise.resolve({ data: [] }),
-    parentIds.length ? supabase.from("complaints" as any).select("id,subject,severity,status,created_at,closed_at").in("parent_id", parentIds).order("created_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
+    eligibleGardenIds.includes(gardenId) ? createAdminClient().from("inspections" as any).select("id,weighted_score,completed_at,violation_count,status").eq("garden_id", gardenId).eq("status", "done").order("completed_at", { ascending: false }).limit(5) : Promise.resolve({ data: [] }),
+    gardenId && parentIds.length ? supabase.from("complaints" as any).select("id,subject,severity,status,created_at,closed_at").in("parent_id", parentIds).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
     supabase.from("parent_trust_education_items" as any).select("*").eq("active", true).order("display_order", { ascending: true }).limit(8),
     gardenId ? supabase.from("community_announcements" as any).select("*").eq("garden_id", gardenId).eq("published", true).order("published_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
     gardenId ? supabase.from("community_calendar_events" as any).select("*").eq("garden_id", gardenId).eq("visible_to_parents", true).gte("starts_at", new Date(Date.now() - 86400000).toISOString()).order("starts_at", { ascending: true }).limit(8) : Promise.resolve({ data: [] }),
     gardenId ? supabase.from("parent_surveys" as any).select("*").or(`garden_id.eq.${gardenId},garden_id.is.null`).eq("status", "active").eq("visible_to_parents", true).order("created_at", { ascending: false }).limit(5) : Promise.resolve({ data: [] }),
-    supabase.from("parent_feedback_items" as any).select("*").eq("parent_profile_id", profile.id).order("created_at", { ascending: false }).limit(8),
-    supabase.from("parent_request_center_items" as any).select("*").eq("parent_profile_id", profile.id).order("created_at", { ascending: false }).limit(8),
-    supabase.from("parent_participation_items" as any).select("*").eq("parent_profile_id", profile.id).order("created_at", { ascending: false }).limit(8)
+    gardenId ? supabase.from("parent_feedback_items" as any).select("*").eq("parent_profile_id", profile.id).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
+    gardenId ? supabase.from("parent_request_center_items" as any).select("*").eq("parent_profile_id", profile.id).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
+    gardenId ? supabase.from("parent_participation_items" as any).select("*").eq("parent_profile_id", profile.id).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] })
   ]);
 
   const trust = (trustRes.data ?? {}) as any;
@@ -84,6 +88,13 @@ export default async function ParentTrustCenterV2Page() {
       <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="commercial-dashboard parent-trust-network-shell">
         <ParentHero title="אמון, שקיפות וקהילה" subtitle="בטיחות, ציות, צוות, ביקורות, הודעות, בקשות ואירועים במרכז אחד" />
+        {eligibleGardenIds.length > 1 ? <nav className="parent-trust-garden-switcher" aria-label="בחירת גן למרכז האמון">
+          {eligibleGardenIds.map((id) => {
+            const garden = (family.gardens as Array<{ id: string; name?: string | null }>).find((item) => item.id === id);
+            return <Link key={id} href={`/dashboard/parent/trust-center?garden=${encodeURIComponent(id)}`} className={`parent-status-chip ${id === gardenId ? "green" : "purple"}`} aria-current={id === gardenId ? "page" : undefined}>{garden?.name ?? "גן משויך"}</Link>;
+          })}
+        </nav> : null}
+        {!gardenId ? <EmptyState title="לא נמצא גן פעיל" text="מרכז האמון זמין לאחר שיוך פעיל לגן." /> : null}
         <ParentSection title="מצב אמון" subtitle={`${trust.trust_score ?? 0}/100`}>
           <div className="setup-checklist"><span>{trustBadgeLabel(trust.trust_badge_status)}</span><span>{trust.gardens?.name ?? "גן משויך"}</span><span>אין מידע פנימי רגיש</span></div>
           <div className="parent-status-row"><Link className="button primary" href="/dashboard/parent/messages">מרכז תקשורת</Link><Link className="button secondary" href="/dashboard/parent/notifications">התראות</Link></div>
@@ -134,7 +145,7 @@ export default async function ParentTrustCenterV2Page() {
           </article>
         </section>
 
-        <ParentTrustCenterActions surveys={surveys as any[]} events={calendar as any[]} />
+        {gardenId ? <ParentTrustCenterActions key={gardenId} gardenId={gardenId} surveys={surveys as any[]} events={calendar as any[]} /> : null}
 
         <section className="grid cols-2 dashboard-panels">
           <article className="parent-section-card"><h2><MessageSquareWarning size={20} /> משוב ובקשות</h2>{[...feedback, ...requests].length === 0 ? <div className="empty-mini">אין בקשות פתוחות.</div> : [...feedback, ...requests].slice(0, 8).map((item) => <div className="list-item" key={item.id}><div><strong>{item.title}</strong><span>{date(item.created_at)}</span></div><StatusBadge tone={parentTrustTone(item.lifecycle_status)}>{complaintParentStatus(item.lifecycle_status)}</StatusBadge></div>)}</article>

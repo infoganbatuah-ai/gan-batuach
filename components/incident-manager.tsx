@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Siren } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
@@ -24,17 +24,31 @@ export function IncidentManager({
   children,
   incidents,
   initialChildId = "",
-  defaultOpen = false
+  defaultOpen = false,
+  focusNewIncident = false
 }: {
   gardenId: string;
   children: any[];
   incidents: any[];
   initialChildId?: string;
   defaultOpen?: boolean;
+  focusNewIncident?: boolean;
 }) {
   const [rows, setRows] = useState(incidents);
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
+  const titleRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!focusNewIncident) return;
+    const frame = requestAnimationFrame(() => {
+      const input = titleRef.current;
+      if (!input) return;
+      input.focus({ preventScroll: true });
+      const bounds = input.getBoundingClientRect();
+      if (bounds.top < 0 || bounds.bottom > window.innerHeight - 80) input.scrollIntoView({ block: "center", behavior: "instant" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [focusNewIncident]);
 
   async function submit(formData: FormData) {
     setMessage("");
@@ -79,7 +93,7 @@ export function IncidentManager({
           <label>סוג אירוע<select name="incident_type">{incidentTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
           <label>ילד/ה קשור/ה<select name="child_id" defaultValue={initialChildId}><option value="">לא משויך לילד</option>{children.map((child) => <option key={child.id} value={child.id}>{child.full_name}</option>)}</select></label>
           <label>חומרה<select name="severity"><option value="low">נמוכה</option><option value="medium">בינונית</option><option value="high">גבוהה</option><option value="critical">קריטית</option></select></label>
-          <label>כותרת<input name="title" required placeholder="לדוגמה: נפילה בחצר" /></label>
+          <label>כותרת<input ref={titleRef} name="title" required placeholder="לדוגמה: נפילה בחצר" /></label>
           <label className="wide">תיאור<textarea name="description" rows={5} required placeholder="מה קרה, מתי, מי היה נוכח ומה נעשה מיד" /></label>
           <label className="wide">תמונות אירוע<input name="photos" type="file" accept="image/*" multiple /></label>
           <label><input type="checkbox" name="parent_notified" /> הורה עודכן</label>

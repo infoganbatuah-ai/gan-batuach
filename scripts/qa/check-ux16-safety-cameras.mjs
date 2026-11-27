@@ -4,6 +4,7 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import {
   MANAGEMENT_LIVE_PRODUCTION_VERIFIED,
+  MANAGEMENT_MONITORING_CONTRACT_VERIFIED,
   cameraTruthState,
   safetySummary,
   toSafetyCamera
@@ -33,6 +34,24 @@ test("camera source state is truthful and distinct from Live capability", () => 
   assert.equal(camera.truthState, "online");
   assert.equal(camera.liveState, "production_verification_required");
   assert.equal(camera.liveLabel, "Live דורש אימות Production");
+});
+
+test("an online camera flag cannot assert active Gan monitoring before contract attestation", () => {
+  assert.equal(MANAGEMENT_MONITORING_CONTRACT_VERIFIED, false);
+  for (const role of ["owner", "manager", "parent", "staff", "inspector", "admin"]) {
+    const online = toSafetyCamera({ id: "c1", active: true, status: "online", observer_enabled: true, parent_view_allowed: true, staff_view_allowed: true, inspector_view_allowed: true }, role);
+    assert.equal(online.truthState, "online");
+    assert.equal(online.monitoring, false);
+    assert.equal(online.monitoringLabel, "ממתין לאימות חוזה");
+    assert.equal(online.liveState, "production_verification_required");
+  }
+  for (const status of ["offline", "degraded"]) {
+    const camera = toSafetyCamera({ id: "c2", active: true, status, observer_enabled: true }, "owner");
+    assert.equal(camera.truthState, status);
+    assert.equal(camera.monitoring, false);
+    assert.equal(camera.monitoringLabel, "לא פעיל");
+  }
+  assert.equal(toSafetyCamera({ id: "c3", active: true, status: "online", observer_enabled: false }, "owner").monitoringLabel, "לא פעיל");
 });
 
 test("role camera policies remain separate", () => {

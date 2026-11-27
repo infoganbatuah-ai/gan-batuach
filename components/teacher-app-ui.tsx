@@ -38,6 +38,7 @@ export function TeacherAppFrame({
   subtitle,
   avatarUrl,
   active = "home",
+  sidebarActiveHref,
   role = "manager"
 }: {
   children: ReactNode;
@@ -45,6 +46,7 @@ export function TeacherAppFrame({
   subtitle?: string;
   avatarUrl?: string | null;
   active?: "home" | "children" | "calendar" | "messages" | "more";
+  sidebarActiveHref?: string;
   role?: "manager" | "owner";
 }) {
   const firstTitleWord = title.replace(/\[DEMO\]/g, "").trim();
@@ -60,6 +62,7 @@ export function TeacherAppFrame({
     <RoleAppShell
       role={role}
       activeHref={activeMap.href}
+      sidebarActiveHref={sidebarActiveHref}
       title={firstTitleWord}
       subtitle={subtitle?.replace(/\[DEMO\]/g, "")}
       profile={{ full_name: profileName, profile_image_url: avatarUrl }}

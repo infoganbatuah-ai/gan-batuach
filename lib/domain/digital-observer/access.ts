@@ -1,10 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- canonical Digital Observer tables include additive migrations pending generated types. */
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import type { Database } from "@/lib/supabase/types";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/current-admin-authority";
+export { safeObserverReturnPath } from "@/lib/domain/digital-observer/safe-return-path";
 
 type ObserverSupabaseClient = SupabaseClient<Database>;
+
+async function currentObserverSessionActive(supabase: ObserverSupabaseClient) {
+  // getUser verifies the JWT; this bounded RPC additionally enforces the
+  // existing Auth session's expiry/revocation. Missing schema fails closed.
+  const { data, error } = await supabase.rpc("digital_observer_current_session_active" as never);
+  return !error && data === true;
+}
 
 export type ObserverAccessProfile = {
   id: string;
@@ -17,19 +27,22 @@ export async function getObserverSiteAccess(
   observerSiteId: string,
   options: { manage?: boolean; billing?: boolean } = {}
 ) {
+  if (options.billing) {
+    const { data } = await supabase.rpc("digital_observer_billing_site_summary" as never, { target_site_id: observerSiteId } as never);
+    const safeSite = Array.isArray(data) ? data[0] : null;
+    if (safeSite) return safeSite;
+  }
   const { data: siteResult } = await supabase
     .from("observer_sites" as any)
-    .select("id,name,site_type,owner_profile_id,garden_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
+    .select("id,name,site_type,owner_profile_id,garden_id,digital_observer_organization_id,timezone,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
     .eq("id", observerSiteId)
     .maybeSingle();
   const site = siteResult as any;
 
   if (!site || site.site_type === "kindergarten" || site.garden_id) return null;
-  if (profile.role === "admin" || site.owner_profile_id === profile.id) return site;
+  if (site.owner_profile_id === profile.id || await hasCurrentObserverAdmin(profile.id)) return site;
 
-  const allowedRoles = options.billing
-    ? ["owner", "admin", "billing"]
-    : options.manage
+  const allowedRoles = options.manage
       ? ["owner", "admin", "operator"]
       : ["owner", "admin", "operator", "viewer"];
   const { data: membership } = await supabase
@@ -41,36 +54,44 @@ export async function getObserverSiteAccess(
     .in("member_role", allowedRoles)
     .maybeSingle();
 
-  return membership ? site : null;
-}
-
-export function safeObserverReturnPath(value?: string | null) {
-  if (!value || !value.startsWith("/digital-observer") || value.startsWith("//")) {
-    return "/digital-observer/dashboard";
+  if (membership) return site;
+  if (site.digital_observer_organization_id) {
+    const permission = options.manage ? "site.configure" : "camera.live.view";
+    const { data: allowed } = await supabase.rpc("digital_observer_has_org_permission" as never, {
+      target_organization_id: site.digital_observer_organization_id,
+      requested_permission: permission,
+      target_site_id: observerSiteId
+    } as never);
+    if (allowed === true) return site;
   }
-  return value;
+  return null;
 }
 
 export async function requireDigitalObserverUser(loginPath = "/digital-observer/login") {
   const session = await requireUser(loginPath);
   const supabase = await createClient();
-  const [account, ownedSite, membership] = await Promise.all([
+  if (!await currentObserverSessionActive(supabase)) redirect("/digital-observer/login?error=session_expired");
+  const [account, ownedSite, membership, organizationMembership] = await Promise.all([
     supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", session.user.id).maybeSingle(),
     supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", session.user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
-    supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", session.user.id).eq("active", true).limit(1).maybeSingle()
+    supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", session.user.id).eq("active", true).limit(1).maybeSingle(),
+    supabase.from("digital_observer_organization_memberships" as any).select("organization_id").eq("profile_id", session.user.id)
+      .eq("active", true).is("revoked_at", null).limit(1).maybeSingle()
   ]);
-  const isObserver = session.user.user_metadata?.product === "digital_observer"
-    || session.user.app_metadata?.digital_observer_admin === true
-    || Boolean(account.data || ownedSite.data || membership.data);
+  // Neither editable user_metadata nor a potentially stale JWT app_metadata
+  // claim can replace a current, scoped server-side Observer association.
+  const isObserver = Boolean(account.data || ownedSite.data || membership.data || organizationMembership.data);
   if (!isObserver) redirect("/digital-observer/login?error=not_observer_account");
   return { ...session, observerAccount: account.data ?? null };
 }
 
 export async function getDigitalObserverApiUser(request?: Request) {
-  const authorization = request?.headers.get("authorization") ?? "";
-  const accessToken = authorization.startsWith("Bearer ")
-    ? authorization.slice("Bearer ".length).trim()
-    : null;
+  const authorization = request?.headers.get("authorization") ?? null;
+  // An explicitly supplied credential must never be replaced by a different
+  // ambient browser cookie when the header is unsupported or empty.
+  if (authorization !== null && !authorization.startsWith("Bearer ")) return null;
+  const accessToken = authorization?.slice("Bearer ".length).trim() || null;
+  if (authorization !== null && !accessToken) return null;
   const supabase: ObserverSupabaseClient = accessToken
     ? createSupabaseClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -95,6 +116,8 @@ export async function getDigitalObserverApiUser(request?: Request) {
     return null;
   }
 
+  if (!await currentObserverSessionActive(supabase)) return null;
+
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id,role,garden_id,active,full_name")
@@ -108,20 +131,21 @@ export async function getDigitalObserverApiUser(request?: Request) {
     return null;
   }
 
-  const [account, ownedSite, membership] = await Promise.all([
+  const [account, ownedSite, membership, organizationMembership] = await Promise.all([
     supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", user.id).maybeSingle(),
     supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
-    supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
+    supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle(),
+    supabase.from("digital_observer_organization_memberships" as any).select("organization_id").eq("profile_id", user.id)
+      .eq("active", true).is("revoked_at", null).limit(1).maybeSingle()
   ]);
-  const isObserver = user.user_metadata?.product === "digital_observer"
-    || user.app_metadata?.digital_observer_admin === true
-    || Boolean(account.data || ownedSite.data || membership.data);
+  const isObserver = Boolean(account.data || ownedSite.data || membership.data || organizationMembership.data);
   if (!isObserver) {
     console.warn("Digital Observer API session rejected", {
       reason: "observer_scope_not_available",
       accountCode: account.error?.code ?? null,
       siteCode: ownedSite.error?.code ?? null,
-      membershipCode: membership.error?.code ?? null
+      membershipCode: membership.error?.code ?? null,
+      organizationMembershipCode: organizationMembership.error?.code ?? null
     });
     return null;
   }

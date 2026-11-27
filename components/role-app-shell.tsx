@@ -210,6 +210,7 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
 export function RoleAppShell({
   role,
   activeHref,
+  sidebarActiveHref,
   title,
   subtitle,
   profile,
@@ -221,6 +222,7 @@ export function RoleAppShell({
 }: {
   role: RoleAppShellRole;
   activeHref?: string;
+  sidebarActiveHref?: string;
   title?: ReactNode;
   subtitle?: ReactNode;
   profile?: RoleAppShellProfile | null;
@@ -296,7 +298,7 @@ export function RoleAppShell({
         </Link>
         <span className="role-app-sidebar-title"><b>{config.label}</b><span>{config.subtitle}</span></span>
       </div>}
-      activeHref={resolvedActive}
+      activeHref={sidebarActiveHref ?? resolvedActive}
       items={config.desktopNav ?? config.nav}
     />
   );
@@ -308,7 +310,7 @@ export function RoleAppShell({
       sidebar={sidebar}
       bottomNav={<BottomNav className="role-app-bottom-nav" activeHref={resolvedActive} items={config.nav} />}
     >
-      <ResponsivePage className="role-app-page" size="lg">
+      <ResponsivePage id="dashboard-primary-content" tabIndex={-1} className="role-app-page" size="lg">
         {children}
       </ResponsivePage>
     </AppShell>

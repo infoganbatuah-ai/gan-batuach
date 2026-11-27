@@ -4,6 +4,7 @@ import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { InternalMessagingCenter } from "@/components/internal-messaging-center";
 import { ParentRequestActions } from "@/components/parent-request-actions";
 import { requireRole } from "@/lib/auth";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 import { createClient } from "@/lib/supabase/server";
 import {
   TeacherActionTile,
@@ -22,7 +23,8 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
   const { profile } = await requireRole(["manager", "owner"]);
   const { childId, status, compose } = await searchParams;
   const supabase = await createClient();
-  const gardenId = profile.garden_id ?? "";
+  const context = await resolveManagementGardenContext(profile);
+  const gardenId = context.activeGarden?.id ?? "";
   const [parentsRes, staffRes, childrenRes, messagesRes, parentRequestsRes] = await Promise.all([
     supabase.from("parents" as any).select("profiles:profile_id(id, full_name, email, role, profile_image_url)").eq("garden_id", gardenId),
     supabase.from("staff" as any).select("profiles:profile_id(id, full_name, email, role, profile_image_url)").eq("garden_id", gardenId),

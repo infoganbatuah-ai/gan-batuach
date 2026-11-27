@@ -3,6 +3,7 @@
 const fill = require('fill-range');
 const stringify = require('./stringify');
 const utils = require('./utils');
+const { MAX_DEPTH } = require('./constants');
 
 const append = (queue = '', stash = '', enclose = false) => {
   const result = [];
@@ -32,8 +33,14 @@ const append = (queue = '', stash = '', enclose = false) => {
 
 const expand = (ast, options = {}) => {
   const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;
+  const maxDepth = Number.isFinite(options.maxDepth)
+    ? Math.max(1, Math.min(MAX_DEPTH, Math.floor(options.maxDepth)))
+    : MAX_DEPTH;
 
-  const walk = (node, parent = {}) => {
+  const walk = (node, parent = {}, depth = 0) => {
+    if (node.nodes && depth > maxDepth) {
+      throw new RangeError(`AST depth (${depth}), exceeds max depth (${maxDepth})`);
+    }
     node.queue = [];
 
     let p = parent;
@@ -100,14 +107,14 @@ const expand = (ast, options = {}) => {
       }
 
       if (child.nodes) {
-        walk(child, node);
+        walk(child, node, child.nodes ? depth + 1 : depth);
       }
     }
 
     return queue;
   };
 
-  return utils.flatten(walk(ast));
+  return utils.flatten(walk(ast, {}, ast.type === 'root' ? 0 : 1));
 };
 
 module.exports = expand;

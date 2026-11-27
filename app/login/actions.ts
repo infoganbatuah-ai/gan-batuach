@@ -7,6 +7,7 @@ import { dashboardPathForProfile } from "@/lib/auth";
 import { safeObserverReturnPath } from "@/lib/domain/digital-observer/access";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 import { isRole } from "@/lib/roles";
+import { hasExplicitGanBatuachAccess } from "@/lib/domain/gan-batuach/access";
 
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") || "");
@@ -104,6 +105,10 @@ export async function signIn(formData: FormData) {
   }
   if (requestedNext.startsWith("/invite/accept?token=") && !requestedNext.startsWith("//")) {
     redirect(requestedNext);
+  }
+  if (!profile || !await hasExplicitGanBatuachAccess(supabase, profile)) {
+    await supabase.auth.signOut();
+    redirect("/app/access-not-provisioned");
   }
   const role = profile?.role;
   const path = isRole(role) && profile ? await dashboardPathForProfile(profile) : "/dashboard";

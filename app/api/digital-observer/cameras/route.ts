@@ -10,6 +10,7 @@ import {
   cameraConnectionMetadataForAssessment
 } from "@/lib/domain/digital-observer/camera-connection-layer";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertCommercialEntitlement } from "@/lib/domain/digital-observer/commercial-billing-service";
 
 const targets = ["person", "unknown_person", "animal", "entry_exit", "vehicle", "vehicle_tampering", "distress", "room_entry_exit", "after_hours", "camera_obstruction", "restricted_area", "crowding", "door_left_open"] as const;
 
@@ -106,6 +107,15 @@ export async function POST(request: Request) {
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאה להוסיף מצלמה לאתר הזה.", 403);
+      const entitlementAdmin = createAdminClient();
+      const currentCameras = await entitlementAdmin.from("digital_observer_camera_sources")
+        .select("id", { count: "exact", head: true }).eq("observer_site_id", payload.observer_site_id).neq("status", "disabled");
+      if (currentCameras.error) return fail("לא ניתן לאמת את מגבלת המצלמות.", 503);
+      try {
+        await assertCommercialEntitlement(entitlementAdmin, { siteId: payload.observer_site_id, key: "cameras", currentUsage: currentCameras.count ?? 0 });
+      } catch (error) {
+        return fail(error instanceof Error ? error.message : "CAMERA_ENTITLEMENT_DENIED", 403);
+      }
       // Legacy technical creation is support-only. Existing source management,
       // playback and runtime ingestion remain unchanged.
       if (payload.connector_type !== "demo" && profile.role !== "admin") {

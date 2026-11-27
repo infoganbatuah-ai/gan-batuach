@@ -1,0 +1,8 @@
+.form { display: grid; grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: 12px; }
+.form label { display: grid; gap: 5px; min-width: 0; color: #315a8b; font-size: .8rem; font-weight: 800; }
+.form :is(input, select) { width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid #d5e2f1; border-radius: 11px; background: #f8fbff; color: #0c3978; }
+.form :global(.gb-primary-button) { min-height: 44px; white-space: nowrap; }
+.note { grid-column: 1 / -1; margin: 0; color: #607994; font-size: .75rem; }
+.feedback { grid-column: 1 / -1; margin: 0; }
+.success { padding: 11px 14px; border: 1px solid #a8dfcd; border-radius: 12px; background: #edfbf6; color: #087455; }
+@media (max-width: 820px) { .form { grid-template-columns: 1fr; } }

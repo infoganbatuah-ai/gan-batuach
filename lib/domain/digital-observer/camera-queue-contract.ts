@@ -127,9 +127,9 @@ export type CameraQueueRow = {
   request_origin?: string; dispatch_intent_digest?: string | null; delivered_at?: string | null;
   non_retryable?: boolean | null; result_phase?: Record<string, unknown> | null;
 };
-export type QueueSource = { id: string; observer_site_id: string; status?: string | null; health_status?: string | null; metadata?: Record<string, unknown> | null };
+export type QueueSource = { id: string; observer_site_id: string; source_mode?: string | null; status?: string | null; health_status?: string | null; metadata?: Record<string, unknown> | null };
 export const cameraQueueSelect = "id,camera_source_id,observer_site_id,gateway_id,stream_id,channel,source_generation,binding_generation,requested_at,expires_at,task_kind,action_type,payload_digest,action_status,result_digest,delivered_at,requested_by,confirmed_by,confirmed_at,confirmation_id,confirmation_expires_at,parameters,capability_evidence,request_origin,dispatch_intent_digest,non_retryable,result_phase";
-export const cameraQueueSourceSelect = "source:digital_observer_camera_sources!inner(id,observer_site_id,status,health_status,metadata)";
+export const cameraQueueSourceSelect = "source:digital_observer_camera_sources!inner(id,observer_site_id,source_mode,status,health_status,metadata)";
 
 export function canonicalDigest(value: unknown) {
   const canonical = (child: unknown): unknown => Array.isArray(child) ? child.map(canonical)

@@ -20,7 +20,7 @@ const published_at = "2026-09-13T00:00:00+03:00";
 const groups = ["תינוקייה", "פעוטון", "טרום־טרום חובה", "טרום חובה", "חובה"];
 const common = { image_url: DEFAULT_ARTICLE_IMAGE, published_at, status: "published" as const };
 
-export const initialArticles: Article[] = [
+export const legacyArticles: Article[] = [
   {
     ...common, slug: "what-is-gan-batuach", title: "מה זה גן בטוח, ולמה גן פרטי צריך סטנדרט נוסף?",
     summary: "ההבדל בין רישוי ממשלתי לבין תו התקן הפרטי של גן בטוח — ואיך ניהול, תיעוד ופיקוח יכולים לעבוד יחד.",
@@ -106,3 +106,18 @@ export const initialArticles: Article[] = [
     faqs: [{ question: "האם גן בלי ציון הוא גן לא בטוח?", answer: "לא. היעדר ציון יכול לומר שלא נערכה או לא פורסמה בדיקה; אין להסיק ממנו איכות." }, { question: "האם ציון איכות מחליף רישוי?", answer: "לא. יש לבדוק רישיון ותנאים רשמיים בנפרד." }], sources: [SOURCE_LINKS.ministry]
   }
 ];
+
+import { editorialEnhancements } from "./enhancements";
+
+export const initialArticles: Article[] = legacyArticles.map((article) => {
+  const enhancement = editorialEnhancements[article.slug];
+  if (!enhancement) return article;
+  return {
+    ...article,
+    image_url: enhancement.cover,
+    image_alt: enhancement.coverAlt,
+    body: `${article.body}\n\n${enhancement.body}`,
+    sources: enhancement.sources,
+    updated_at: "2026-09-20T00:00:00+03:00"
+  };
+});

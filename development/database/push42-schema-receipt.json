@@ -1,0 +1,33 @@
+{
+  "observedAt": "2026-10-19T01:11:19.175Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "8c284a72e0174ef9dd4308220882d6f284ee9dc5",
+  "migration": "20261019030000_digital_observer_push42_external_api.sql",
+  "tables": [
+    {
+      "table": "digital_observer_external_api_request_receipts",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_external_api_usage_buckets",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_external_integration_sources",
+      "rls": true
+    }
+  ],
+  "migration_present": true,
+  "anonymous_receipts": false,
+  "authenticated_receipts": false,
+  "authenticated_source_write": false,
+  "authenticated_usage_execute": false,
+  "production_sources": 0,
+  "raw_secret_columns": 0,
+  "productionAccess": false,
+  "limitations": [
+    "Isolated Development schema only",
+    "No external API consumer, VMS, webhook receiver, provider or Production environment contacted"
+  ]
+}

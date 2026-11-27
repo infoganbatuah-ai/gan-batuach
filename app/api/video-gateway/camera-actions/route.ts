@@ -70,6 +70,9 @@ export async function POST(request: Request) {
       for (const row of (candidates.data ?? []) as unknown as JoinedRow[]) {
         let task;
         try {
+          if (row.task_kind === "physical_command" && !["live", "gateway_test"].includes(String(row.source?.source_mode))) {
+            throw new Error("CAMERA_QUEUE_SOURCE_NOT_LIVE");
+          }
           if (!queueBindingMatches(row, row.source, claims)) throw new Error("CAMERA_QUEUE_BINDING_CHANGED");
           task = queueTask(row);
         } catch {

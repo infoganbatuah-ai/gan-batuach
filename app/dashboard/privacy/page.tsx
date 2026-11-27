@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { Archive, FilePenLine, FileText, ShieldCheck, Trash2 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
@@ -7,6 +8,7 @@ import { isRole } from "@/lib/roles";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { PrivacySubjectDenied, resolvePrivacyRequestSubject } from "@/lib/privacy/request-subject";
 
 const requestLabels: Record<string, string> = {
   access: "גישה למידע",
@@ -31,6 +33,22 @@ const statusLabels: Record<string, string> = {
   blocked_by_legal_hold: "חסומה בשל חובה משפטית"
 };
 
+type PrivacyRequestRow = {
+  id: string;
+  status: string;
+  request_type: string;
+  child_id?: string | null;
+  garden_id?: string | null;
+  response_summary?: string | null;
+  request_reason?: string | null;
+  created_at?: string | null;
+  due_at?: string | null;
+};
+
+function deliveryWindowOpen(expiresAt: string) {
+  return Date.parse(expiresAt) > Date.now();
+}
+
 function tone(status: string): "good" | "warn" | "bad" {
   if (status === "completed" || status === "approved") return "good";
   if (status === "rejected" || status === "blocked_by_legal_hold") return "bad";
@@ -43,59 +61,116 @@ async function submitPrivacyRequest(formData: FormData) {
   const supabase = await createClient();
   const requestType = String(formData.get("request_type") ?? "access");
   const subjectMode = String(formData.get("subject_mode") ?? "self");
-  const childId = String(formData.get("child_id") ?? "") || null;
+  if (!Object.hasOwn(requestLabels, requestType) || !["self", "child", "garden"].includes(subjectMode)) {
+    redirect("/dashboard/privacy?request_error=invalid");
+  }
+  const childId = subjectMode === "child" ? String(formData.get("child_id") ?? "") || null : null;
   const requestReason = String(formData.get("request_reason") ?? "").slice(0, 1200);
   const requestKey = `privacy:${profile.id}:${requestType}:${Date.now()}`;
-  const subjectType = subjectMode === "child" ? "child" : subjectMode === "garden" ? "garden" : String(profile.role ?? "parent");
-  const dataSubjectId = subjectMode === "child" ? childId : profile.id;
   const dueAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  let subject;
+  try {
+    subject = await resolvePrivacyRequestSubject(supabase, profile, subjectMode as "self" | "child" | "garden", childId);
+  } catch (error) {
+    if (error instanceof PrivacySubjectDenied) redirect("/dashboard/privacy?request_error=subject");
+    throw error;
+  }
 
-  const insert = await supabase.from("privacy_rights_requests" as any).insert({
+  const insert = await supabase.from("privacy_rights_requests" as never).insert({
     request_key: requestKey,
     requester_profile_id: profile.id,
     requested_by: profile.id,
-    subject_user_id: subjectMode === "self" ? profile.id : null,
-    garden_id: profile.garden_id ?? null,
-    child_id: subjectMode === "child" ? childId : null,
+    subject_user_id: subject.subjectUserId,
+    garden_id: subject.gardenId,
+    child_id: subject.childId,
     request_type: requestType,
-    data_subject_type: subjectType,
-    data_subject_id: dataSubjectId,
-    subject_type: subjectType,
+    data_subject_type: subject.subjectType,
+    data_subject_id: subject.dataSubjectId,
+    subject_type: subject.subjectType,
     status: "submitted",
     due_at: dueAt,
     request_reason: requestReason || null,
     response_summary: "הבקשה התקבלה ותועבר לבדיקה ידנית.",
     metadata: { source: "dashboard_privacy_portal", parent_visible: true }
   }).select("id").single();
-  if (!insert.error) {
-    await writeAuditEvent({
-      eventType: "privacy_request_submitted",
-      eventCategory: "regulatory",
-      actorProfileId: profile.id,
-      actorRole: profile.role,
-      targetType: "privacy_request",
-      targetId: insert.data?.id ?? null,
-      gardenId: profile.garden_id ?? null,
-      childId,
-      metadata: { request_type: requestType, subject_mode: subjectMode },
-      riskLevel: requestType === "deletion" || requestType === "anonymization" ? "high" : "medium"
-    });
-  }
+  if (insert.error) redirect("/dashboard/privacy?request_error=submit");
+  const submitted = insert.data as unknown as { id: string };
+  await writeAuditEvent({
+    eventType: "privacy_request_submitted",
+    eventCategory: "regulatory",
+    actorProfileId: profile.id,
+    actorRole: profile.role,
+    targetType: "privacy_request",
+    targetId: submitted.id,
+    gardenId: subject.gardenId,
+    childId: subject.childId,
+    metadata: { request_type: requestType, subject_mode: subjectMode },
+    riskLevel: requestType === "deletion" || requestType === "anonymization" ? "high" : "medium"
+  });
   revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/privacy?submitted=1");
 }
 
-export default async function PrivacyPortalPage() {
+async function submitParentNameCorrection(formData: FormData) {
+  "use server";
+  const { profile } = await requireUser();
+  if (profile.role !== "parent") redirect("/dashboard/privacy?name_error=role");
+  const name = String(formData.get("proposed_full_name") ?? "").trim();
+  const reason = String(formData.get("correction_reason") ?? "").trim();
+  if (name.length < 2 || name.length > 120 || reason.length < 12 || reason.length > 1200) {
+    redirect("/dashboard/privacy?name_error=invalid");
+  }
+  const supabase = await createClient();
+  const result = await supabase.rpc("management_submit_parent_name_correction" as never, {
+    p_new_full_name: name, p_reason: reason
+  } as never);
+  if (result.error) redirect("/dashboard/privacy?name_error=submit");
+  revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/privacy?name_submitted=1");
+}
+
+export default async function PrivacyPortalPage({ searchParams }: { searchParams?: Promise<{ request_error?: string; submitted?: string; name_error?: string; name_submitted?: string }> }) {
+  const status = await searchParams;
   const { profile } = await requireUser();
   const supabase = await createClient();
   const role = isRole(profile.role) ? profile.role : "parent";
-  const family = role === "parent" ? await getParentFamilyContext(supabase as any, profile).catch(() => ({ children: [] })) : { children: [] as any[] };
+  const family = role === "parent" ? await getParentFamilyContext(supabase, profile).catch(() => ({ children: [], enrollments: [] })) : { children: [], enrollments: [] };
+  const selectableChildren = new Map<string, { id: string; full_name: string }>();
+  for (const child of family.children) {
+    if (child.id) selectableChildren.set(child.id, { id: child.id, full_name: child.full_name });
+  }
+  for (const enrollment of family.enrollments) {
+    if (enrollment.child_id) selectableChildren.set(enrollment.child_id, { id: enrollment.child_id, full_name: enrollment.full_name });
+  }
   const requestsRes = await supabase
-    .from("privacy_rights_requests" as any)
+    .from("privacy_rights_requests" as never)
     .select("*")
     .or(`requester_profile_id.eq.${profile.id},requested_by.eq.${profile.id},subject_user_id.eq.${profile.id}`)
     .order("created_at", { ascending: false })
     .limit(50);
-  const requests = (requestsRes.data ?? []) as any[];
+  const requests = (requestsRes.data ?? []) as PrivacyRequestRow[];
+  const proposalsRes = role === "parent" ? await supabase
+    .from("privacy_parent_name_correction_proposals" as never)
+    .select("privacy_request_id,proposed_full_name,applied_at")
+    .eq("requester_profile_id", profile.id).limit(50) : { data: [] };
+  const proposals = new Map(((proposalsRes.data ?? []) as Array<{
+    privacy_request_id: string; proposed_full_name: string; applied_at: string | null
+  }>).map((item) => [item.privacy_request_id, item]));
+  const grantsRes = await supabase.from("privacy_self_delivery_grants" as never)
+    .select("privacy_request_id,expires_at,revoked_at,access_count")
+    .eq("requester_profile_id", profile.id).limit(50);
+  const grants = new Map(((grantsRes.data ?? []) as Array<{
+    privacy_request_id: string; expires_at: string; revoked_at: string | null; access_count: number
+  }>).map((grant) => [grant.privacy_request_id, grant]));
+  const childGrantsRes = role === "parent"
+    ? await supabase.from("privacy_child_garden_delivery_grants" as never)
+      .select("privacy_request_id,child_id,garden_id,expires_at,revoked_at,access_count")
+      .eq("requester_profile_id", profile.id).limit(50)
+    : { data: [] };
+  const childGrants = new Map(((childGrantsRes.data ?? []) as Array<{
+    privacy_request_id: string; child_id: string; garden_id: string;
+    expires_at: string; revoked_at: string | null; access_count: number
+  }>).map((grant) => [grant.privacy_request_id, grant]));
   const open = requests.filter((request) => !["completed", "rejected", "cancelled"].includes(String(request.status))).length;
   const completed = requests.filter((request) => request.status === "completed").length;
   const sensitive = requests.filter((request) => ["deletion", "anonymization", "export"].includes(String(request.request_type))).length;
@@ -118,6 +193,20 @@ export default async function PrivacyPortalPage() {
         <StatCard label="SLA" value="30 ימים" tone="good" />
       </section>
 
+      {status?.request_error ? <p role="alert" className="pill warn">לא ניתן להגיש את הבקשה עבור הנושא שנבחר. בדקו את הבחירה ונסו שוב.</p> : null}
+      {status?.submitted ? <p role="status" className="pill good">הבקשה התקבלה לבדיקה ידנית.</p> : null}
+      {status?.name_error ? <p role="alert" className="pill bad">לא ניתן להגיש בקשה לתיקון השם. בדקו את השם, הנימוק ובקשות פתוחות.</p> : null}
+      {status?.name_submitted ? <p role="status" className="pill good">בקשת תיקון השם התקבלה לבדיקה. השם הנוכחי לא שונה.</p> : null}
+      {role === "parent" ? <section className="card action-panel">
+        <div className="section-heading"><h2><FilePenLine size={20} /> תיקון השם בפרופיל שלי</h2>
+          <p>מגישים שם מוצע ונימוק. רק לאחר בדיקת היקף, אישור מנהל והחלה מתועדת השם ישתנה. תיקון פרטי ילד או גן דורש בדיקה נפרדת.</p></div>
+        <form action={submitParentNameCorrection} className="form form-grid">
+          <label>השם הנוכחי<input value={profile.full_name} readOnly /></label>
+          <label>השם המלא המבוקש<input name="proposed_full_name" minLength={2} maxLength={120} required /></label>
+          <label className="wide">סיבת התיקון<textarea name="correction_reason" minLength={12} maxLength={1200} rows={2} required /></label>
+          <button className="button primary">שליחת בקשת תיקון השם לבדיקה</button>
+        </form>
+      </section> : null}
       <section className="grid cols-2 dashboard-panels">
         <form className="card form wizard-form" action={submitPrivacyRequest}>
           <div className="section-heading"><h2><ShieldCheck size={20} /> בקשה חדשה</h2><p>בחרו את סוג הבקשה והמידע הרלוונטי.</p></div>
@@ -139,10 +228,10 @@ export default async function PrivacyPortalPage() {
                 {["manager", "owner"].includes(role) ? <option value="garden">מידע תפעולי של הגן</option> : null}
               </select>
             </label>
-            {role === "parent" && (family.children as any[]).length ? <label>ילד/ה
+            {role === "parent" && selectableChildren.size ? <label>ילד/ה
               <select name="child_id">
                 <option value="">ללא בחירה</option>
-                {(family.children as any[]).map((child) => <option key={child.id} value={child.id}>{child.full_name}</option>)}
+                {Array.from(selectableChildren.values()).map(child => <option key={child.id} value={child.id}>{child.full_name}</option>)}
               </select>
             </label> : null}
             <label className="wide">פירוט קצר
@@ -165,16 +254,42 @@ export default async function PrivacyPortalPage() {
       <section className="dashboard-section">
         <div className="section-heading"><h2>הבקשות שלי</h2><p>סטטוס טיפול ובדיקות אדמין.</p></div>
         {requests.length === 0 ? <div className="empty-state"><strong>אין בקשות פרטיות</strong><span>בקשות שתשלחו יופיעו כאן.</span></div> : <div className="procedure-list">
-          {requests.map((request) => (
-            <article className="card procedure-card" key={request.id}>
+          {requests.map((request) => {
+            const grant = grants.get(request.id);
+            const childGrant = childGrants.get(request.id);
+            const proposal = proposals.get(request.id);
+            const available = request.status === "approved" && ["access", "export"].includes(request.request_type)
+              && grant && !grant.revoked_at && grant.access_count < 3
+              && deliveryWindowOpen(grant.expires_at);
+            const childAvailable = role === "parent" && request.status === "approved"
+              && ["access", "export"].includes(request.request_type)
+              && childGrant && !childGrant.revoked_at && childGrant.access_count < 3
+              && childGrant.child_id === request.child_id && childGrant.garden_id === request.garden_id
+              && deliveryWindowOpen(childGrant.expires_at);
+            return <article className="card procedure-card" key={request.id}>
               <div>
                 <span className={`pill ${tone(request.status)}`}>{statusLabels[request.status] ?? request.status}</span>
                 <h3>{requestLabels[request.request_type] ?? request.request_type}</h3>
                 <p>{request.response_summary ?? request.request_reason ?? "הבקשה התקבלה."}</p>
+                {proposal ? <p>שם מוצע: <strong>{proposal.proposed_full_name}</strong> · {proposal.applied_at ? "תוקן בפרופיל" : "ממתין לבדיקה ולהחלה"}</p> : null}
                 <small>{request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""} · יעד טיפול {request.due_at ? new Date(request.due_at).toLocaleDateString("he-IL") : "לא נקבע"}</small>
+                {available ? <div className="procedure-meta">
+                  <a className="button secondary" href={`/api/privacy/requests/${request.id}/delivery`}>
+                    {request.request_type === "export" ? "הורדת נתוני הפרופיל האישי" : "צפייה בנתוני הפרופיל האישי"}
+                  </a>
+                  <small>פרופיל אישי בלבד · זמין עד {new Date(grant.expires_at).toLocaleString("he-IL")} · {3 - grant.access_count} קריאות נותרו</small>
+                </div> : null}
+                {childAvailable ? <div className="procedure-meta">
+                  <a className="button secondary" href={`/api/privacy/requests/${request.id}/child-garden-delivery`}>
+                    {request.request_type === "export" ? "הורדת זהות הילד והגן" : "צפייה בזהות הילד והגן"}
+                  </a>
+                  <small>שם ותאריך לידה של הילד, שם ועיר של הגן בלבד · זמין עד {new Date(childGrant.expires_at).toLocaleString("he-IL")} · {3 - childGrant.access_count} קריאות נותרו</small>
+                </div> : null}
+                {grant && !available ? <small>חלון המסירה המצומצם אינו זמין עוד. הבקשה עצמה ממשיכה בטיפול.</small> : null}
+                {childGrant && !childAvailable ? <small>חלון מסירת זהות הילד והגן אינו זמין עוד. הבקשה עצמה ממשיכה בטיפול.</small> : null}
               </div>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>}
       </section>
     </DashboardShell>

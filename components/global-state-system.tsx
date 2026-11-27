@@ -25,14 +25,15 @@ export function StateAction({ href, children, secondary = false }: { href: strin
   return <Link className={cx("button", secondary ? "secondary" : "primary")} href={href}>{children}</Link>;
 }
 
-export function GlobalStatePanel({ kind, title, description, action, secondaryAction, icon: IconOverride, compact = false, className, statusLabel }: { kind: GlobalStateKind; title?: ReactNode; description?: ReactNode; action?: ReactNode; secondaryAction?: ReactNode; icon?: IconType; compact?: boolean; className?: string; statusLabel?: string }) {
+export function GlobalStatePanel({ kind, title, description, action, secondaryAction, icon: IconOverride, compact = false, className, statusLabel, headingLevel = 1 }: { kind: GlobalStateKind; title?: ReactNode; description?: ReactNode; action?: ReactNode; secondaryAction?: ReactNode; icon?: IconType; compact?: boolean; className?: string; statusLabel?: string; headingLevel?: 1 | 2 | 3 }) {
   const Icon = IconOverride ?? icons[kind];
   const copy = defaultCopy[kind];
   const isAlert = kind === "error" || kind === "permission";
+  const Heading = headingLevel === 1 ? "h1" : headingLevel === 2 ? "h2" : "h3";
   return (
     <section className={cx("ux19-global-state", `ux19-state-${kind}`, compact && "is-compact", className)} role={isAlert ? "alert" : "status"} aria-live={isAlert ? "assertive" : "polite"} aria-busy={kind === "loading" ? "true" : undefined} aria-label={statusLabel ?? copy.title}>
       <span className="ux19-state-orb" aria-hidden="true"><Icon size={compact ? 28 : 42} strokeWidth={2.25} /></span>
-      <div className="ux19-state-copy"><h1>{title ?? copy.title}</h1><p>{description ?? copy.description}</p></div>
+      <div className="ux19-state-copy"><Heading>{title ?? copy.title}</Heading><p>{description ?? copy.description}</p></div>
       {kind === "loading" ? <SkeletonBlocks compact={compact} /> : null}
       {action || secondaryAction ? <div className="ux19-state-actions">{action}{secondaryAction}</div> : null}
     </section>
@@ -43,8 +44,8 @@ export function SkeletonBlocks({ lines = 3, compact = false }: { lines?: number;
   return <div className={cx("ux19-skeleton-stack", compact && "is-compact")} aria-hidden="true">{Array.from({ length: lines }, (_, index) => <i key={index} />)}</div>;
 }
 
-export function GlobalLoadingState({ title, description, compact = false }: { title?: ReactNode; description?: ReactNode; compact?: boolean }) { return <GlobalStatePanel kind="loading" title={title} description={description} compact={compact} />; }
-export function GlobalEmptyState({ title, description, action, compact = false }: { title?: ReactNode; description?: ReactNode; action?: ReactNode; compact?: boolean }) { return <GlobalStatePanel kind="empty" title={title} description={description} action={action} compact={compact} />; }
+export function GlobalLoadingState({ title, description, compact = false }: { title?: ReactNode; description?: ReactNode; compact?: boolean }) { return <GlobalStatePanel kind="loading" title={title} description={description} compact={compact} headingLevel={2} />; }
+export function GlobalEmptyState({ title, description, action, compact = false }: { title?: ReactNode; description?: ReactNode; action?: ReactNode; compact?: boolean }) { return <GlobalStatePanel kind="empty" title={title} description={description} action={action} compact={compact} headingLevel={2} />; }
 
 export function PermissionDeniedState({ backHref = "/dashboard", title, description }: { backHref?: string; title?: ReactNode; description?: ReactNode }) {
   return <GlobalStatePanel kind="permission" title={title} description={description} action={<StateAction href={backHref}>חזרה למרחב המורשה</StateAction>} />;

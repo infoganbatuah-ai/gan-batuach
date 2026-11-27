@@ -347,6 +347,7 @@
 .ux08-invitation-card > svg { width: 37px; height: 37px; padding: 7px; border-radius: 11px; color: #6e50d8; background: #f0ebff; }
 .ux08-invitation-card p { color: var(--ux08-muted); }
 .ux08-invitation-card summary { color: #0670e8; font-weight: 800; cursor: pointer; }
+.ux08-invitation-card summary:focus-visible { outline: 3px solid #0874ef; outline-offset: 3px; border-radius: 4px; }
 .ux08-invitation-card .card { margin-top: 12px; box-shadow: none; }
 
 .ux08-manager-candidate-hero { display: grid; grid-template-columns: auto 1fr auto; gap: 20px; align-items: center; padding: 24px; background: linear-gradient(130deg, #fff, #f1f8ff); }
@@ -365,6 +366,7 @@
 .ux08-manager-document-summary h2 { margin: 0; color: var(--ux08-ink); }
 .ux08-manager-document-summary p { margin: 3px 0 0; color: var(--ux08-muted); }
 .ux08-manager-decision { display: grid; grid-template-columns: 1.1fr .9fr; gap: 24px; margin-top: 16px; padding: 23px; }
+.ux08-manager-decision.is-final { grid-template-columns: 1fr; }
 .ux08-manager-decision h2 { margin: 0; color: var(--ux08-ink); }
 .ux08-manager-decision p { color: var(--ux08-muted); line-height: 1.7; }
 .ux08-manager-decision .compact-form { border: 1px solid #dceafb; border-radius: 14px; background: #f8fbff; }

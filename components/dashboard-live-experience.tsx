@@ -29,11 +29,69 @@ export function DashboardLiveExperience() {
   const [profileMessage, setProfileMessage] = useState("");
   const [profileBusy, setProfileBusy] = useState(false);
   const busyTimer = useRef<number | null>(null);
+  const profileOpener = useRef<HTMLElement | null>(null);
+  const profileDialog = useRef<HTMLElement | null>(null);
+  const profileCloseButton = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     setBusy(false);
     if (busyTimer.current) window.clearTimeout(busyTimer.current);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const dialog = profileDialog.current;
+    const opener = profileOpener.current;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    profileCloseButton.current?.focus();
+
+    function focusableControls() {
+      return [...(dialog?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])]
+        .filter((element) => element.getClientRects().length > 0);
+    }
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setProfileOpen(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const controls = focusableControls();
+      if (!controls.length) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!dialog?.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    function onFocusIn(event: FocusEvent) {
+      if (!dialog?.contains(event.target as Node)) (focusableControls()[0] ?? dialog)?.focus();
+    }
+
+    document.addEventListener("keydown", onKeyDown, true);
+    document.addEventListener("focusin", onFocusIn, true);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown, true);
+      document.removeEventListener("focusin", onFocusIn, true);
+      document.body.style.overflow = previousOverflow;
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [profileOpen]);
 
   useEffect(() => {
     function beginBusy() {
@@ -66,6 +124,7 @@ export function DashboardLiveExperience() {
       const panelTrigger = target?.closest<HTMLElement>("[data-live-panel='profile']");
       if (panelTrigger) {
         event.preventDefault();
+        profileOpener.current = panelTrigger;
         void openProfile();
         return;
       }
@@ -129,9 +188,9 @@ export function DashboardLiveExperience() {
         <div className="gb-live-drawer-layer" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) setProfileOpen(false);
         }}>
-          <aside className="gb-live-profile-drawer" role="dialog" aria-modal="true" aria-labelledby="gb-live-profile-title">
+          <aside ref={profileDialog} className="gb-live-profile-drawer" role="dialog" aria-modal="true" aria-labelledby="gb-live-profile-title" tabIndex={-1}>
             <header>
-              <button type="button" onClick={() => setProfileOpen(false)} aria-label="סגירת פרופיל"><X /></button>
+              <button ref={profileCloseButton} type="button" onClick={() => setProfileOpen(false)} aria-label="סגירת פרופיל"><X /></button>
               <div>
                 <span><UserRound /></span>
                 <div><h2 id="gb-live-profile-title">הפרופיל שלי</h2><p>הפרטים מחוברים לחשבון הפעיל</p></div>

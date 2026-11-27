@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BellRing, CalendarClock, Check, CheckCircle2, ChevronLeft, ClipboardCheck, CreditCard, ExternalLink, FileCheck2, MessageCircle, Search, ShieldCheck, UserCheck } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
+import { safeGanNotificationDestination } from "@/lib/domain/gan-notification-destination";
 
 type NotificationRow = {
   id: string; title?: string | null; message?: string | null; body?: string | null; created_at?: string | null;
@@ -43,8 +44,9 @@ function categoryFor(item: NotificationRow): CategoryKey {
 }
 
 function safeHref(item: NotificationRow) {
-  const target = item.action_url || item.metadata?.href;
-  if (typeof target === "string" && target.startsWith("/dashboard/") && !target.startsWith("//")) return target;
+  const target = safeGanNotificationDestination(item.action_url) ??
+    safeGanNotificationDestination(item.metadata?.href);
+  if (target) return target;
   return item.entity_type === "inspection" ? "/dashboard/inspector/inspections"
     : item.entity_type === "task" ? "/dashboard/staff/tasks"
       : item.entity_type === "communication_thread" ? "/dashboard/parent/messages"

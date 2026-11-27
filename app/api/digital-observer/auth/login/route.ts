@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeObserverReturnPath } from "@/lib/domain/digital-observer/access";
+import { authenticateAndPrepareObserverLogin, resolveObserverLoginContext } from "@/lib/domain/digital-observer/observer-login-auth";
 import type { Database } from "@/lib/supabase/types";
 
 type PendingCookie = { name: string; value: string; options: CookieOptions };
@@ -43,6 +44,12 @@ export async function POST(request: NextRequest) {
     return response;
   };
 
+  // Never forward a newly minted Auth cookie when session cleanup failed.
+  const cleanupFailure = () => NextResponse.json({ error: "session_cleanup_failed" }, {
+    status: 503,
+    headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate, max-age=0" }
+  });
+
   if (!email.includes("@") || password.length < 1) {
     return buildRedirect(loginErrorPath("invalid_login", requestedNext));
   }
@@ -70,23 +77,35 @@ export async function POST(request: NextRequest) {
     }
   );
 
-  const loginResult = await supabase.auth.signInWithPassword({ email, password });
-  if (loginResult.error || !loginResult.data.user) {
-    return buildRedirect(loginErrorPath(authErrorCode(loginResult.error), requestedNext));
-  }
-
-  const user = loginResult.data.user;
-  const preparedAccount = await supabase.rpc("ensure_digital_observer_account" as any, {
-    requested_name: user.user_metadata?.full_name ?? null,
-    requested_account_type: user.user_metadata?.account_type ?? requestedAccountType
+  const authentication = await authenticateAndPrepareObserverLogin(email, password, {
+    signIn: async (loginEmail, loginPassword) => {
+      const result = await supabase.auth.signInWithPassword({ email: loginEmail, password: loginPassword });
+      return { user: result.data.user, error: result.error };
+    },
+    currentUser: async () => {
+      const result = await supabase.auth.getUser();
+      return { user: result.data.user, error: result.error };
+    },
+    ensureOwnAccount: async (currentUser) => {
+      const result = await supabase.rpc("ensure_digital_observer_account" as any, {
+        requested_name: currentUser.user_metadata?.full_name ?? null,
+        requested_account_type: currentUser.user_metadata?.account_type ?? requestedAccountType
+      });
+      return { ok: !result.error && result.data === true, code: result.error?.code ?? "account_not_prepared" };
+    },
+    signOut: () => supabase.auth.signOut()
   });
-  if (preparedAccount.error || preparedAccount.data !== true) {
+  if (authentication.status === "session_cleanup_failed") return cleanupFailure();
+  if (authentication.status === "invalid_login") {
+    return buildRedirect(loginErrorPath(authErrorCode(authentication.error), requestedNext));
+  }
+  if (authentication.status !== "ok") {
     console.error("Digital Observer login account preparation failed", {
-      code: preparedAccount.error?.code ?? "account_not_prepared"
+      code: authentication.code ?? authentication.status
     });
-    await supabase.auth.signOut();
     return buildRedirect(loginErrorPath("observer_setup_required", requestedNext));
   }
+  const user = authentication.user;
 
   const [profileResult, accountResult, ownedSiteResult, membershipResult] = await Promise.all([
     supabase.from("profiles").select("id,active").eq("id", user.id).maybeSingle(),
@@ -95,20 +114,35 @@ export async function POST(request: NextRequest) {
     supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
   ]);
 
-  const observerAccount = accountResult.data as { account_type?: string | null } | null;
-  if (!profileResult.data || profileResult.data.active === false || !observerAccount) {
-    await supabase.auth.signOut();
+  const rawAccount: unknown = accountResult.data;
+  const context = resolveObserverLoginContext({
+    userId: user.id,
+    observerAdmin: user.app_metadata?.digital_observer_admin === true,
+    requestedNext,
+    profile: profileResult,
+    account: {
+      data: rawAccount && typeof rawAccount === "object"
+        && "profile_id" in rawAccount && typeof rawAccount.profile_id === "string"
+        ? {
+            profile_id: rawAccount.profile_id,
+            account_type: "account_type" in rawAccount && typeof rawAccount.account_type === "string"
+              ? rawAccount.account_type : null
+          }
+        : null,
+      error: accountResult.error
+    },
+    ownedSite: ownedSiteResult,
+    membership: membershipResult
+  });
+  if (!context.ok) {
+    try {
+      const cleanup = await supabase.auth.signOut();
+      if (cleanup.error) return cleanupFailure();
+    } catch {
+      return cleanupFailure();
+    }
     return buildRedirect(loginErrorPath("observer_setup_required", requestedNext));
   }
 
-  const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
-  const accountType = observerAccount.account_type === "business" ? "business" : "home";
-  const observerAdmin = user.app_metadata?.digital_observer_admin === true;
-  const destination = observerAdmin && requestedNext === "/digital-observer/dashboard"
-    ? "/digital-observer/admin"
-    : !hasSite && requestedNext === "/digital-observer/dashboard"
-    ? `/digital-observer/onboarding?type=${accountType}`
-    : requestedNext;
-
-  return buildRedirect(destination, true);
+  return buildRedirect(context.destination, true);
 }
