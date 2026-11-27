@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -220,4 +220,33 @@ test("Observer HTTP fixture refuses a malformed or oversized answer", async () =
     });
     assert.equal(await transport.signal(signCameraPilotAssertion(signingInput), "v=0"), null);
   }
+});
+
+test("registry scopes lookup, denies a second viewer, and blocks immediately on logout", async () => {
+  const revoked = [];
+  let succeed = false;
+  const registry = createCameraPilotSessionRegistry({
+    qaGardenId: "garden-a", now: () => 10_000,
+    revoke: async handle => { revoked.push(handle); return succeed; }
+  });
+  const context = {
+    sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+    camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+  };
+  const grant = { handle: "h".repeat(43), expiresAtMs: 15_000 };
+  assert.equal(registry.register(context, grant), true);
+  assert.deepEqual(registry.lookup(context), grant);
+  assert.equal(registry.lookup({ ...context, viewer: { ...context.viewer, role: "manager" } }), null);
+  assert.equal(registry.lookup({ ...context, camera: { ...context.camera, gardenId: "garden-b" } }), null);
+  assert.equal(registry.register({ ...context, sessionId: "session-b" }, grant), false);
+  assert.equal(await registry.stop("session-b"), false);
+  assert.deepEqual(revoked, []);
+  const stop = registry.stop("session-a");
+  assert.equal(registry.lookup(context), null);
+  assert.equal(await stop, false);
+  assert.equal(registry.register(context, grant), false);
+  succeed = true;
+  assert.equal(await registry.stop("session-a"), true);
+  assert.deepEqual(revoked, [grant.handle, grant.handle]);
+  assert.equal(registry.lookup(context), null);
 });
