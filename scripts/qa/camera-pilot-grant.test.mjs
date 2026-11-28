@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -119,4 +119,208 @@ test("refuses to sign outside the configured QA garden and trusted session shape
     { environment: "production" }, { qaGardenId: "garden-b" }, { sessionId: "" },
     { privateKey: publicKey }, { operation: "redeem" }, { handle: "a".repeat(48) }
   ]) assert.equal(signCameraPilotAssertion({ ...signingInput, ...patch }), null);
+});
+
+test("adapter proves current session access before signing each operation", async () => {
+  const events = [];
+  const handle = "a".repeat(48);
+  let authorized = true;
+  const request = {
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    context: {
+      sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+      camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+    },
+    operation: "issue", now: () => 10_000,
+    authorize: async ({ binding, sessionId }) => {
+      events.push("authorize");
+      assert.deepEqual(binding, signingInput.binding);
+      assert.equal(sessionId, signingInput.sessionId);
+      return authorized;
+    },
+    transport: async ({ operation, assertion, signal }) => {
+      events.push("transport");
+      assert.equal(signal.aborted, false);
+      const proof = verifyEnvelope(assertion);
+      assert.equal(proof.operation, operation);
+      assert.equal(proof.sessionId, "session-a");
+      if (operation === "redeem") assert.equal(proof.handle, handle);
+      return {
+        ...proof.binding, version: 1, environment: "development", capability: "live_playback",
+        recording: false, operation, handle, expiresAtMs: 15_000
+      };
+    }
+  };
+  assert.ok(await requestCameraPilotPlayback(request));
+  assert.ok(await requestCameraPilotPlayback({ ...request, operation: "redeem", handle }));
+  authorized = false;
+  assert.equal(await requestCameraPilotPlayback({ ...request, operation: "redeem", handle }), null);
+  assert.deepEqual(events, ["authorize", "transport", "authorize", "transport", "authorize"]);
+});
+
+test("adapter skips authorization and transport when the pilot is unavailable", async () => {
+  let calls = 0;
+  const request = {
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    context: { sessionId: "session-a", camera: { gardenId: "garden-b" } },
+    operation: "issue", authorize: async () => { calls += 1; },
+    transport: async () => { calls += 1; }
+  };
+  assert.equal(await requestCameraPilotPlayback(request), null);
+  assert.equal(await requestCameraPilotPlayback({ ...request, transport: undefined }), null);
+  assert.equal(calls, 0);
+});
+
+test("accepts a bounded candidate-free offer for one receive-only video stream", async () => {
+  const offer = "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n";
+  const createRequest = (body, type = "application/sdp") =>
+    new Request("http://127.0.0.1/pilot", { method: "POST", headers: { "content-type": type }, body });
+  assert.equal(await readCameraPilotOffer(createRequest(offer)), offer);
+  assert.equal(await readCameraPilotOffer(createRequest(offer, "text/plain")), null);
+  for (const input of [
+    offer + "a=candidate:1\r\n", offer + "a=remote-candidates:1\r\n",
+    offer + "m=audio 9 UDP/TLS/RTP/SAVPF 96\r\n", offer.replace("recvonly", "sendrecv"),
+    offer + "a=".padEnd(16_384, "x")
+  ]) assert.equal(await readCameraPilotOffer(createRequest(input)), null);
+});
+
+test("Observer HTTP fixture receives fixed loopback paths and only server credentials", async () => {
+  const calls = [];
+  const serviceToken = "s".repeat(43);
+  const transport = createCameraPilotLoopbackTransport({
+    origin: "http://127.0.0.1:4444", serviceToken,
+    fetcher: async (url, request) => {
+      calls.push([url.href, request]);
+      return url.pathname.endsWith("revoke") ? new Response(null, { status: 204 }) :
+        new Response("v=0\r\n", { status: 201, headers: {
+          "content-type": "application/sdp", "cache-control": "private, no-store"
+        } });
+    }
+  });
+  const assertion = signCameraPilotAssertion(signingInput);
+  assert.equal(await transport.signal(assertion, "v=0\r\n"), "v=0\r\n");
+  assert.equal(await transport.revoke("h".repeat(43)), true);
+  assert.deepEqual(calls.map(([url]) => url), [
+    "http://127.0.0.1:4444/pilot/whep", "http://127.0.0.1:4444/pilot/revoke"
+  ]);
+  assert.equal(calls[0][1].headers.Authorization, "Bearer " + serviceToken);
+  assert.equal(calls[0][1].headers["X-Gan-Pilot-Assertion"], assertion);
+  assert.equal(calls[0][1].redirect, "error");
+  assert.deepEqual(JSON.parse(calls[1][1].body), { handle: "h".repeat(43) });
+  assert.equal(createCameraPilotLoopbackTransport({ origin: "http://localhost:4444", serviceToken }), null);
+});
+
+test("Observer HTTP fixture refuses a malformed or oversized answer", async () => {
+  for (const [body, cache] of [["v=0", "public"], ["v=0" + "x".repeat(16_384), "private, no-store"]]) {
+    const transport = createCameraPilotLoopbackTransport({
+      origin: "http://127.0.0.1:4444", serviceToken: "s".repeat(43),
+      fetcher: async () => new Response(body, { status: 201, headers: {
+        "content-type": "application/sdp", "cache-control": cache
+      } })
+    });
+    assert.equal(await transport.signal(signCameraPilotAssertion(signingInput), "v=0"), null);
+  }
+});
+
+test("registry scopes lookup, denies a second viewer, and blocks immediately on logout", async () => {
+  const revoked = [];
+  let succeed = false;
+  const registry = createCameraPilotSessionRegistry({
+    qaGardenId: "garden-a", now: () => 10_000,
+    revoke: async handle => { revoked.push(handle); return succeed; }
+  });
+  const context = {
+    sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+    camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+  };
+  const grant = { handle: "h".repeat(43), expiresAtMs: 15_000 };
+  assert.equal(registry.register(context, grant), true);
+  assert.deepEqual(registry.lookup(context), grant);
+  assert.equal(registry.lookup({ ...context, viewer: { ...context.viewer, role: "manager" } }), null);
+  assert.equal(registry.lookup({ ...context, camera: { ...context.camera, gardenId: "garden-b" } }), null);
+  assert.equal(registry.register({ ...context, sessionId: "session-b" }, grant), false);
+  assert.equal(await registry.stop("session-b"), false);
+  assert.deepEqual(revoked, []);
+  const stop = registry.stop("session-a");
+  assert.equal(registry.lookup(context), null);
+  assert.equal(await stop, false);
+  assert.equal(registry.register(context, grant), false);
+  succeed = true;
+  assert.equal(await registry.stop("session-a"), true);
+  assert.deepEqual(revoked, [grant.handle, grant.handle]);
+  assert.equal(registry.lookup(context), null);
+});
+
+test("issue uses the private authenticated empty-body contract and validates the receipt", async () => {
+  let responseGarden = "garden-a";
+  const transport = createCameraPilotLoopbackTransport({
+    origin: "http://127.0.0.1:4444", serviceToken: "s".repeat(43),
+    fetcher: async (url, request) => {
+      assert.equal(url.href, "http://127.0.0.1:4444/pilot/issue");
+      assert.equal(request.body, undefined);
+      assert.equal(Object.hasOwn(request.headers, "Origin"), false);
+      const proof = verifyEnvelope(request.headers["X-Gan-Pilot-Assertion"]);
+      assert.equal(proof.operation, "issue");
+      return new Response(JSON.stringify({
+        ...proof.binding, gardenId: responseGarden, version: 1, environment: "development",
+        capability: "live_playback", recording: false, operation: "issue",
+        expiresAtMs: 15_000, handle: "h".repeat(43)
+      }), { status: 201, headers: {
+        "content-type": "application/json", "cache-control": "private, no-store"
+      } });
+    }
+  });
+  const request = {
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    context: {
+      sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+      camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+    },
+    operation: "issue", authorize: async () => true, now: () => 10_000,
+    transport: ({ assertion }) => transport.issue(assertion)
+  };
+  assert.ok(await requestCameraPilotPlayback(request));
+  responseGarden = "garden-b";
+  assert.equal(await requestCameraPilotPlayback(request), null);
+});
+
+test("window blocks repeat signaling and propagates an authorized stop", async () => {
+  const context = {
+    sessionId: "session-a", viewer: { id: "viewer-a", role: "parent", active: true },
+    camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+  };
+  const handle = "h".repeat(43);
+  const operations = [];
+  const window = createCameraPilotWindow({
+    config: { environment: "development", qaGardenId: "garden-a", privateKey },
+    resolveContext: async () => context,
+    now: () => 10_000,
+    transport: {
+      async issue(assertion) {
+        operations.push("issue");
+        const proof = verifyEnvelope(assertion);
+        return { ...proof.binding, version: 1, environment: "development", capability: "live_playback",
+          operation: "issue", recording: false, handle, expiresAtMs: 15_000 };
+      },
+      async signal(assertion) {
+        operations.push("signal");
+        assert.equal(verifyEnvelope(assertion).handle, handle);
+        return "v=0\r\n";
+      },
+      async revoke(revokedHandle) {
+        operations.push("revoke");
+        assert.equal(revokedHandle, handle);
+        return true;
+      }
+    }
+  });
+  const offer = () => new Request("http://127.0.0.1/pilot", {
+    method: "POST", headers: { "content-type": "application/sdp" },
+    body: "v=0\r\nm=video 9 UDP/TLS/RTP/SAVPF 96\r\na=recvonly\r\n"
+  });
+  const answers = await Promise.all([window.start(offer()), window.start(offer())]);
+  assert.deepEqual(answers, ["v=0\r\n", null]);
+  assert.equal(await window.stop(context.sessionId), true);
+  assert.equal(await window.start(offer()), null);
+  assert.deepEqual(operations, ["issue", "signal", "revoke"]);
 });
