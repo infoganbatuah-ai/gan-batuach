@@ -38,42 +38,41 @@
   ],
   "units": [
     {
-      "id": "gan-stage-3-pilot-pr-687",
+      "id": "gan-stage-3-pilot-pr-689",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Gan Batuach Management",
-      "title": "Exact loopback origin validation through Next normalization",
+      "title": "Stop the matching synthetic camera pilot session on logout",
       "owner": "Canonical Gan Management executor",
-      "sourceBranch": "codex/gan-stage3-pilot-origin",
+      "sourceBranch": "codex/gan-stage3-pilot-logout",
       "sourceCommits": [
-        "6267bce55acc07003c6b908a7b3f67cfa75901c3"
+        "7ea611904ba9efcb50c38a9433807908196e0fa1"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "status": "PRESERVED_PENDING_INTEGRATION",
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/gan-stage3-pilot-origin@6267bce55acc07003c6b908a7b3f67cfa75901c3"
+          "origin/codex/gan-stage3-pilot-logout@7ea611904ba9efcb50c38a9433807908196e0fa1"
         ]
       },
       "validation": {
         "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
         "evidence": [
-          "Six foreign roles denied on 44ec2143. Manager received 404 before Observer. Reproduced NextRequest localhost URL normalization with original 127.0.0.1 Host and Origin. 30 focused tests passed."
+          "29 focused tests passed, including actual logout handler with a mocked auth backend and exact-session stop."
         ],
-        "limits": "Fresh synthetic Product run pending."
+        "limits": "Synthetic logout Product run and ongoing authorization revocation still pending."
       },
       "integration": {
         "branch": "integration/development",
-        "baseCommit": "44ec2143c86d043cd0e69321a929e63af4de4fbd",
+        "baseCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f",
         "pullRequests": [
-          687
+          689
         ],
         "status": "PENDING_EXCLUSIVE_WINDOW"
       },
       "dependencies": {
         "units": [
-          "gan-stage-3-pilot-pr-683",
-          "gan-stage-3-pilot-pr-686"
+          "gan-stage-3-pilot-pr-687"
         ]
       },
       "migrations": [],
@@ -84,6 +83,56 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Verify CI on the final PR head, then coordinate the Development merge and synthetic gbi Product run."
+    },
+    {
+      "id": "gan-stage-3-pilot-pr-687",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Exact loopback origin validation through Next normalization",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage3-pilot-origin",
+      "sourceCommits": [
+        "6267bce55acc07003c6b908a7b3f67cfa75901c3"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage3-pilot-origin@6267bce55acc07003c6b908a7b3f67cfa75901c3"
+        ]
+      },
+      "validation": {
+        "status": "SCOPED_SYNTHETIC_PRODUCT_VERIFIED",
+        "evidence": [
+          "Six foreign roles denied on 44ec2143. Manager received 404 before Observer. Reproduced NextRequest localhost URL normalization with original 127.0.0.1 Host and Origin. 30 focused tests passed.",
+          "Canonical gbi synthetic Manager Product QA on eecf2f7472d73f36699726e86cf3aaad3267919f. SDP 201, six other accounts and second Manager session 404, explicit stop 204, 8 decoded frames before stop then 10 settled and 10 final. DO reports 63,369 reserved bytes over 57.64 seconds. Restricted Product receipt SHA256 4017bc30ae83f4b32330fa64019e1993aece947f955a89dcab8839d230d36aaa; edge receipt SHA256 7fa0efff33e4d9614c6045d0000b674543371a121cf27baa8be1f8ea94666a2a."
+        ],
+        "limits": "One synthetic Manager window and explicit stop. Automatic logout and authorization loss, positive Parent, broader transport budget, CH1 hardware and Production still open."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "44ec2143c86d043cd0e69321a929e63af4de4fbd",
+        "pullRequests": [
+          687
+        ],
+        "status": "INTEGRATED_DEVELOPMENT",
+        "verifiedProductCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-683",
+          "gan-stage-3-pilot-pr-686"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_SCOPED_SYNTHETIC_MANAGER_PLAYBACK_AND_EXPLICIT_REVOKE",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Qualify automatic revocation and an approved Parent fixture separately, then coordinate hardware window if authorized."
     },
     {
       "id": "gan-stage-3-pilot-pr-686",
@@ -95,20 +144,21 @@
       "sourceCommits": [
         "4be47a3f0336f137df071608b4ffbf4ecd799359"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "INTEGRATED_DEVELOPMENT",
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gan-stage3-pilot-launcher@4be47a3f0336f137df071608b4ffbf4ecd799359"
         ]
       },
       "validation": {
-        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "status": "SCOPED_SYNTHETIC_PRODUCT_VERIFIED",
         "evidence": [
-          "Two focused environment tests, launcher syntax and Git diff checks passed."
+          "Two focused environment tests, launcher syntax and Git diff checks passed.",
+          "Canonical gbi synthetic Manager Product QA on eecf2f7472d73f36699726e86cf3aaad3267919f. SDP 201, six other accounts and second Manager session 404, explicit stop 204, 8 decoded frames before stop then 10 settled and 10 final. DO reports 63,369 reserved bytes over 57.64 seconds. Restricted Product receipt SHA256 4017bc30ae83f4b32330fa64019e1993aece947f955a89dcab8839d230d36aaa; edge receipt SHA256 7fa0efff33e4d9614c6045d0000b674543371a121cf27baa8be1f8ea94666a2a."
         ],
-        "limits": "Default-off synthetic Development only. Cumulative gbi streaming and active revocation still require the coordinated Observer window."
+        "limits": "One synthetic Manager window and explicit stop. Automatic logout and authorization loss, positive Parent, broader transport budget, CH1 hardware and Production still open."
       },
       "integration": {
         "branch": "integration/development",
@@ -116,7 +166,8 @@
         "pullRequests": [
           686
         ],
-        "status": "PENDING_EXCLUSIVE_WINDOW"
+        "status": "INTEGRATED_DEVELOPMENT",
+        "verifiedProductCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f"
       },
       "dependencies": {
         "units": [
@@ -126,12 +177,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "PASS_SCOPED_SYNTHETIC_MANAGER_PLAYBACK_AND_EXPLICIT_REVOKE",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify CI on the final PR head, then coordinate the Development merge and synthetic gbi Product run."
+      "nextAction": "Qualify automatic revocation and an approved Parent fixture separately, then coordinate hardware window if authorized."
     },
     {
       "id": "gan-stage-3-pilot-pr-681",
@@ -143,20 +194,21 @@
       "sourceCommits": [
         "db018ff6e8dfce19454157331b74e150dca95acc"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "INTEGRATED_DEVELOPMENT",
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gan-stage-3-camera-playback@db018ff6e8dfce19454157331b74e150dca95acc"
         ]
       },
       "validation": {
-        "status": "PRODUCT_QA_PENDING",
+        "status": "SCOPED_SYNTHETIC_PRODUCT_VERIFIED",
         "evidence": [
-          "20 local tests; exact-head CI 46080823469 and Management 46080823545 passed, with Snyk."
+          "20 local tests; exact-head CI 46080823469 and Management 46080823545 passed, with Snyk.",
+          "Canonical gbi synthetic Manager Product QA on eecf2f7472d73f36699726e86cf3aaad3267919f. SDP 201, six other accounts and second Manager session 404, explicit stop 204, 8 decoded frames before stop then 10 settled and 10 final. DO reports 63,369 reserved bytes over 57.64 seconds. Restricted Product receipt SHA256 4017bc30ae83f4b32330fa64019e1993aece947f955a89dcab8839d230d36aaa; edge receipt SHA256 7fa0efff33e4d9614c6045d0000b674543371a121cf27baa8be1f8ea94666a2a."
         ],
-        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+        "limits": "One synthetic Manager window and explicit stop. Automatic logout and authorization loss, positive Parent, broader transport budget, CH1 hardware and Production still open."
       },
       "integration": {
         "branch": "integration/development",
@@ -164,19 +216,20 @@
         "pullRequests": [
           681
         ],
-        "status": "PENDING_EXCLUSIVE_WINDOW"
+        "status": "INTEGRATED_DEVELOPMENT",
+        "verifiedProductCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f"
       },
       "dependencies": {
         "units": []
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "PASS_SCOPED_SYNTHETIC_MANAGER_PLAYBACK_AND_EXPLICIT_REVOKE",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+      "nextAction": "Qualify automatic revocation and an approved Parent fixture separately, then coordinate hardware window if authorized."
     },
     {
       "id": "gan-stage-3-pilot-pr-682",
@@ -188,20 +241,21 @@
       "sourceCommits": [
         "b57370094500bf57399ebbcefd9eccd62af18a15"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "INTEGRATED_DEVELOPMENT",
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/do-stage3-gan-integration-candidate-20261128@b57370094500bf57399ebbcefd9eccd62af18a15"
         ]
       },
       "validation": {
-        "status": "PRODUCT_QA_PENDING",
+        "status": "SCOPED_SYNTHETIC_PRODUCT_VERIFIED",
         "evidence": [
-          "9/9 checks reported passed. Combined Gan/Observer offline signature and single-redemption test passed; source history preserved separately on Observer source branch at d2439371."
+          "9/9 checks reported passed. Combined Gan/Observer offline signature and single-redemption test passed; source history preserved separately on Observer source branch at d2439371.",
+          "Canonical gbi synthetic Manager Product QA on eecf2f7472d73f36699726e86cf3aaad3267919f. SDP 201, six other accounts and second Manager session 404, explicit stop 204, 8 decoded frames before stop then 10 settled and 10 final. DO reports 63,369 reserved bytes over 57.64 seconds. Restricted Product receipt SHA256 4017bc30ae83f4b32330fa64019e1993aece947f955a89dcab8839d230d36aaa; edge receipt SHA256 7fa0efff33e4d9614c6045d0000b674543371a121cf27baa8be1f8ea94666a2a."
         ],
-        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+        "limits": "One synthetic Manager window and explicit stop. Automatic logout and authorization loss, positive Parent, broader transport budget, CH1 hardware and Production still open."
       },
       "integration": {
         "branch": "integration/development",
@@ -209,19 +263,20 @@
         "pullRequests": [
           682
         ],
-        "status": "PENDING_EXCLUSIVE_WINDOW"
+        "status": "INTEGRATED_DEVELOPMENT",
+        "verifiedProductCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f"
       },
       "dependencies": {
         "units": []
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "PASS_SCOPED_SYNTHETIC_MANAGER_PLAYBACK_AND_EXPLICIT_REVOKE",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+      "nextAction": "Qualify automatic revocation and an approved Parent fixture separately, then coordinate hardware window if authorized."
     },
     {
       "id": "gan-stage-3-pilot-pr-684",
@@ -233,20 +288,21 @@
       "sourceCommits": [
         "8a224dd5a9303e7e30e4664029cc916e5aea632c"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "INTEGRATED_DEVELOPMENT",
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/do-stage3-protected-webrtc-20261128@8a224dd5a9303e7e30e4664029cc916e5aea632c"
         ]
       },
       "validation": {
-        "status": "PRODUCT_QA_PENDING",
+        "status": "SCOPED_SYNTHETIC_PRODUCT_VERIFIED",
         "evidence": [
-          "17/17 local and 9/9 CI reported passed; synthetic browser evidence covers frame delivery and stop after revocation. Stacked on #682."
+          "17/17 local and 9/9 CI reported passed; synthetic browser evidence covers frame delivery and stop after revocation. Stacked on #682.",
+          "Canonical gbi synthetic Manager Product QA on eecf2f7472d73f36699726e86cf3aaad3267919f. SDP 201, six other accounts and second Manager session 404, explicit stop 204, 8 decoded frames before stop then 10 settled and 10 final. DO reports 63,369 reserved bytes over 57.64 seconds. Restricted Product receipt SHA256 4017bc30ae83f4b32330fa64019e1993aece947f955a89dcab8839d230d36aaa; edge receipt SHA256 7fa0efff33e4d9614c6045d0000b674543371a121cf27baa8be1f8ea94666a2a."
         ],
-        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+        "limits": "One synthetic Manager window and explicit stop. Automatic logout and authorization loss, positive Parent, broader transport budget, CH1 hardware and Production still open."
       },
       "integration": {
         "branch": "integration/development",
@@ -254,7 +310,8 @@
         "pullRequests": [
           684
         ],
-        "status": "PENDING_EXCLUSIVE_WINDOW"
+        "status": "INTEGRATED_DEVELOPMENT",
+        "verifiedProductCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f"
       },
       "dependencies": {
         "units": [
@@ -263,12 +320,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "PASS_SCOPED_SYNTHETIC_MANAGER_PLAYBACK_AND_EXPLICIT_REVOKE",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+      "nextAction": "Qualify automatic revocation and an approved Parent fixture separately, then coordinate hardware window if authorized."
     },
     {
       "id": "gan-stage-3-pilot-pr-683",
@@ -280,20 +337,21 @@
       "sourceCommits": [
         "3e694002fc99c6f760e5ce23c42da63729becc68"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
+        "status": "INTEGRATED_DEVELOPMENT",
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gan-stage-3-camera-pilot-adapter@3e694002fc99c6f760e5ce23c42da63729becc68"
         ]
       },
       "validation": {
-        "status": "PRODUCT_QA_PENDING",
+        "status": "SCOPED_SYNTHETIC_PRODUCT_VERIFIED",
         "evidence": [
-          "28 local adapter tests passed; Product route and seven-role end-to-end runtime QA pending. Stacked on #681."
+          "28 local adapter tests passed; Product route and seven-role end-to-end runtime QA pending. Stacked on #681.",
+          "Canonical gbi synthetic Manager Product QA on eecf2f7472d73f36699726e86cf3aaad3267919f. SDP 201, six other accounts and second Manager session 404, explicit stop 204, 8 decoded frames before stop then 10 settled and 10 final. DO reports 63,369 reserved bytes over 57.64 seconds. Restricted Product receipt SHA256 4017bc30ae83f4b32330fa64019e1993aece947f955a89dcab8839d230d36aaa; edge receipt SHA256 7fa0efff33e4d9614c6045d0000b674543371a121cf27baa8be1f8ea94666a2a."
         ],
-        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+        "limits": "One synthetic Manager window and explicit stop. Automatic logout and authorization loss, positive Parent, broader transport budget, CH1 hardware and Production still open."
       },
       "integration": {
         "branch": "integration/development",
@@ -301,7 +359,8 @@
         "pullRequests": [
           683
         ],
-        "status": "PENDING_EXCLUSIVE_WINDOW"
+        "status": "INTEGRATED_DEVELOPMENT",
+        "verifiedProductCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f"
       },
       "dependencies": {
         "units": [
@@ -311,12 +370,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "PASS_SCOPED_SYNTHETIC_MANAGER_PLAYBACK_AND_EXPLICIT_REVOKE",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+      "nextAction": "Qualify automatic revocation and an approved Parent fixture separately, then coordinate hardware window if authorized."
     },
     {
       "id": "gan-stage-2-management-product-qa-20261128",

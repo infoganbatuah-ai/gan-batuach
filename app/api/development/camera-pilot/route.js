@@ -1,4 +1,5 @@
 import { createPrivateKey } from "node:crypto";
+import { registerQaCameraPilotStop } from "@/lib/management/camera-pilot-logout";
 import { createClient } from "@/lib/supabase/server";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createCameraPilotLoopbackTransport, createCameraPilotWindow, isCameraPilotSameOrigin } from "@/lib/management/camera-pilot-grant.mjs";
@@ -57,6 +58,7 @@ function getPilot() {
           camera: { id: cameraId, gardenId, siteId, active: true } };
       }
     });
+    registerQaCameraPilotStop(sessionId => pilot.stop(sessionId));
     return pilot;
   } catch {
     return null;
