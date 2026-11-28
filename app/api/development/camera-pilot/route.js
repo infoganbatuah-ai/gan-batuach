@@ -1,5 +1,6 @@
 import { createPrivateKey } from "node:crypto";
 import { registerQaCameraPilotStop } from "@/lib/management/camera-pilot-logout";
+import { canUseSyntheticCameraPilot } from "@/lib/management/camera-pilot-role-policy";
 import { createClient } from "@/lib/supabase/server";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createCameraPilotLoopbackTransport, createCameraPilotWindow, isCameraPilotSameOrigin } from "@/lib/management/camera-pilot-grant.mjs";
@@ -21,7 +22,7 @@ async function currentSession() {
   const sessionId = claims.data?.claims.session_id;
   if (claims.error || claims.data?.claims.sub !== user.id ||
       typeof sessionId !== "string" || !identifier.test(sessionId)) return null;
-  return { client, user, sessionId };
+  return { client, user, sessionId, claims: claims.data.claims };
 }
 
 function getPilot() {
@@ -47,14 +48,24 @@ function getPilot() {
       async resolveContext() {
         const session = await currentSession();
         if (!session || session.user.id !== viewerId) return null;
-        const access = await getManagementGardenContext();
-        if (!access.allowed || access.gardenId !== gardenId || access.session.user.id !== viewerId ||
-            access.session.profile.role !== "manager") return null;
-        const camera = await session.client.from("camera_streams").select("id,garden_id,active")
+        const { client } = session;
+        const profile = await client.from("profiles").select("id,role,active,garden_id").eq("id", viewerId).single();
+        if (profile.error || profile.data?.active !== true ||
+            !["manager", "staff", "parent"].includes(profile.data.role)) return null;
+        const role = profile.data.role;
+        const columns = role === "manager" ? "id,garden_id,active" :
+          "id,garden_id,active,observer_site_id,parent_view_allowed,staff_view_allowed,class_group,age_group,camera_zone_label,viewing_hours,operating_hours";
+        const camera = await client.from("camera_streams").select(columns)
           .eq("id", cameraId).eq("garden_id", gardenId).eq("active", true).maybeSingle();
         if (camera.error || !camera.data) return null;
-        return { sessionId: session.sessionId,
-          viewer: { id: viewerId, role: "manager", active: true },
+        if (role === "manager") {
+          const access = await getManagementGardenContext();
+          if (!access.allowed || access.gardenId !== gardenId || access.session.user.id !== viewerId ||
+              access.session.profile.role !== role) return null;
+        } else if (!await canUseSyntheticCameraPilot(client, profile.data, session.claims, camera.data, siteId)) {
+          return null;
+        }
+        return { sessionId: session.sessionId, viewer: { id: viewerId, role, active: true },
           camera: { id: cameraId, gardenId, siteId, active: true } };
       }
     });
