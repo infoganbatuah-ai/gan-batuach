@@ -12,7 +12,26 @@ export function isGeneratedNextEnv(current, baseline) {
   return current === baseline || current === baseline.replaceAll('import "./.next/types/', 'import "./.next/dev/types/');
 }
 
-export function integrationEnvironment(local, { uiOnly = false, sha, timestamp, system = {} } = {}) {
+const cameraPilotKeys = new Set([
+  "GAN_CAMERA_PILOT_QA", "GAN_CAMERA_PILOT_GARDEN", "GAN_CAMERA_PILOT_SITE",
+  "GAN_CAMERA_PILOT_CAMERA", "GAN_CAMERA_PILOT_VIEWER", "GAN_CAMERA_PILOT_ORIGIN",
+  "GAN_CAMERA_PILOT_SERVICE_TOKEN", "GAN_CAMERA_PILOT_SIGNING_KEY"
+]);
+
+function validatedCameraPilot(pilot, uiOnly) {
+  if (Object.keys(pilot).length === 0) return {};
+  if (uiOnly || Object.keys(pilot).length !== cameraPilotKeys.size ||
+      !Object.keys(pilot).every(key => cameraPilotKeys.has(key)) ||
+      !Object.values(pilot).every(value => typeof value === "string" && value.trim()) ||
+      pilot.GAN_CAMERA_PILOT_QA !== "1") throw new Error("Invalid private synthetic camera pilot configuration.");
+  const origin = pilot.GAN_CAMERA_PILOT_ORIGIN;
+  if (!/^http:\/\/127\.0\.0\.1:[1-9][0-9]{0,4}$/.test(origin) || !new URL(origin).port) {
+    throw new Error("Synthetic camera pilot requires a fixed loopback listener.");
+  }
+  return pilot;
+}
+
+export function integrationEnvironment(local, { uiOnly = false, sha, timestamp, system = {}, cameraPilot = {} } = {}) {
   for (const key of Object.keys(local)) if (!localKeys.has(key)) throw new Error(`Unapproved integration variable: ${key}`);
   const env = Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL'].filter(k => system[k]).map(k => [k, system[k]]));
   if (uiOnly && Object.keys(local).length) throw new Error('UI-only preview must not load backend credentials.');
@@ -24,7 +43,7 @@ export function integrationEnvironment(local, { uiOnly = false, sha, timestamp, 
     }
   }
   return {
-    ...env, ...local,
+    ...env, ...local, ...validatedCameraPilot(cameraPilot, uiOnly),
     NODE_ENV: 'development', APP_ENV: 'local', NEXT_PUBLIC_APP_ENV: 'local',
     NEXT_PUBLIC_APP_URL: 'http://127.0.0.1:3000',
     INTEGRATION_DEVELOPMENT: 'true', INTEGRATION_COMMIT: sha, INTEGRATION_STARTED_AT: timestamp,
