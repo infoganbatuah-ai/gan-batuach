@@ -56,11 +56,14 @@
         ]
       },
       "validation": {
-        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "status": "FOCUSED_TESTS_AND_ISOLATED_STAFF_PRODUCT_QA_PASS",
         "evidence": [
-          "37 focused tests passed. Explicit private Staff scope requires exact current role, Auth session and server-owned viewer/Garden/site/camera. Issuance and callback share existing Staff employment, classroom and camera permission rules."
+          "37 focused tests passed. Explicit private Staff scope requires exact current role, Auth session and server-owned viewer/Garden/site/camera. Issuance and callback share existing Staff employment, classroom and camera permission rules.",
+          "Synthetic Staff Product verified on 45cb4ac019320c4540dcf59eea9cf058054b962d after cumulative CI 46096167841. Staff flag-off and foreign Garden scope 403; authenticated Inspector and Admin 404. Staff flag-on SDP 201 and four decoded frames before flag removal.",
+          "Frame counts settled at 23 and remained at 23. Observer recorded one durable REVOKED, 104,070 relay bytes at revocation and zero afterward in 43.057 seconds. Synthetic flag and canonical ignored env restored; test resources and session credentials removed.",
+          "Restricted evidence SHA-256: Gan 4a117004629e1526d1371d46be9950eb6b64d2422314634103b68aca7e20efb3; Observer e9af93dfd5b2358f263e3543bb8d50ae58e28e30399076465beea0c82f5310e6."
         ],
-        "limits": "No Staff Product playback or active flag-loss proof. Existing Manager and Parent tests remain separate."
+        "limits": "Synthetic Development proof only. No physical hardware, Production playback or external provider verification."
       },
       "integration": {
         "branch": "integration/development",
@@ -74,12 +77,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "SYNTHETIC_STAFF_PRODUCT_QA_PASS",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "After exact CI, authorized exclusive integration, cumulative CI and release of CH1 Docker resources, run isolated Staff flag-off, positive and revocation Product tests."
+      "nextAction": "Preserve the synthetic Staff evidence in Development and reconcile remaining Stage 3 gates with the coordinator."
     },
     {
       "id": "gan-stage-3-parent-active-revalidation",
