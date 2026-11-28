@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({ grant: z.string().min(32).max(4096) });
 
 export async function POST(request: Request) {
+  if (process.env.OBSERVER_QA_BUDGET_ENABLED === "1") return fail("Direct QA playback is disabled.", 403);
   try {
     const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
     if (!secret) return fail("Playback grant service is not configured.", 503);

@@ -82,6 +82,12 @@ export async function POST(request: Request) {
     const access = await requireSiteAccess(request, payload.observer_site_id);
     if (access.error) return access.error;
 
+    const qa = process.env.OBSERVER_QA_BUDGET_ENABLED === "1";
+    if (qa && (!payload.camera_source_id || payload.mode !== "live" ||
+      process.env.VERCEL_ENV === "production" || new URL(request.url).origin !== "https://observer-qa.ganbatuach.com")) {
+      return fail("QA playback is unavailable.", 403);
+    }
+
     if (payload.camera_source_id) {
       if (!access.session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
       const { data: source, error } = await (access.session.supabase as unknown as ObserverRouteClient)
@@ -97,7 +103,7 @@ export async function POST(request: Request) {
       if (binding.status === "stream_unmapped") return fail("מיפוי השידור של מקור המצלמה אינו תואם.", 409);
       if (binding.status === "profile_unmapped") return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
       const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
-      if (binding.status === "gateway_unmapped" || !secret) return fail("זהות רכיב ה־Edge אינה זמינה.", 503);
+      if (binding.status === "gateway_unmapped" || (!qa && !secret)) return fail("זהות רכיב ה־Edge אינה זמינה.", 503);
       const { gatewayId, streamId, profile } = binding;
       const enrollment = await createAdminClient().from("video_gateway_device_enrollments")
         .select("id,observer_site_id,gateway_id,status,lifecycle_state,deployment_profile")
@@ -107,6 +113,39 @@ export async function POST(request: Request) {
         return fail("שיוך ה־Gateway לאתר אינו פעיל.", 409);
       if (enrollment.data.deployment_profile !== profile)
         return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
+      if (qa) {
+        const port = Number(process.env.OBSERVER_QA_ISSUER_PORT);
+        const key = process.env.OBSERVER_QA_ISSUER_KEY || "";
+        const runId = process.env.OBSERVER_QA_RUN_ID || "";
+        const expectedSha = process.env.OBSERVER_QA_BUILD_SHA || "";
+        if (!Number.isInteger(port) || port < 1024 || port > 65535 || !/^[a-f0-9]{64}$/.test(key) ||
+          !/^[a-zA-Z0-9_-]{1,80}$/.test(runId) || !/^[a-f0-9]{40}$/.test(expectedSha)) {
+          return fail("QA playback is unavailable.", 503);
+        }
+        // The viewer has already been checked against the active site and source.
+        // The isolated issuer re-authenticates the session and checks its own registry.
+        const { data } = await access.session.supabase.auth.getSession();
+        if (!data.session?.access_token) return fail("QA playback is unavailable.", 401);
+        try {
+          const issued = await fetch(`http://127.0.0.1:${port}/internal/issue`, {
+            method: "POST", redirect: "error", cache: "no-store", signal: AbortSignal.timeout(3000),
+            headers: { "content-type": "application/json", authorization: `Bearer ${key}` },
+            body: JSON.stringify({ session: data.session.access_token, runId, sourceId: source.id,
+              siteId: payload.observer_site_id, gatewayId, streamId, profile, expectedSha })
+          });
+          if (!issued.ok) return fail("QA playback is unavailable.", 403);
+          const result = await issued.json();
+          if (typeof result.path !== "string" || !result.path.startsWith("/qa/")) return fail("QA playback is unavailable.", 503);
+          const url = new URL(result.path, "https://observer-qa.ganbatuach.com");
+          const path = `/qa/${runId}/`;
+          if (result.sha !== expectedSha || url.origin !== "https://observer-qa.ganbatuach.com" ||
+            ![path + `general/${source.id}/index.m3u8`, path + `ch1/${source.id}/index.m3u8`].includes(url.pathname) ||
+            !/^\?r=[a-zA-Z0-9_-]{43}$/.test(url.search) || url.hash) return fail("QA playback is unavailable.", 503);
+          const response = ok({ playback: { hls_url: url.href, qa_build_sha: expectedSha }, expires_in_seconds: 30 });
+          response.headers.set("cache-control", "no-store");
+          return response;
+        } catch { return fail("QA playback is unavailable.", 503); }
+      }
       const remoteOrigin = edgePlaybackOrigin(gatewayId, process.env.OBSERVER_PLAYBACK_EDGE_ORIGINS_JSON);
       const localAllowed = localPlaybackAllowed(request.url, process.env.NODE_ENV);
       if (!remoteOrigin && !localAllowed) return fail("גישה מרחוק ל־Edge טרם הוגדרה.", 503);

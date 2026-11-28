@@ -62,6 +62,7 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
   const ticket: { promise?: Promise<string> } = {};
   const request = (async () => {
     let playbackUrl = "";
+    let sessionTtl = playbackSessionTtlMs;
     for (let attempt = 0; attempt < 3; attempt += 1) {
       if (attempt > 0 && pendingPlaybackSessions.get(key) !== ticket.promise) throw new PlaybackFlowError("playback_cancelled");
       const response = await fetch("/api/digital-observer/dvr-gateway", {
@@ -83,6 +84,20 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
       const claimUrl = payload?.data?.playback?.claim_url;
       const allowedOrigin = payload?.data?.playback?.allowed_origin;
       const grant = payload?.data?.playback?.grant;
+      const qaBuild = payload?.data?.playback?.qa_build_sha;
+      if (qaBuild !== undefined) {
+        if (typeof qaBuild !== "string" || !/^[a-f0-9]{40}$/.test(qaBuild) ||
+          claimUrl !== undefined || grant !== undefined || typeof candidate !== "string") {
+          throw new PlaybackFlowError("playback_origin_invalid");
+        }
+        const receipt = new URL(candidate);
+        if (receipt.origin !== "https://observer-qa.ganbatuach.com" ||
+          receipt.username || receipt.password || receipt.hash || !/^\?r=[A-Za-z0-9_-]{43}$/.test(receipt.search) ||
+          !receipt.pathname.startsWith("/qa/") || !receipt.pathname.endsWith("/index.m3u8")) {
+          throw new PlaybackFlowError("playback_origin_invalid");
+        }
+        sessionTtl = 0; // The QA issuer holds only one active receipt.
+      }
       if (typeof claimUrl === "string" && typeof grant === "string") {
         if (typeof allowedOrigin !== "string" || new URL(claimUrl).origin !== allowedOrigin
           || new URL(claimUrl).pathname !== "/playback/claim") throw new PlaybackFlowError("playback_origin_invalid");
@@ -113,7 +128,7 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
     }
     if (!playbackUrl) throw new Error("playback_unavailable");
     if (pendingPlaybackSessions.get(key) === ticket.promise) {
-      playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
+      playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + sessionTtl });
     }
     return playbackUrl;
   })();

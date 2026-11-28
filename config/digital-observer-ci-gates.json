@@ -136,6 +136,8 @@
   ],
   "security": [
     { "name": "push44-ch1-private-media", "args": ["--test", "scripts/qa/check-push44-ch1-private-media.mjs"] },
+    { "name": "qa-pilot-shared-budget", "args": ["--test", "scripts/qa/check-qa-pilot-budget.mjs"] },
+    { "name": "qa-pilot-owner-proxy", "args": ["--test", "scripts/qa/observer-first-party/approval.test.mjs"] },
     { "name": "push44-synthetic-edge", "args": ["--test", "scripts/qa/check-push44-synthetic-edge.mjs"] },
     { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
     { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
