@@ -38,6 +38,54 @@
   ],
   "units": [
     {
+      "id": "gan-stage-3-pilot-pr-687",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Exact loopback origin validation through Next normalization",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage3-pilot-origin",
+      "sourceCommits": [
+        "6267bce55acc07003c6b908a7b3f67cfa75901c3"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage3-pilot-origin@6267bce55acc07003c6b908a7b3f67cfa75901c3"
+        ]
+      },
+      "validation": {
+        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "evidence": [
+          "Six foreign roles denied on 44ec2143. Manager received 404 before Observer. Reproduced NextRequest localhost URL normalization with original 127.0.0.1 Host and Origin. 30 focused tests passed."
+        ],
+        "limits": "Fresh synthetic Product run pending."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "44ec2143c86d043cd0e69321a929e63af4de4fbd",
+        "pullRequests": [
+          687
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-683",
+          "gan-stage-3-pilot-pr-686"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify CI on the final PR head, then coordinate the Development merge and synthetic gbi Product run."
+    },
+    {
       "id": "gan-stage-3-pilot-pr-686",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Gan Batuach Management",
