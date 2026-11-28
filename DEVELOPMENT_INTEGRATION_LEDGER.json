@@ -38,6 +38,191 @@
   ],
   "units": [
     {
+      "id": "gan-stage-3-pilot-pr-681",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Gan server grant validation and signing",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage-3-camera-playback",
+      "sourceCommits": [
+        "db018ff6e8dfce19454157331b74e150dca95acc"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage-3-camera-playback@db018ff6e8dfce19454157331b74e150dca95acc"
+        ]
+      },
+      "validation": {
+        "status": "PRODUCT_QA_PENDING",
+        "evidence": [
+          "20 local tests; exact-head CI 46080823469 and Management 46080823545 passed, with Snyk."
+        ],
+        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "5a0f639d3696bdb9d6017503e3dd89008c158d30",
+        "pullRequests": [
+          681
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+    },
+    {
+      "id": "gan-stage-3-pilot-pr-682",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Digital Observer",
+      "title": "Observer synthetic grant verification and durable redemption",
+      "owner": "Canonical Observer executor",
+      "sourceBranch": "codex/do-stage3-gan-integration-candidate-20261128",
+      "sourceCommits": [
+        "b57370094500bf57399ebbcefd9eccd62af18a15"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/do-stage3-gan-integration-candidate-20261128@b57370094500bf57399ebbcefd9eccd62af18a15"
+        ]
+      },
+      "validation": {
+        "status": "PRODUCT_QA_PENDING",
+        "evidence": [
+          "9/9 checks reported passed. Combined Gan/Observer offline signature and single-redemption test passed; source history preserved separately on Observer source branch at d2439371."
+        ],
+        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "5a0f639d3696bdb9d6017503e3dd89008c158d30",
+        "pullRequests": [
+          682
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": []
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+    },
+    {
+      "id": "gan-stage-3-pilot-pr-684",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Digital Observer",
+      "title": "Observer private synthetic signaling, grant issuance and revocation",
+      "owner": "Canonical Observer executor",
+      "sourceBranch": "codex/do-stage3-protected-webrtc-20261128",
+      "sourceCommits": [
+        "8a224dd5a9303e7e30e4664029cc916e5aea632c"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/do-stage3-protected-webrtc-20261128@8a224dd5a9303e7e30e4664029cc916e5aea632c"
+        ]
+      },
+      "validation": {
+        "status": "PRODUCT_QA_PENDING",
+        "evidence": [
+          "17/17 local and 9/9 CI reported passed; synthetic browser evidence covers frame delivery and stop after revocation. Stacked on #682."
+        ],
+        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "5a0f639d3696bdb9d6017503e3dd89008c158d30",
+        "pullRequests": [
+          684
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-682"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+    },
+    {
+      "id": "gan-stage-3-pilot-pr-683",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Gan default-off gbi pilot route and server adapter",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage-3-camera-pilot-adapter",
+      "sourceCommits": [
+        "3e694002fc99c6f760e5ce23c42da63729becc68"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage-3-camera-pilot-adapter@3e694002fc99c6f760e5ce23c42da63729becc68"
+        ]
+      },
+      "validation": {
+        "status": "PRODUCT_QA_PENDING",
+        "evidence": [
+          "28 local adapter tests passed; Product route and seven-role end-to-end runtime QA pending. Stacked on #681."
+        ],
+        "limits": "Synthetic Development only. No physical camera, owner visual acceptance or release evidence."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "5a0f639d3696bdb9d6017503e3dd89008c158d30",
+        "pullRequests": [
+          683
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-681",
+          "gan-stage-3-pilot-pr-684"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact-head checks, integrate in dependency order under the exclusive Development window and qualify synthetic Product playback."
+    },
+    {
       "id": "gan-stage-2-management-product-qa-20261128",
       "taskId": "GAN-STAGE-2-MANAGEMENT-PRODUCT-QA",
       "project": "Gan Batuach Management",
