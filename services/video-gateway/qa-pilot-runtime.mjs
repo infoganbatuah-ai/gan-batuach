@@ -5,7 +5,7 @@ import { createQaPilotServer } from "./qa-pilot-server.mjs";
 
 const sha = /^[a-f0-9]{40}$/;
 const digest = /^[a-f0-9]{64}$/;
-const mediaRoute = /^\/qa\/[A-Za-z0-9_-]{1,80}\/(general|ch1)\/[A-Za-z0-9_-]{1,80}\/(?:index\.m3u8|segment-[0-9]{1,12}\.ts)\?r=[A-Za-z0-9_-]{43}$/;
+export const qaPilotMediaRoute = /^\/qa\/[A-Za-z0-9_-]{1,80}\/(general|ch1)\/[A-Za-z0-9_-]{1,80}\/(?:index\.m3u8|segment-[0-9]{1,12}\.ts)\?r=[A-Za-z0-9_-]{43}$/;
 const safeHeaders = ["content-type", "content-length", "cache-control", "referrer-policy", "x-observer-qa-build"];
 
 export function createQaPilotRuntime({ manifest, gateway, connector, audit, ...options } = {}) {
@@ -61,7 +61,7 @@ export function createQaPilotRuntime({ manifest, gateway, connector, audit, ...o
             else response.writeHead(404, { "cache-control": "no-store" }).end();
           };
           try {
-            if (incoming.method !== "GET" || incoming.headers.range || !mediaRoute.test(incoming.url || "")) {
+            if (incoming.method !== "GET" || incoming.headers.range || !qaPilotMediaRoute.test(incoming.url || "")) {
               fail();
               return;
             }

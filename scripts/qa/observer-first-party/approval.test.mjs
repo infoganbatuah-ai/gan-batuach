@@ -6,9 +6,9 @@ import { OBSERVER_QA_HOST as host } from "../push44-observer-qa-ingress-policy.m
 
 const code = "abba0102ffee0304"; // Synthetic fixture.
 const approve = "/__push44/owner-approval";
-async function fixture(t, upstream) {
+async function fixture(t, upstream, mediaOptions) {
   let time = 1_000;
-  const proxy = createQaProxy({ qaHost: host, upstream, approvalCode: code, now: () => time });
+  const proxy = createQaProxy({ qaHost: host, upstream, approvalCode: code, now: () => time, ...mediaOptions });
   await new Promise((resolve, reject) => proxy.once("error", reject).listen(0, "127.0.0.1", resolve));
   t.after(() => { proxy.closeAllConnections(); proxy.close(); });
   function send(method, path, body, extra = {}) {
@@ -111,4 +111,47 @@ test("only immutable hashed build assets may be retained in the private device c
     "/digital-observer/onboarding", "/api/digital-observer/mobile/runtime"]) {
     assert.equal((await f.send("GET", path, undefined, {cookie})).headers["cache-control"], "no-store");
   }
+});
+
+test("opt-in QA proxy routes signed media only and drops misconfigured direct issuance", async t => {
+  const sha = "a".repeat(40);
+  const token = "b".repeat(43);
+  const signed = `/qa/run/general/source/index.m3u8?r=${token}`;
+  const mintPath = "/api/digital-observer/dvr-gateway";
+  let direct = true;
+  let mediaCalls = 0;
+  const app = createServer((_req, res) => {
+    res.writeHead(200, { "content-type": "application/json" });
+    res.end(JSON.stringify({ data: { playback: direct
+      ? { claim_url: "https://edge.invalid/playback/claim", grant: "secret" }
+      : { hls_url: `https://${host}${signed}`, qa_build_sha: sha } } }));
+  });
+  const media = createServer((req, res) => {
+    mediaCalls++;
+    assert.equal(req.url, signed);
+    assert.equal(req.headers.cookie, undefined);
+    res.writeHead(200, { "x-observer-qa-build": sha, "set-cookie": "unwanted=1" });
+    res.end("#EXTM3U");
+  });
+  for (const listener of [app, media]) {
+    await new Promise(resolve => listener.listen(0, "127.0.0.1", resolve));
+    t.after(() => { listener.closeAllConnections();listener.close(); });
+  }
+  const origin = listener => `http://127.0.0.1:${listener.address().port}`;
+  const f = await fixture(t, origin(app), { mediaUpstream: origin(media), mediaSha: sha });
+  const cookie = (await f.redeem()).headers["set-cookie"][0].split(";")[0];
+  assert.equal((await f.send("POST", mintPath, "{}")).status, 403);
+  assert.equal((await f.send("POST", mintPath, "{}", { cookie })).status, 404);
+  direct = false;
+  assert.equal((await f.send("POST", mintPath, "{}", { cookie })).status, 200);
+  assert.equal((await f.send("GET", signed, undefined, { "x-forwarded-proto": "http" })).status, 403);
+  const result = await f.send("GET", signed);
+  assert.equal(result.status, 200);
+  assert.equal(result.headers["set-cookie"], undefined);
+  assert.equal(result.headers["referrer-policy"], "no-referrer");
+  assert.equal(result.text, "#EXTM3U");
+  for (const path of ["/internal/issue", "/hls/direct/index.m3u8", signed + "&r=" + token, "/playback/claim"]) {
+    assert.equal((await f.send("GET", path, undefined, { cookie })).status, 404);
+  }
+  assert.equal(mediaCalls, 1);
 });

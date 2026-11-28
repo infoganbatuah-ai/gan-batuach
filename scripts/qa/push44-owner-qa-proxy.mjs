@@ -5,6 +5,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync, statSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { qaPilotMediaRoute } from "../../services/video-gateway/qa-pilot-runtime.mjs";
 
 // QA must never proxy the canonical integration preview on port 3000.
 const origin = "http://127.0.0.1:3001";
@@ -88,7 +89,7 @@ export function observerOriginRedirect(location, upstream, gate) {
   return observerQaRedirect(location, gate);
 }
 
-export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, approvalCode, qaHost, expiresAt } = {}) {
+export function createQaProxy({ now = () => Date.now(), upstream = origin, ownerToken, approvalCode, qaHost, expiresAt, mediaUpstream, mediaSha } = {}) {
   const observer = qaHost === OBSERVER_QA_HOST;
   if (observer && (ownerToken !== undefined || !/^http:\/\/127\.0\.0\.1:\d+$/.test(upstream))) {
     throw new Error("Observer requires an isolated loopback origin and one-use approval");
@@ -97,6 +98,10 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
   if (typeof qaHost !== "string" || !/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(qaHost)) {
     throw new Error("PUSH44 QA requires one exact HTTPS hostname");
   }
+  if ((mediaUpstream !== undefined || mediaSha !== undefined) &&
+      (!observer || !/^http:\/\/127\.0\.0\.1:[1-9]\d{3,4}$/.test(mediaUpstream || "") ||
+        Number(new URL(mediaUpstream).port) < 1024 || mediaUpstream === upstream ||
+        !/^[a-f0-9]{40}$/.test(mediaSha || ""))) throw new Error("Invalid isolated QA media upstream");
   const started = now();
   const deadline = Math.min(started + maxDurationMs, expiresAt ?? started + maxDurationMs);
   const approval = observer ? createOwnerApproval({ code: approvalCode, now, deadline }) : null;
@@ -107,6 +112,10 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
   let minuteRequests = 0;
   const server = createServer((incoming, outgoing) => {
     const current = now();
+    const media = Boolean(observer && mediaUpstream && incoming.method === "GET" &&
+      !incoming.headers.range && qaPilotMediaRoute.test(incoming.url ?? ""));
+    const issue = Boolean(observer && mediaUpstream && incoming.method === "POST" &&
+      incoming.url === "/api/digital-observer/dvr-gateway");
     // Protected Quick Tunnel copies its response headers into the origin map;
     // an empty map can crash cloudflared on an early rejected request.
     outgoing.setHeader("cache-control", "no-store");
@@ -115,7 +124,7 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
     if (process.env.PUSH44_QA_DIAGNOSTICS === "1") {
       let path = "/";
       try { path = new URL(incoming.url ?? "/", origin).pathname; } catch { /* invalid URLs remain unclassified */ }
-      const route = path === "/digital-observer/login" ? "login-page"
+      const route = media ? "qa-media" : issue ? "qa-issuance" : path === "/digital-observer/login" ? "login-page"
         : path.startsWith("/_next/static/") ? "next-static"
         : path.startsWith("/_next/") ? "next-internal"
         : path.startsWith("/api/digital-observer/") ? "observer-api"
@@ -140,14 +149,16 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
     if (observer) {
       // Only a TLS-terminating, host-pinned ingress may forward to this loopback listener.
       if (incoming.headers["x-forwarded-proto"] !== "https") return void outgoing.writeHead(403).end();
-      if (incoming.url === approval.approvalPath || !approval.authorized(incoming.headers.cookie)) {
+      // Native HLS may not carry the UI approval cookie. The media service
+      // authenticates the signed receipt and re-checks the active viewer.
+      if (!media && (incoming.url === approval.approvalPath || !approval.authorized(incoming.headers.cookie))) {
         approval.respond(incoming, outgoing).catch(() => outgoing.destroy());
         return;
       }
       if (incoming.method === "POST" && incoming.headers.origin !== `https://${qaHost}`) {
         return void outgoing.writeHead(403).end();
       }
-      if (!observerQaRouteAllowed({ ...gate, method: incoming.method, rawUrl: incoming.url, rsc: incoming.headers.rsc })) {
+      if (!media && !issue && !observerQaRouteAllowed({ ...gate, method: incoming.method, rawUrl: incoming.url, rsc: incoming.headers.rsc })) {
         return void outgoing.writeHead(404).end();
       }
     } else if (incoming.method === "GET" && incoming.url?.startsWith("/__push44/bootstrap?")) {
@@ -165,8 +176,8 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
     if (!observer && !allowedQaRequest(incoming.method, incoming.url)) return void outgoing.writeHead(404).end();
     if (Number(incoming.headers["content-length"] ?? 0) > maxRequestBytes) return void outgoing.writeHead(413).end();
 
-    const target = new URL(incoming.url, upstream);
-    const headers = { ...incoming.headers, host: incoming.headers.host ?? target.host,
+    const target = new URL(incoming.url, media ? mediaUpstream : upstream);
+    const headers = media ? { host: target.host } : { ...incoming.headers, host: incoming.headers.host ?? target.host,
       "x-forwarded-proto": "https", "x-push44-owner-qa": "bounded" };
     delete headers["cf-access-jwt-assertion"];
     delete headers["x-user-role"];
@@ -180,7 +191,41 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
       else delete headers.cookie;
     }
     const forwarded = requestOrigin(target, { method: incoming.method, headers, timeout: 15_000 }, (source) => {
-      const safeHeaders = { ...source.headers, "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
+      if (issue) {
+        const chunks = [];
+        let size = 0;
+        const reject = () => { if (!outgoing.headersSent) outgoing.writeHead(404).end(); };
+        source.on("error", reject);
+        source.on("data", chunk => {
+          size += chunk.length;
+          if (size <= 8192) chunks.push(chunk);
+          else { source.destroy(); reject(); }
+        });
+        source.on("end", () => {
+          try {
+            const playback = JSON.parse(Buffer.concat(chunks)).data.playback;
+            const signed = new URL(playback.hls_url);
+            if (source.statusCode !== 200 || playback.qa_build_sha !== mediaSha ||
+                Object.keys(playback).sort().join(",") !== "hls_url,qa_build_sha" ||
+                signed.origin !== `https://${qaHost}` || signed.username || signed.password || signed.hash ||
+                !signed.pathname.endsWith("/index.m3u8") || !qaPilotMediaRoute.test(signed.pathname + signed.search)) return reject();
+            const body = Buffer.from(JSON.stringify({ data: { playback } }));
+            responseBytes += body.length;
+            if (responseBytes > maxResponseBytes) return reject();
+            outgoing.writeHead(200, { "content-type": "application/json", "content-length": body.length,
+              "referrer-policy": "no-referrer" }).end(body);
+          } catch { reject(); }
+        });
+        return;
+      }
+      if (media && (source.statusCode !== 200 || source.headers["x-observer-qa-build"] !== mediaSha)) {
+        source.destroy();
+        outgoing.writeHead(404).end();
+        return;
+      }
+      const mediaHeaders = ["content-type", "content-length", "x-observer-qa-build"];
+      const safeHeaders = { ...(media ? Object.fromEntries(mediaHeaders.flatMap(key => source.headers[key] ? [[key, source.headers[key]]] : [])) : source.headers),
+        "cache-control": "no-store", "x-robots-tag": "noindex, nofollow" };
       delete safeHeaders["transfer-encoding"];
       // A cold WebView reloads many bundles. Cache only successful immutable
       // build assets on this device, never session data or shared edge responses.
@@ -192,7 +237,7 @@ export function createQaProxy({ now = () => Date.now(), upstream = origin, owner
         safeHeaders["cache-control"] = `private, max-age=${ttl}, immutable`;
         safeHeaders["cdn-cache-control"] = "no-store";
       }
-      if (observer) safeHeaders["referrer-policy"] = "same-origin";
+      if (observer) safeHeaders["referrer-policy"] = media || issue ? "no-referrer" : "same-origin";
       if (safeHeaders["set-cookie"]) {
         safeHeaders["set-cookie"] = safeHeaders["set-cookie"].map((cookie) =>
           /(?:^|;)\s*secure(?:;|$)/i.test(cookie) ? cookie : `${cookie}; Secure`);
@@ -247,10 +292,13 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   }
   const approvalCode = observer ? randomBytes(8).toString("hex") : undefined;
   const ownerToken = observer ? undefined : readFileSync(tokenFile, "utf8").trim();
-  const server = createQaProxy({ ownerToken, approvalCode, qaHost, expiresAt });
+  const mediaUpstream = process.env.PUSH44_QA_MEDIA_UPSTREAM;
+  if (mediaUpstream && expectedSha !== sourceSha) throw new Error("Media QA requires an exact build SHA");
+  const server = createQaProxy({ ownerToken, approvalCode, qaHost, expiresAt,
+    mediaUpstream, mediaSha: mediaUpstream ? sourceSha : undefined });
   if (observer) writeFileSync(output, approvalCode + "\n", { flag: "wx", mode: 0o600 });
   server.listen(listenPort, listenHost, () => {
-    console.log(`PUSH44 owner QA route filter active on ${listenHost}:${listenPort}; fixed deadline; no media routes`);
+    console.log(`PUSH44 owner QA route filter active on ${listenHost}:${listenPort}; fixed deadline; media ${mediaUpstream ? "receipt-only" : "disabled"}`);
   });
   const expiry = setTimeout(() => { server.close(); server.closeAllConnections(); }, expiresAt - Date.now());
   for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => {
