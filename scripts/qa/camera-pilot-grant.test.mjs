@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion, verifyCameraPilotParentScope } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -323,4 +323,45 @@ test("window blocks repeat signaling and propagates an authorized stop", async (
   assert.equal(await window.stop(context.sessionId), true);
   assert.equal(await window.start(offer()), null);
   assert.deepEqual(operations, ["issue", "signal", "revoke"]);
+});
+
+test("private scope check reruns Parent authorization and fails closed on loss, mismatch or timeout", async () => {
+  const config = { viewerId: "parent-a", gardenId: "garden-a", cameraId: "camera-a", siteId: "site-a" };
+  const token = "r".repeat(40);
+  const context = {
+    sessionId: "session-a",
+    viewer: { id: "parent-a", role: "parent", active: true },
+    camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
+  };
+  const request = (patch = {}, signal) => new Request("http://127.0.0.1:3000/api/development/camera-pilot", {
+    method: "PUT", signal,
+    headers: {
+      origin: "http://127.0.0.1:3000", host: "127.0.0.1:3000", authorization: "Bearer " + token,
+      "x-gan-pilot-session": "session-a", "x-gan-pilot-viewer": "parent-a", "x-gan-pilot-garden": "garden-a",
+      "x-gan-pilot-camera": "camera-a", "x-gan-pilot-site": "site-a", ...patch
+    }
+  });
+  let current = context;
+  let decisions = 0;
+  const check = (req, resolveContext = async () => { decisions++; return current; }) =>
+    verifyCameraPilotParentScope({ request: req, config, token, resolveContext });
+  assert.equal(await check(request()), true);
+  current = null;
+  assert.equal(await check(request()), false);
+  assert.equal(decisions, 2);
+  for (const patch of [
+    { authorization: "Bearer " + "x".repeat(40) }, { "x-gan-pilot-garden": "garden-b" },
+    { "x-gan-pilot-viewer": "parent-b" }, { origin: "http://example.invalid" }
+  ]) assert.equal(await check(request(patch)), false);
+  assert.equal(decisions, 2);
+  assert.equal(await check(request(), async () => ({ ...context, sessionId: "session-b" })), false);
+  assert.equal(await check(request(), async () => ({
+    ...context, viewer: { ...context.viewer, id: "parent-b" }
+  })), false);
+  assert.equal(await check(request(), async () => { throw new Error("Authorization unavailable"); }), false);
+  const controller = new AbortController();
+  assert.equal(await check(request({}, controller.signal), async () => {
+    controller.abort();
+    return context;
+  }), false);
 });

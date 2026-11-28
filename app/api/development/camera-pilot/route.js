@@ -3,7 +3,7 @@ import { registerQaCameraPilotStop } from "@/lib/management/camera-pilot-logout"
 import { canUseSyntheticCameraPilot } from "@/lib/management/camera-pilot-role-policy";
 import { createClient } from "@/lib/supabase/server";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
-import { createCameraPilotLoopbackTransport, createCameraPilotWindow, isCameraPilotSameOrigin } from "@/lib/management/camera-pilot-grant.mjs";
+import { createCameraPilotLoopbackTransport, createCameraPilotWindow, isCameraPilotSameOrigin, verifyCameraPilotParentScope } from "@/lib/management/camera-pilot-grant.mjs";
 
 export const runtime = "nodejs";
 
@@ -25,11 +25,34 @@ async function currentSession() {
   return { client, user, sessionId, claims: claims.data.claims };
 }
 
-function getPilot() {
+async function resolveContext({ viewerId, gardenId, cameraId, siteId }) {
+  const session = await currentSession();
+  if (!session || session.user.id !== viewerId) return null;
+  const { client } = session;
+  const profile = await client.from("profiles").select("id,role,active,garden_id").eq("id", viewerId).single();
+  if (profile.error || profile.data?.active !== true ||
+      !["manager", "staff", "parent"].includes(profile.data.role)) return null;
+  const role = profile.data.role;
+  const columns = role === "manager" ? "id,garden_id,active" :
+    "id,garden_id,active,observer_site_id,parent_view_allowed,staff_view_allowed,class_group,age_group,camera_zone_label,viewing_hours,operating_hours";
+  const camera = await client.from("camera_streams").select(columns)
+    .eq("id", cameraId).eq("garden_id", gardenId).eq("active", true).maybeSingle();
+  if (camera.error || !camera.data) return null;
+  if (role === "manager") {
+    const access = await getManagementGardenContext();
+    if (!access.allowed || access.gardenId !== gardenId || access.session.user.id !== viewerId ||
+        access.session.profile.role !== role) return null;
+  } else if (!await canUseSyntheticCameraPilot(client, profile.data, session.claims, camera.data, siteId)) {
+    return null;
+  }
+  return { sessionId: session.sessionId, viewer: { id: viewerId, role, active: true },
+    camera: { id: cameraId, gardenId, siteId, active: true } };
+}
+
+function configuredPilot() {
   if (process.env.NODE_ENV !== "development" || process.env.INTEGRATION_DEVELOPMENT !== "true" ||
       process.env.INTEGRATION_BACKEND !== "LOCAL_SUPABASE" ||
       process.env.GAN_CAMERA_PILOT_QA !== "1") return null;
-  if (pilot) return pilot;
   const {
     GAN_CAMERA_PILOT_GARDEN: gardenId, GAN_CAMERA_PILOT_SITE: siteId,
     GAN_CAMERA_PILOT_CAMERA: cameraId, GAN_CAMERA_PILOT_VIEWER: viewerId,
@@ -38,6 +61,14 @@ function getPilot() {
   } = process.env;
   if (![gardenId, siteId, cameraId, viewerId].every(value => typeof value === "string" && identifier.test(value)) ||
       !signingKey) return null;
+  return { gardenId, siteId, cameraId, viewerId, origin, serviceToken, signingKey };
+}
+
+function getPilot() {
+  const config = configuredPilot();
+  if (!config) return null;
+  if (pilot) return pilot;
+  const { gardenId, siteId, cameraId, viewerId, origin, serviceToken, signingKey } = config;
   const transport = createCameraPilotLoopbackTransport({ origin, serviceToken });
   if (!transport) return null;
   try {
@@ -45,29 +76,7 @@ function getPilot() {
     if (privateKey.asymmetricKeyType !== "ed25519") return null;
     pilot = createCameraPilotWindow({
       config: { environment: "development", qaGardenId: gardenId, privateKey }, transport,
-      async resolveContext() {
-        const session = await currentSession();
-        if (!session || session.user.id !== viewerId) return null;
-        const { client } = session;
-        const profile = await client.from("profiles").select("id,role,active,garden_id").eq("id", viewerId).single();
-        if (profile.error || profile.data?.active !== true ||
-            !["manager", "staff", "parent"].includes(profile.data.role)) return null;
-        const role = profile.data.role;
-        const columns = role === "manager" ? "id,garden_id,active" :
-          "id,garden_id,active,observer_site_id,parent_view_allowed,staff_view_allowed,class_group,age_group,camera_zone_label,viewing_hours,operating_hours";
-        const camera = await client.from("camera_streams").select(columns)
-          .eq("id", cameraId).eq("garden_id", gardenId).eq("active", true).maybeSingle();
-        if (camera.error || !camera.data) return null;
-        if (role === "manager") {
-          const access = await getManagementGardenContext();
-          if (!access.allowed || access.gardenId !== gardenId || access.session.user.id !== viewerId ||
-              access.session.profile.role !== role) return null;
-        } else if (!await canUseSyntheticCameraPilot(client, profile.data, session.claims, camera.data, siteId)) {
-          return null;
-        }
-        return { sessionId: session.sessionId, viewer: { id: viewerId, role, active: true },
-          camera: { id: cameraId, gardenId, siteId, active: true } };
-      }
+      resolveContext: () => resolveContext({ viewerId, gardenId, cameraId, siteId })
     });
     registerQaCameraPilotStop(sessionId => pilot.stop(sessionId));
     return pilot;
@@ -97,4 +106,18 @@ export async function DELETE(request) {
   } catch {
     return unavailable();
   }
+}
+
+// Called by the private loopback resolver, which separately verifies that the
+// bound Auth session still exists. No grant or media capability is returned.
+export async function PUT(request) {
+  const config = configuredPilot();
+  if (!config) return unavailable();
+  const allowed = await verifyCameraPilotParentScope({
+    request,
+    config,
+    token: process.env.GAN_CAMERA_PILOT_SCOPE_TOKEN,
+    resolveContext: () => resolveContext(config)
+  });
+  return allowed ? new Response(null, { status: 204, headers: { "Cache-Control": "private, no-store" } }) : unavailable();
 }
