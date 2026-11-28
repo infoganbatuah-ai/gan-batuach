@@ -38,6 +38,53 @@
   ],
   "units": [
     {
+      "id": "gan-stage-3-pilot-pr-689",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Stop the matching synthetic camera pilot session on logout",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage3-pilot-logout",
+      "sourceCommits": [
+        "7ea611904ba9efcb50c38a9433807908196e0fa1"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage3-pilot-logout@7ea611904ba9efcb50c38a9433807908196e0fa1"
+        ]
+      },
+      "validation": {
+        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "evidence": [
+          "29 focused tests passed, including actual logout handler with a mocked auth backend and exact-session stop."
+        ],
+        "limits": "Synthetic logout Product run and ongoing authorization revocation still pending."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "eecf2f7472d73f36699726e86cf3aaad3267919f",
+        "pullRequests": [
+          689
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-687"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify CI on the final PR head, then coordinate the Development merge and synthetic gbi Product run."
+    },
+    {
       "id": "gan-stage-3-pilot-pr-687",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Gan Batuach Management",
