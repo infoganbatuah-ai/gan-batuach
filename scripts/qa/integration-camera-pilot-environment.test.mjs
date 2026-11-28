@@ -36,3 +36,14 @@ test("ongoing scope check uses an optional distinct private bearer", () => {
   }));
   assert.throws(() => integrationEnvironment(local, { cameraPilot: { ...cameraPilot, [key]: "short" } }));
 });
+
+test("Staff scope requires an explicit role and a distinct resolver bearer", () => {
+  const role = "GAN_CAMERA_PILOT_SCOPE_ROLE";
+  const token = "GAN_CAMERA_PILOT_SCOPE_TOKEN";
+  const valid = { ...cameraPilot, [token]: "r".repeat(40), [role]: "staff" };
+  assert.equal(integrationEnvironment(local, { cameraPilot: valid })[role], "staff");
+  assert.throws(() => integrationEnvironment(local, { cameraPilot: { ...cameraPilot, [role]: "staff" } }));
+  for (const denied of ["manager", "inspector", "admin", ""]) {
+    assert.throws(() => integrationEnvironment(local, { cameraPilot: { ...valid, [role]: denied } }));
+  }
+});
