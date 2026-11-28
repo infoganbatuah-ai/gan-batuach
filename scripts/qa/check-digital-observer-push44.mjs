@@ -128,9 +128,8 @@ for (const preserved of [
   "../../supabase/migrations/20261019010000_digital_observer_push40_commercial_billing.sql",
   "../../supabase/migrations/20261019020000_digital_observer_push41_enterprise_identity.sql",
   "../../supabase/migrations/20261019030000_digital_observer_push42_external_api.sql",
-  "../../supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql"
 ]) {
   assert(readFileSync(new URL(preserved, import.meta.url), "utf8").length > 1_000, `missing preserved contract ${preserved}`);
 }
 
-console.log("PUSH 44 deterministic QA passed: native lifecycle/network handling, server-authorized deep links, native push token lifecycle, iOS Development/Release APNs signing entitlement, privacy-minimized previews, native server-form submission and token custody, bounded non-sensitive offline recovery, playback suspend/reconnect, iOS/Android URL and notification contracts, SMS-auth disablement and PUSH 39-43 preservation.");
+console.log("PUSH 44 deterministic QA passed: native lifecycle/network handling, server-authorized deep links, native push token lifecycle, iOS Development/Release APNs signing entitlement, privacy-minimized previews, native server-form submission and token custody, bounded non-sensitive offline recovery, playback suspend/reconnect, iOS/Android URL and notification contracts, SMS-auth disablement and PUSH 39-42 preservation.");

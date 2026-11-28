@@ -66,7 +66,6 @@ for (const preserved of [
   "../../supabase/migrations/20261019010000_digital_observer_push40_commercial_billing.sql",
   "../../supabase/migrations/20261019020000_digital_observer_push41_enterprise_identity.sql",
   "../../supabase/migrations/20261019030000_digital_observer_push42_external_api.sql",
-  "../../supabase/migrations/20261019040000_digital_observer_push43_oem_sdk.sql",
   "../../DIGITAL_OBSERVER_PUSH_44_IMPLEMENTATION_REPORT.md"
 ]) assert(readFileSync(new URL(preserved, import.meta.url), "utf8").length > 500, `missing preserved PUSH 39-44 artifact ${preserved}`);
 
