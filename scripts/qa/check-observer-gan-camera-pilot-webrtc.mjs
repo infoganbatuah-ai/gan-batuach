@@ -10,7 +10,8 @@ import { loadTs } from "./digital-guard-test-loader.mjs";
 
 const { openGanCameraPilotSyntheticEdge } = loadTs("lib/domain/digital-observer/gan-camera-pilot-synthetic-edge.ts");
 const { startGanCameraPilotWebRtc } = loadTs("lib/domain/digital-observer/gan-camera-pilot-webrtc.ts", { fetch: globalThis.fetch });
-const { createGanCameraPilotHostAuthorization } = loadTs("lib/domain/digital-observer/gan-camera-pilot-grant.ts");
+const { createGanCameraPilotAccessResolver, createGanCameraPilotHostAuthorization } =
+  loadTs("lib/domain/digital-observer/gan-camera-pilot-grant.ts", { fetch: globalThis.fetch });
 const scope = { viewerId: "qa-viewer", role: "parent", gardenId: "qa-garden", siteId: "qa-site", cameraId: "qa-camera",
   protocol: "WebRTC", tenantId: "qa-tenant", sessionId: "qa-session", sourceId: "synthetic", gatewayId: "loopback", streamId: "pattern" };
 const handle = "h".repeat(43);
@@ -23,7 +24,7 @@ const binding = { viewerId, role, gardenId, siteId, cameraId, protocol };
 const readPassword = "r".repeat(43);
 const readAuth = `Basic ${Buffer.from(`do-pilot-reader:${readPassword}`).toString("base64")}`;
 
-async function fixture(t) {
+async function fixture(t, revalidateAccess = async () => true) {
   const folder = mkdtempSync(resolve(".gan-pilot-tcp-"));
   let at = 10_000;
   const edge = openGanCameraPilotSyntheticEdge({ databasePath: join(folder, "test.db"), windowId: "w".repeat(32),
@@ -50,7 +51,7 @@ async function fixture(t) {
   const host = createGanCameraPilotHostAuthorization({ environment: "development", qaGardenId: scope.gardenId,
     ganPublicKey: publicKey, ganServiceBearerSha256: createHash("sha256").update(service).digest("hex"), store: edge.store,
     now: () => at, resolveScope: async () => scope });
-  const gate = await startGanCameraPilotWebRtc({ environment: "development", edge, issue: host.issue,
+  const gate = await startGanCameraPilotWebRtc({ environment: "development", edge, issue: host.issue, revalidateAccess,
     upstream: { httpPort: signaling.address().port, iceTcpPort, readPassword },
     authenticateService: (request) => request.headers.authorization === "Bearer synthetic-control-service",
     async authorize(request) {
@@ -167,3 +168,58 @@ test("the absolute deadline closes a connected but idle receiver", async (t) => 
   await ended;
   assert.equal(h.edge.transportAllowed(handle, scope), false);
 });
+
+test("current access must be verified before the first media receiver is admitted", async (t) => {
+  const h = await fixture(t, async (checked) => {
+    assert.deepEqual(checked, scope);
+    return false;
+  });
+  assert.equal((await h.request()).status, 403);
+  assert.equal(h.edge.transportAllowed(handle, scope), false);
+});
+
+for (const [failure, status] of [["session or scope denied", 403], ["resolver unavailable", 503], ["resolver timeout", null]]) {
+  test(`active delivery fails closed on ${failure} without a remote revoke request`, { timeout: 8_000 }, async (t) => {
+    let checks = 0;
+    let timedOut;
+    const authorizedChecks = status === 403 ? 2 : 1;
+    const resolver = createServer(async (request, response) => {
+      assert.equal(request.method, "POST");
+      assert.equal(request.url, "/qa/resolve");
+      assert.equal(request.headers.authorization, `Bearer ${service}`);
+      const chunks = [];
+      for await (const chunk of request) chunks.push(chunk);
+      assert.deepEqual(JSON.parse(Buffer.concat(chunks)), { binding, sessionId });
+      response.writeHead(checks <= authorizedChecks ? 204 : status).end();
+    });
+    resolver.listen(0, loopback);
+    await once(resolver, "listening");
+    t.after(() => {
+      resolver.closeAllConnections();
+      return new Promise((done) => resolver.close(done));
+    });
+    const revalidate = createGanCameraPilotAccessResolver({
+      environment: "development", endpoint: `http://${loopback}:${resolver.address().port}/qa/resolve`, bearer: service
+    });
+    const h = await fixture(t, async (checked, signal) => {
+      assert.deepEqual(checked, scope);
+      if (++checks > 1 && status === null) {
+        signal.addEventListener("abort", () => { timedOut = true; }, { once: true });
+        return new Promise(() => {});
+      }
+      return revalidate(checked, signal);
+    });
+    const { socket, upstream } = await h.open();
+    const received = once(socket, "data");
+    upstream.write("authorized data");
+    assert.equal(String((await received)[0]), "authorized data");
+    assert.equal(checks, 1);
+    socket.resume();
+    const ended = once(socket, "close");
+    await ended;
+    assert.equal(checks, authorizedChecks + 1);
+    if (failure === "resolver timeout") assert.equal(timedOut, true);
+    assert.equal(h.edge.transportAllowed(handle, scope), false);
+    assert.equal(h.edge.reserveTransportBytes(handle, scope, 1), false);
+  });
+}
