@@ -38,6 +38,53 @@
   ],
   "units": [
     {
+      "id": "gan-stage-3-pilot-pr-691",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Synthetic pilot Parent and Staff authorization",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage3-pilot-role-policy",
+      "sourceCommits": [
+        "54549f2e2c049edf2593fe1cc72ef4cb0cb89507"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage3-pilot-role-policy@54549f2e2c049edf2593fe1cc72ef4cb0cb89507"
+        ]
+      },
+      "validation": {
+        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "evidence": [
+          "31 focused assertions passed, including controlled Parent/Staff eligibility, unrelated enrollment, attendance, room, MFA and site boundaries."
+        ],
+        "limits": "Requires eligible isolated Parent/Staff fixtures and paired Product playback/revocation proof."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "2b3c6d66fced920914ca90e56060f26d49202833",
+        "pullRequests": [
+          691
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-689"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify CI on the final PR head, then coordinate the Development merge and synthetic gbi Product run."
+    },
+    {
       "id": "do-stage-3-pilot-pr-690",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Digital Observer",
