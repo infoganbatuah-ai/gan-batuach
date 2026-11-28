@@ -58,13 +58,16 @@
         ]
       },
       "validation": {
-        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "status": "FOCUSED_TESTS_AND_ISOLATED_PARENT_PRODUCT_QA_PASS",
         "evidence": [
           "35 focused tests passed for grant, Parent/Staff policy and launch environment.",
           "Parent Product attempt on 4c6f537d failed closed before issuance. Zero issued grants and zero relay bytes. Follow-up adapter regression reproduced a non-null body stream on empty PUT and verified the corrected zero-length-only framing guard. Focused suites passed 36/36.",
-          "Default-off private loopback scope check requires a distinct bearer, current matching Auth session, exact viewer/Garden/camera/site binding and the same canonical Parent eligibility as issuance. Abort and exceptions deny."
+          "Default-off private loopback scope check requires a distinct bearer, current matching Auth session, exact viewer/Garden/camera/site binding and the same canonical Parent eligibility as issuance. Abort and exceptions deny.",
+          "Parent synthetic Product passed on bd73002d72b3262eef6c203f12b2c904f92f56b0 after cumulative CI 46094854621. AAL2 Parent A received HTTP 201 and decoded four frames before a synthetic attendance checkout. Parent B and own AAL1 received 404; foreign Garden scope 403.",
+          "The browser settled at 16 frames and remained at 16. Observer persisted one REVOKED, with 116,263 relay bytes at revocation and zero after, over a 60.011-second bounded window. Synthetic attendance and ignored configuration restored. Isolated fixture identities, processes, credentials and volume removed.",
+          "Restricted QA receipt SHA-256: Gan 69562d0e02bc9dcdd74151ff5f5738c6083ea6bdd9fc22386b6e0dc9252bb530; Observer cb58d9c20cfd71d38f84213f6dce3659b8258226753038d9027b6c2fc57ac6b8."
         ],
-        "limits": "Synthetic qualification only. Private bridge live-session check, standardized fixture seeding, actual Parent AAL2 Product playback and callback evidence remain pending."
+        "limits": "Synthetic Development qualification only. No physical camera, Production playback, or provider validation. Callback-outage Product QA remains separate."
       },
       "integration": {
         "branch": "integration/development",
@@ -79,12 +82,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "localVerification": "SYNTHETIC_PARENT_PRODUCT_QA_PASS",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Wait for exact-head CI and coordinate the Development merge. Qualify one Parent Product window on a seeded isolated loopback-only backend."
+      "nextAction": "Preserve Parent Product evidence in Development and reconcile remaining Stage 3 gates with the coordinator."
     },
     {
       "id": "gan-stage-3-pilot-pr-691",
