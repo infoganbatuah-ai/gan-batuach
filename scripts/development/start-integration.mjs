@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
@@ -25,8 +25,18 @@ try {
     ...(existsSync(localFile) ? parseEnv(readFileSync(localFile,'utf8')) : {}),
     ...(existsSync(privateFile) ? parseEnv(readFileSync(privateFile,'utf8')) : {})
   } : {};
+  const cameraPilotFile = resolve(databaseConfig.runtimeRoot, 'gan-camera-pilot.private.env');
+  let cameraPilot = {};
+  if (!uiOnly && existsSync(cameraPilotFile)) {
+    const info = lstatSync(cameraPilotFile);
+    if (!info.isFile() || info.uid !== process.getuid() || (info.mode & 0o077) ||
+        info.size > 16_384 || realpathSync(cameraPilotFile) !== resolve(realpathSync(databaseConfig.runtimeRoot), 'gan-camera-pilot.private.env')) {
+      throw new Error('Synthetic camera pilot configuration must be an owner-only file on the external volume.');
+    }
+    cameraPilot = parseEnv(readFileSync(cameraPilotFile, 'utf8'));
+  }
   const sha = git('rev-parse','HEAD');
-  const env = integrationEnvironment(local,{uiOnly,sha,timestamp:new Date().toISOString(),system:process.env});
+  const env = integrationEnvironment(local,{uiOnly,sha,timestamp:new Date().toISOString(),system:process.env,cameraPilot});
   if (!uiOnly) {
     try { execFileSync(process.execPath,[resolve(root,'scripts/development/check-baseline-drift.mjs')],{cwd:root,stdio:'pipe'}); }
     catch { throw new Error('Development migration drift/readiness gate failed. Run npm run qa:development-baseline-drift; never fall back to Production or label an adapted feature DB as canonical.'); }

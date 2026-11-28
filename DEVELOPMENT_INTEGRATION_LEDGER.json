@@ -38,6 +38,54 @@
   ],
   "units": [
     {
+      "id": "gan-stage-3-pilot-pr-686",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Canonical Development launcher synthetic camera QA configuration",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage3-pilot-launcher",
+      "sourceCommits": [
+        "4be47a3f0336f137df071608b4ffbf4ecd799359"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage3-pilot-launcher@4be47a3f0336f137df071608b4ffbf4ecd799359"
+        ]
+      },
+      "validation": {
+        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "evidence": [
+          "Two focused environment tests, launcher syntax and Git diff checks passed."
+        ],
+        "limits": "Default-off synthetic Development only. Cumulative gbi streaming and active revocation still require the coordinated Observer window."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "3a7cbb02190bd1718a1543e06383bca4e0dba646",
+        "pullRequests": [
+          686
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-683",
+          "gan-stage-3-pilot-pr-684"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify CI on the final PR head, then coordinate the Development merge and synthetic gbi Product run."
+    },
+    {
       "id": "gan-stage-3-pilot-pr-681",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Gan Batuach Management",
