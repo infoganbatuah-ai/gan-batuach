@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { unregisterPushDevice } from "@/lib/domain/push-service";
 import { z } from "zod";
+import { qaCameraPilotStop } from "@/lib/management/camera-pilot-logout";
 
 const logoutBody = z.object({ observer_push_device_id: z.string().uuid().optional(),
   expected_profile_id: z.string().uuid().optional() }).strict();
@@ -26,6 +27,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "SESSION_CHANGED" }, { status: 403 });
     const revoked = await unregisterPushDevice(supabase as unknown as Parameters<typeof unregisterPushDevice>[0], user.id, null, body.data.observer_push_device_id);
     if (!revoked.ok) return NextResponse.json({ error: "PUSH_REVOCATION_FAILED" }, { status: 503 });
+  }
+  const stopPilot = qaCameraPilotStop();
+  if (stopPilot) {
+    try {
+      const { data, error } = await supabase.auth.getClaims();
+      const sessionId = data?.claims.session_id;
+      if (!error && typeof sessionId === "string") await stopPilot(sessionId);
+    } catch {
+      // A synthetic pilot stop failure must not keep the user signed in.
+      console.warn("[camera-pilot] QA logout stop could not be confirmed");
+    }
   }
   const { error: signOutError } = await supabase.auth.signOut();
   if (signOutError) return NextResponse.json({ error: "LOGOUT_FAILED" }, { status: 503 });
