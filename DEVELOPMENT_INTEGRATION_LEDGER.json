@@ -108,9 +108,11 @@
           "PR #690 implementation head 34105370d9c54d6a92f8ae57869e38707385a465 passed all nine checks. Digital Observer CI 46090180319, Management context CI 46090180344 and Snyk passed.",
           "21 focused tests passed, including successful renewal followed by denial, HTTP 503, timeout and prior explicit revoke, byte and duration regressions. TypeScript, focused lint, diff and secret scan passed.",
           "The default-off QA host sends a private loopback POST with binding and sessionId and a dedicated service bearer. Gan returns 204 only for the current session, exact role, Garden, Site, camera and current policy. A failed check stops the serving sockets and persists revocation. Explicit remote revoke remains immediate.",
-          "One viewer, one source, 300 seconds, at most 150 access checks, one in flight, two seconds between starts and a 750 ms maximum wait. The JSON request-body upper bound for that window is 113,850 bytes, before headers and network overhead. No network check per media chunk."
+          "One viewer, one source, 300 seconds, at most 150 access checks, one in flight, two seconds between starts and a 750 ms maximum wait. The JSON request-body upper bound for that window is 113,850 bytes, before headers and network overhead. No network check per media chunk.",
+          "Synthetic Manager Product Garden authorization loss verified on ba458f8def811dbb090993793330305a4d91da62 after cumulative CI 46092015269. SDP 201, four decoded frames before temporary loss, settled and final counts both 12, and seven unauthorized sessions received 404. One durable REVOKED, 93,671 relay bytes at revocation and zero afterward. The exact QA membership row was restored and listeners closed.",
+          "Restricted synthetic QA receipt SHA-256: Gan 590dbde32b24230050eb333574af5374d276352710922039ba610e72ddfe272b; Observer 1544badc3b03997d2a99103edcc49aff4f86072c6c6aa86cd6f5ce4ff9f47b31."
         ],
-        "limits": "Isolated synthetic transport and callback only. The real gbi access-loss and callback-outage Product runs, Parent policy verification, actual resolver usage, and deployed economics are open. No physical camera or release qualification."
+        "limits": "Isolated synthetic transport and callback only. Callback-outage Product QA, Parent Product verification and deployed economics are open. No physical camera or release qualification."
       },
       "integration": {
         "branch": "integration/development",
