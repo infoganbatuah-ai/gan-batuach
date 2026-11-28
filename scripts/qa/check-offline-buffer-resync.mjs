@@ -57,7 +57,17 @@ const journal = readFileSync(new URL("../../services/video-gateway/journal-loop.
 assert.match(cloudRoute, /BACKFILL_RESYNC/);
 assert.match(cloudRoute, /historical_backfill/);
 assert.match(cloudRoute, /backfill \? \{ push_pending: false \}/);
-assert.match(cloudRoute, /created_at: event\.timestamp/);
+// The route now persists the shared immutable observation. Keep capture time,
+// rather than receipt or resync time, authoritative across that indirection.
+assert.match(cloudRoute, /created_at: observation\.occurredAt/);
+const { buildCanonicalCloudObservation } = await import("../../lib/domain/event-engine/cloud-event-observation.ts");
+const capturedAt = "2026-09-09T00:00:00.000Z";
+const observation = buildCanonicalCloudObservation({
+  event: { timestamp: capturedAt, camera_source_id: "camera-a", stream_id: "stream-a", confidence: 0.9,
+    evidence_kind: "object_detection", delivery: { mode: "BACKFILL_RESYNC", delivery_delay_ms: 120_000 } },
+  siteId: "site-a", sourceId: "stable-event-id", eventType: "person_entered", severity: "info", recordingRequired: false
+});
+assert.equal(observation.occurredAt, capturedAt, "Backlog retains capture time through the canonical observation builder");
 assert.match(journal, /kind:"EVIDENCE_MEDIA"/);
 assert.match(journal, /uploadMediaWork\(row\.payload\)/);
 assert.match(journal, /queue\.acknowledge\(row\.id\)/);

@@ -26,6 +26,7 @@ export default async function ParentNotificationsPage() {
   ]);
   const rows = (data ?? []) as any[];
   const categories = ["עדכוני ילד", "הודעות", "מסמכים", "תשלומים", "בטיחות", "כללי"].map((label) => ({ label, count: rows.filter((item) => categoryLabel(item) === label).length }));
+  const preferencesAvailable = !preferencesRes.error && !pushPreferencesRes.error;
   const pushCategoryPreferences = Object.fromEntries((pushPreferencesRes.data ?? []).map((row: any) => [row.category, row.enabled]));
   return (
     <DashboardShell role="parent" title="התראות" appHome>
@@ -33,7 +34,9 @@ export default async function ParentNotificationsPage() {
         <ParentHero title="מרכז עדכונים" subtitle="מה צריך את תשומת הלב שלך היום?" />
         <section className="parent-notification-categories">{categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
         <ParentSection title="העדפות התראות" subtitle="בחירה אילו עדכונים לקבל ובאיזה ערוץ.">
-          <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />
+          {preferencesAvailable
+            ? <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} />
+            : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}
         </ParentSection>
         <ParentSection title="התראות אחרונות" subtitle="אירועים רגישים מוצגים רק אחרי בדיקה ואישור.">
           <NotificationCenter notifications={rows} />

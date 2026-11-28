@@ -1,0 +1,100 @@
+{
+  "task": "PUSH_38_BLOCKER_CLOSURE",
+  "observed_at_utc": "2026-09-19T23:51:53Z",
+  "candidate_base": "d634539184edadcddd1ef0540a4a0108226a9124",
+  "environment": "NETWORK_ISOLATED_LOCAL_QUALIFICATION",
+  "production_database_changed": false,
+  "home_runtime_changed": false,
+  "migration_provenance": {
+    "baseline_id": "development-c0cf2de7-20260919-v1",
+    "rebuild_method": "CLEAN_CLONE_OF_DOCUMENTED_DEVELOPMENT_BASELINE_BUILDER_IN_NETWORK_DISCONNECTED_QA_POSTGRES",
+    "qualification_database": "push38_qualification_clean",
+    "source_integration_sha": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d",
+    "historical_source_migrations_verified_against_git": 227,
+    "historical_replay_claim": false,
+    "baseline_schema_sha256": "998fe1f6d4f933fa59f35c844a781cfc8f782f8986216545df8567600df7a9d3",
+    "baseline_acl_sha256": "f46f41ce836d5be981ffed74ee17af5cf35fbd71ec7015a64b0375d457afece9",
+    "baseline_schema_fingerprint_expected": "edecb4d24db7f14aa09d7ce0bd3f16c2d49e2f8151f8bd748b16d5174e4ad718",
+    "baseline_schema_fingerprint_observed": "edecb4d24db7f14aa09d7ce0bd3f16c2d49e2f8151f8bd748b16d5174e4ad718",
+    "baseline_statement_count": 11779,
+    "post_baseline_migrations_in_applied_order": [
+      {
+        "id": "20260919171000",
+        "file": "supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql",
+        "sha256": "dd3ad57b23e2b9ea5cadfa7c504bed0b1e10383f049a27fd2db5a661b04a59c3"
+      },
+      {
+        "id": "20260919172000",
+        "file": "supabase/migrations/20260919172000_edge_private_release_delivery_audit.sql",
+        "sha256": "c2ae8f8f94c7ecaa82ff0e1479d1ac67d9b0b9342de5ac18227514279cfedc42"
+      },
+      {
+        "id": "20260919190000",
+        "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
+        "sha256": "f2c4e050c92b308d116016ac6fb3639adc00951f691424cd664da3109bf58ac6"
+      }
+    ],
+    "final_schema_fingerprint": "5b727e6b52ff3dd25fc879e53e4dc9982a274d93e79619a5231024fbc870e1cf",
+    "final_statement_count": 11787,
+    "auth_user_count": 0,
+    "private_download_audit_rls": true,
+    "private_download_audit_policy_count": 0,
+    "home_qa_channel_constraint": true,
+    "docker_network_mode": "none",
+    "qa_public_ports": 0,
+    "previous_qa_stack_status": "STOPPED_AFTER_UNEXPECTED_ALL_INTERFACE_PORT_BINDING",
+    "result": "PASS_RELATIVE_TO_PINNED_DEVELOPMENT_BASELINE"
+  },
+  "public_health": {
+    "prior": "ANONYMOUS_200_WITH_INTERNAL_DETAILS",
+    "current": "EXTERNAL_404",
+    "local_gateway_health_preserved": true,
+    "classification": "UNINTENDED_INFORMATION_EXPOSURE",
+    "configuration_outside_git": "~/.cloudflared/config.yml"
+  },
+  "connector": {
+    "finding": "LEGACY_TOP_LEVEL_HEALTH_CAN_BE_HEALTHY_WHILE_EXPECTED_TAPO_RELAY_IS_STALLED",
+    "failing_layer": "FFMPEG_RTSP_INPUT_OPEN_TIMEOUT_AND_RELAY_RESTART_LOOP",
+    "bounded_log_sample": {
+      "relay_exit_lines": 1299,
+      "explicit_input_timeout_lines": 223,
+      "authentication_failure_lines": 0,
+      "sample_scope": "LAST_250000_LOG_BYTES_ONLY"
+    },
+    "read_only_checks_observed_both_zero_and_one_progressing_relays": true,
+    "independent_authenticated_rtsp_probe": "PASS",
+    "candidate_heartbeat_truthfulness_fix_test": "PASS",
+    "live_fix_activated": false,
+    "reliability_resolved": false
+  },
+  "real_device_identity": "NOT_PROVEN_ON_INSTALLED_LEGACY_COMPONENTS",
+  "remote_phone_playback": "NOT_PROVEN",
+  "candidate_code_gates": {
+    "typescript": "PASS",
+    "lint_baseline_no_regressions": "PASS",
+    "local_build": "PASS",
+    "domain": "PASS_30_OF_30",
+    "security": "PASS_7_OF_7",
+    "migration_source": "PASS",
+    "release_contract": "PASS",
+    "connector_runtime_isolated": "PASS_18_OF_18",
+    "connector_health_truthfulness_isolated": "PASS_13_CASES",
+    "managed_identity_isolated": "PASS_17_OF_17",
+    "remote_playback_boundary_isolated": "PASS",
+    "dependency_high_critical": 0,
+    "dependency_moderate": 6
+  },
+  "vercel_preview_guard": {
+    "existing_git_rules": { "**": false, "main": true },
+    "candidate_branch_deployment_enabled": false,
+    "production_branch_changed": false,
+    "configuration_changed": false,
+    "reason": "EXISTING_BRANCH_PREVIEW_GUARD_PERMITS_REMOTE_PRESERVATION_WITHOUT_PREVIEW_BUILD"
+  },
+  "exact_device_manifests": "NOT_ISSUED",
+  "live_trust_and_ota_staging": "NOT_PERFORMED",
+  "integration": "PENDING_UNTIL_PUSH_38_DONE",
+  "main": "UNCHANGED",
+  "production": "UNCHANGED",
+  "push_39": "NOT_STARTED"
+}

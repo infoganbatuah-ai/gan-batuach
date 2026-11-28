@@ -19,6 +19,7 @@ export function PremiumDashboardHero({
   subtitle,
   badge,
   badgeTone = "default",
+  headingLevel = 1,
   actions,
   children
 }: {
@@ -27,14 +28,16 @@ export function PremiumDashboardHero({
   subtitle?: string;
   badge?: ReactNode;
   badgeTone?: Tone;
+  headingLevel?: 1 | 2;
   actions?: ReactNode;
   children?: ReactNode;
 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h1";
   return (
     <section className="premium-dashboard-hero">
       <div>
         <p className="premium-eyebrow">{eyebrow}</p>
-        <h1>{title}</h1>
+        <Heading>{title}</Heading>
         {subtitle ? <p>{subtitle}</p> : null}
         {actions ? <div className="premium-hero-actions">{actions}</div> : null}
       </div>
@@ -96,7 +99,7 @@ export function CleanSection({ title, subtitle, action, children }: { title: str
 }
 
 export function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
-  return <GlobalStatePanel kind="empty" title={title} description={text} action={action} compact className="premium-empty-state" />;
+  return <GlobalStatePanel kind="empty" title={title} description={text} action={action} compact className="premium-empty-state" headingLevel={2} />;
 }
 
 export function AppHomeShell({ children, className = "" }: { children: ReactNode; className?: string }) {

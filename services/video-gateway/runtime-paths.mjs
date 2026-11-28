@@ -1,10 +1,19 @@
 import { homedir, platform as hostPlatform } from "node:os";
+import { existsSync } from "node:fs";
 import { isAbsolute, join, resolve } from "node:path";
 
 function absoluteOverride(value, name) {
   if (!value) return "";
   if (!isAbsolute(value)) throw new Error(`${name}_MUST_BE_ABSOLUTE`);
   return resolve(value);
+}
+
+export function preferPackagedObjectModel(modelDir, env = process.env, pathExists = existsSync) {
+  if (env.VIDEO_GATEWAY_OBJECT_MODEL_PATH || env.VIDEO_GATEWAY_EDGE_MODEL_DIR) return false;
+  const absoluteModelDir = absoluteOverride(modelDir, "PACKAGED_EDGE_MODEL_DIR");
+  if (!pathExists(join(absoluteModelDir, "ssd_mobilenet_v1_10.onnx"))) return false;
+  env.VIDEO_GATEWAY_EDGE_MODEL_DIR = absoluteModelDir;
+  return true;
 }
 
 export function resolveEdgeRuntimePaths(env = process.env, options = {}) {

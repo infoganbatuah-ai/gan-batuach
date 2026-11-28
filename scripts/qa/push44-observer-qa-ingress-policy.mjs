@@ -1,0 +1,94 @@
+// Route policy for the dedicated Observer QA origin. The caller establishes
+// owner authorization and trusted HTTPS before checking the request target.
+export const OBSERVER_QA_HOST = "observer-qa.ganbatuach.com";
+const localOrigin = `https://${OBSERVER_QA_HOST}`;
+const exactGet = new Set([
+  "/digital-observer/login", "/digital-observer/dashboard",
+  "/digital-observer/onboarding", "/api/digital-observer/mobile/runtime",
+  "/favicon.ico"
+]);
+const exactPost = new Set(["/api/digital-observer/auth/login", "/api/auth/logout"]);
+const assetPrefixes = ["/_next/static/", "/assets/digital-observer/"];
+const secretKeys = /^(?:code|token|token_hash|access_token|refresh_token|id_token|session|password|secret|key)$/i;
+const loginReturnPaths = new Set(["/digital-observer/dashboard", "/digital-observer/onboarding"]);
+const loginErrors = new Set([
+  "session_expired", "not_observer_account", "invalid_login",
+  "email_not_confirmed", "observer_setup_required"
+]);
+
+function allowedLoginQuery(url) {
+  if (!url.search) return true;
+  const seen = new Set();
+  for (const [key, value] of url.searchParams) {
+    if (seen.has(key)) return false;
+    seen.add(key);
+    if (key === "next" && loginReturnPaths.has(value)) continue;
+    if (key === "error" && loginErrors.has(value)) continue;
+    return false;
+  }
+  return seen.size > 0;
+}
+
+function hasRawTraversal(rawPath) {
+  if (/%(?:00|25|2f|5c)/i.test(rawPath)) return true;
+  for (const segment of rawPath.split("/")) {
+    let decoded;
+    try { decoded = decodeURIComponent(segment); } catch { return true; }
+    if (decoded === "." || decoded === ".." || decoded.includes("\\")) return true;
+  }
+  return false;
+}
+
+function parsedPath(rawUrl) {
+  if (typeof rawUrl !== "string" || !rawUrl.startsWith("/") || rawUrl.startsWith("//") ||
+      rawUrl.length > 2048 || /[\\\r\n#]/.test(rawUrl)) return null;
+  // URL() normalizes dot segments. Inspect the unparsed request target first.
+  if (hasRawTraversal(rawUrl.split("?", 1)[0])) return null;
+  let url;
+  try { url = new URL(rawUrl, localOrigin); } catch { return null; }
+  if (url.origin !== localOrigin || /%(?:00|25|2f|5c)/i.test(url.pathname) ||
+      url.pathname.includes("//")) return null;
+  for (const key of url.searchParams.keys()) if (secretKeys.test(key)) return null;
+  return url;
+}
+
+export function observerQaRouteAllowed({ method, rawUrl, host, trustedHttps, ownerAuthorized, rsc }) {
+  if (host !== OBSERVER_QA_HOST || trustedHttps !== true || ownerAuthorized !== true) return false;
+  const url = parsedPath(rawUrl);
+  if (!url) return false;
+  if (method === "POST") return exactPost.has(url.pathname) && !url.search;
+  if (method !== "GET" && method !== "HEAD") return false;
+  // App Router adds a cache discriminator to same-origin page transitions.
+  // Normalize only this parameter for policy checks; forward the original target to Next.
+  if (url.searchParams.has("_rsc")) {
+    if (method !== "GET" || rsc !== "1" || !loginReturnPaths.has(url.pathname)) return false;
+    const values = url.searchParams.getAll("_rsc");
+    if (values.length !== 1 || !/^(?:[A-Za-z0-9_-]{16})?$/.test(values[0])) return false;
+    url.searchParams.delete("_rsc");
+  }
+  if (url.pathname === "/auth/callback") return false; // No safe native exchange yet.
+  if (url.pathname === "/digital-observer/login") return allowedLoginQuery(url);
+  if (url.pathname === "/api/digital-observer/mobile/runtime") return method === "GET" && !url.search;
+  if (url.pathname === "/digital-observer/onboarding" && url.search) {
+    return url.search === "?type=home" || url.search === "?type=business";
+  }
+  if (url.search) return false;
+  return exactGet.has(url.pathname) || assetPrefixes.some((prefix) =>
+    url.pathname.startsWith(prefix) && url.pathname.length > prefix.length);
+}
+
+export function observerQaRedirect(rawLocation, gate) {
+  if (typeof rawLocation !== "string" || rawLocation.length > 2048) return null;
+  let destination = rawLocation;
+  if (rawLocation.startsWith("https://")) {
+    const rawPath = rawLocation.replace(/^https:\/\/[^/?#]+/, "").split("?", 1)[0];
+    if (hasRawTraversal(rawPath)) return null;
+    let absolute;
+    try { absolute = new URL(rawLocation); } catch { return null; }
+    if (absolute.origin !== localOrigin || absolute.username || absolute.password ||
+        absolute.port || absolute.hash) return null;
+    destination = `${absolute.pathname}${absolute.search}`;
+  }
+  if (!observerQaRouteAllowed({ ...gate, method: "GET", rawUrl: destination })) return null;
+  return destination;
+}

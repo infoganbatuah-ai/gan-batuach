@@ -70,13 +70,17 @@ export function AppShell({
 export function ResponsivePage({
   children,
   className,
-  size = "lg"
+  size = "lg",
+  id,
+  tabIndex
 }: {
   children: ReactNode;
   className?: string;
   size?: CardSize;
+  id?: string;
+  tabIndex?: number;
 }) {
-  return <main className={cx("gb-responsive-page responsive-app-page", `gb-responsive-page-${size}`, className)}>{children}</main>;
+  return <main id={id} tabIndex={tabIndex} className={cx("gb-responsive-page responsive-app-page", `gb-responsive-page-${size}`, className)}>{children}</main>;
 }
 
 export function MobileAppShell({ children, className }: { children: ReactNode; className?: string }) {
@@ -576,5 +580,5 @@ export function EmptyState({
   icon?: IconType;
   action?: ReactNode;
 }) {
-  return <GlobalStatePanel kind="empty" title={title} description={text} icon={Icon} action={action} compact className="gb-empty-state" />;
+  return <GlobalStatePanel kind="empty" title={title} description={text} icon={Icon} action={action} compact className="gb-empty-state" headingLevel={2} />;
 }

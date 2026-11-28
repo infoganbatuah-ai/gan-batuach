@@ -120,7 +120,9 @@ update public.documents set status='valid',expires_at='2026-09-25' where id='000
 do $$ declare first_count integer; second_count integer; begin
   first_count := public.queue_management_document_expiry_notifications('2026-09-20',100);
   second_count := public.queue_management_document_expiry_notifications('2026-09-20',100);
-  if first_count<>1 or second_count<>0 then raise exception 'expiry_notification_not_idempotent'; end if;
+  -- The queue scans all eligible QA documents, not only this fixture. Assert
+  -- global idempotency without assuming the restored database is otherwise empty.
+  if first_count<1 or second_count<>0 then raise exception 'expiry_notification_not_idempotent'; end if;
   if (select count(*) from public.notifications where dedupe_key='document:expiry:00000000-0000-4000-8000-00000000d004:expiring')<>1
   then raise exception 'expiry_notification_missing'; end if;
   if exists (select 1 from public.notifications where entity_id='00000000-0000-4000-8000-00000000d010')

@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { Archive, CheckCircle2, FileSearch, Gavel, ShieldAlert, Trash2, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
@@ -6,8 +7,7 @@ import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
-import { resolveDataSubjectScope, summarizePrivacyScope } from "@/lib/privacy/data-subject-scope";
-import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { resolveDataSubjectScope } from "@/lib/privacy/data-subject-scope";
 
 const requestLabels: Record<string, string> = {
   access: "Access",
@@ -16,6 +16,13 @@ const requestLabels: Record<string, string> = {
   deletion: "Deletion",
   restriction: "Restriction",
   anonymization: "Anonymization"
+};
+
+type SelfDeliveryGrant = {
+  privacy_request_id: string;
+  expires_at: string;
+  revoked_at: string | null;
+  access_count: number;
 };
 
 function scoreTone(score: number): "good" | "warn" | "bad" {
@@ -35,140 +42,157 @@ async function updatePrivacyRequestStatus(formData: FormData) {
   const { profile } = await requireRole(["admin"]);
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
-  const status = String(formData.get("status") ?? "under_review");
-  const decisionReason = String(formData.get("decision_reason") ?? "").slice(0, 1200);
+  const status = String(formData.get("status") ?? "");
+  const decisionReason = String(formData.get("decision_reason") ?? "").trim().slice(0, 1200);
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || !["approved", "rejected"].includes(status)
+    || decisionReason.length < 12) {
+    redirect("/dashboard/admin/privacy-rights?decision_error=invalid");
+  }
   const update = await supabase.from("privacy_rights_requests" as any).update({
     status,
     reviewer_id: profile.id,
     decision_reason: decisionReason || null,
-    completed_at: status === "completed" ? new Date().toISOString() : null,
     updated_at: new Date().toISOString(),
-    response_summary: status === "rejected" ? "הבקשה נדחתה לאחר בדיקה." : status === "completed" ? "הטיפול בבקשה הושלם." : "הבקשה נמצאת בטיפול."
+    response_summary: status === "rejected" ? "הבקשה נדחתה לאחר בדיקה." : "הבקשה אושרה להמשך טיפול."
   }).eq("id", id).select("id,request_type,garden_id,child_id").maybeSingle();
-  if (!update.error) {
-    await writeAuditEvent({
-      eventType: `privacy_request_${status}`,
-      eventCategory: "regulatory",
-      actorProfileId: profile.id,
-      actorRole: profile.role,
-      targetType: "privacy_request",
-      targetId: id,
-      gardenId: (update.data as any)?.garden_id ?? null,
-      childId: (update.data as any)?.child_id ?? null,
-      metadata: { request_type: (update.data as any)?.request_type ?? null, decision_reason: decisionReason || null },
-      riskLevel: status === "approved" || status === "completed" ? "high" : "medium"
-    });
-  }
+  if (update.error || !update.data) redirect("/dashboard/admin/privacy-rights?decision_error=transition");
   revalidatePath("/dashboard/admin/privacy-rights");
+  redirect("/dashboard/admin/privacy-rights?decision=updated");
 }
 
 async function calculateRequestScope(formData: FormData) {
   "use server";
-  const { profile } = await requireRole(["admin"]);
+  await requireRole(["admin"]);
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    redirect("/dashboard/admin/privacy-rights?scope_error=invalid");
+  }
   const request = await supabase.from("privacy_rights_requests" as any).select("*").eq("id", id).maybeSingle();
-  if (request.error || !request.data) return;
+  if (request.error || !request.data) redirect("/dashboard/admin/privacy-rights?scope_error=missing");
   const row = request.data as any;
-  const items = await resolveDataSubjectScope(supabase as any, {
-    subjectUserId: row.subject_user_id ?? row.requested_by ?? row.requester_profile_id,
-    childId: row.child_id,
-    gardenId: row.garden_id,
-    subjectType: row.subject_type ?? row.data_subject_type
-  });
-  await supabase.from("privacy_request_scope_items" as any).delete().eq("privacy_request_id", id);
-  if (items.length) {
-    await supabase.from("privacy_request_scope_items" as any).insert(items.map((item) => ({
-      privacy_request_id: id,
+  let items: Awaited<ReturnType<typeof resolveDataSubjectScope>>;
+  try {
+    items = await resolveDataSubjectScope(supabase as any, {
+      subjectUserId: row.data_subject_type === "child"
+        ? null
+        : row.subject_user_id ?? row.requested_by ?? row.requester_profile_id,
+      childId: row.child_id,
+      gardenId: row.garden_id,
+      subjectType: row.subject_type ?? row.data_subject_type
+    });
+  } catch {
+    redirect("/dashboard/admin/privacy-rights?scope_error=source");
+  }
+  const result = await supabase.rpc("management_replace_privacy_scope" as any, {
+    p_request_id: id,
+    p_items: items.map((item) => ({
       data_category: item.dataCategory,
       table_name: item.tableName,
       estimated_record_count: item.estimatedRecordCount,
       action_recommendation: item.actionRecommendation,
       parent_export_allowed: item.parentExportAllowed,
-      blocked_by_retention: item.actionRecommendation === "retain",
-      notes: item.notes,
-      metadata: { source: "phase156_scope_resolver" }
-    })));
-  }
-  const summary = summarizePrivacyScope(items);
-  await supabase.from("privacy_rights_requests" as any).update({
-    status: row.status === "submitted" ? "under_review" : row.status,
-    execution_status: "scoped",
-    scope_calculated_at: new Date().toISOString(),
-    retention_conflicts: items.filter((item) => item.actionRecommendation === "retain"),
-    metadata: { ...(row.metadata ?? {}), scope_summary: summary },
-    updated_at: new Date().toISOString()
-  }).eq("id", id);
-  await writeAuditEvent({
-    eventType: "privacy_scope_calculated",
-    eventCategory: "regulatory",
-    actorProfileId: profile.id,
-    actorRole: profile.role,
-    targetType: "privacy_request",
-    targetId: id,
-    gardenId: row.garden_id ?? null,
-    childId: row.child_id ?? null,
-    metadata: summary,
-    riskLevel: "high"
+      notes: item.notes
+    }))
   });
+  if (result.error) redirect("/dashboard/admin/privacy-rights?scope_error=transaction");
   revalidatePath("/dashboard/admin/privacy-rights");
+  redirect("/dashboard/admin/privacy-rights?scope=updated");
 }
 
 async function createLegalHoldForRequest(formData: FormData) {
   "use server";
-  const { profile } = await requireRole(["admin"]);
+  await requireRole(["admin"]);
   const supabase = await createClient();
   const id = String(formData.get("id") ?? "");
-  const reason = String(formData.get("hold_reason") ?? "Manual privacy deletion hold").slice(0, 400);
-  const request = await supabase.from("privacy_rights_requests" as any).select("*").eq("id", id).maybeSingle();
-  if (request.error || !request.data) return;
-  const row = request.data as any;
-  const hold = await supabase.from("legal_holds" as any).insert({
-    hold_key: `privacy:${id}:${Date.now()}`,
-    hold_reason: reason,
-    hold_type: "audit_preservation",
-    status: "active",
-    garden_id: row.garden_id ?? null,
-    child_id: row.child_id ?? null,
-    subject_user_id: row.subject_user_id ?? row.requested_by ?? null,
-    created_by: profile.id,
-    metadata: { privacy_request_id: id, source: "admin_privacy_rights" }
-  }).select("id").single();
-  await supabase.from("privacy_rights_requests" as any).update({
-    status: "blocked_by_legal_hold",
-    legal_hold_checked_at: new Date().toISOString(),
-    execution_status: "blocked",
-    legal_hold_conflicts: [{ hold_id: hold.data?.id ?? null, reason }],
-    updated_at: new Date().toISOString()
-  }).eq("id", id);
-  await writeAuditEvent({
-    eventType: "legal_hold_checked",
-    eventCategory: "regulatory",
-    actorProfileId: profile.id,
-    actorRole: profile.role,
-    targetType: "privacy_request",
-    targetId: id,
-    gardenId: row.garden_id ?? null,
-    childId: row.child_id ?? null,
-    metadata: { hold_id: hold.data?.id ?? null, reason },
-    riskLevel: "high"
+  const reason = String(formData.get("hold_reason") ?? "Manual privacy deletion hold").trim();
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || reason.length < 12 || reason.length > 400) {
+    redirect("/dashboard/admin/privacy-rights?hold_error=invalid");
+  }
+  const result = await supabase.rpc("management_create_privacy_hold" as any, {
+    p_request_id: id,
+    p_reason: reason
   });
+  if (result.error) redirect("/dashboard/admin/privacy-rights?hold_error=transaction");
   revalidatePath("/dashboard/admin/privacy-rights");
+  redirect("/dashboard/admin/privacy-rights?hold=updated");
 }
 
-export default async function AdminPrivacyRightsPage() {
+async function changeSelfDelivery(formData: FormData) {
+  "use server";
   await requireRole(["admin"]);
+  const id = String(formData.get("id") ?? "");
+  const operation = String(formData.get("operation") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || !["issue", "revoke"].includes(operation)) {
+    redirect("/dashboard/admin/privacy-rights?delivery_error=invalid");
+  }
+  const supabase = await createClient();
+  const procedure = operation === "issue"
+    ? "management_issue_privacy_self_delivery"
+    : "management_revoke_privacy_self_delivery";
+  const result = await supabase.rpc(procedure as never, { p_request_id: id } as never);
+  if (result.error) redirect("/dashboard/admin/privacy-rights?delivery_error=unavailable");
+  revalidatePath("/dashboard/admin/privacy-rights");
+  revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/admin/privacy-rights?delivery=updated");
+}
+
+async function changeChildGardenDelivery(formData: FormData) {
+  "use server";
+  await requireRole(["admin"]);
+  const id = String(formData.get("id") ?? "");
+  const operation = String(formData.get("operation") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)
+    || !["issue", "revoke"].includes(operation)) {
+    redirect("/dashboard/admin/privacy-rights?delivery_error=invalid");
+  }
+  const supabase = await createClient();
+  const procedure = operation === "issue"
+    ? "management_issue_privacy_child_garden_delivery"
+    : "management_revoke_privacy_child_garden_delivery";
+  const result = await supabase.rpc(procedure as never, { p_request_id: id } as never);
+  if (result.error) redirect("/dashboard/admin/privacy-rights?delivery_error=unavailable");
+  revalidatePath("/dashboard/admin/privacy-rights");
+  revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/admin/privacy-rights?delivery=updated");
+}
+
+async function applyParentNameCorrection(formData: FormData) {
+  "use server";
+  await requireRole(["admin"]);
+  const id = String(formData.get("id") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+    redirect("/dashboard/admin/privacy-rights?correction_error=invalid");
+  }
+  const supabase = await createClient();
+  const result = await supabase.rpc("management_apply_parent_name_correction" as never,
+    { p_request_id: id } as never);
+  if (result.error) redirect("/dashboard/admin/privacy-rights?correction_error=unavailable");
+  revalidatePath("/dashboard/admin/privacy-rights");
+  revalidatePath("/dashboard/privacy");
+  redirect("/dashboard/admin/privacy-rights?correction=completed");
+}
+
+export default async function AdminPrivacyRightsPage({ searchParams }: { searchParams: Promise<{ decision?: string; decision_error?: string; scope?: string; scope_error?: string; hold?: string; hold_error?: string; delivery?: string; delivery_error?: string; correction?: string; correction_error?: string }> }) {
+  await requireRole(["admin"]);
+  const decisionFeedback = await searchParams;
   const result = await safeAdminData("privacy rights", async () => {
     const supabase = await createClient();
-    const [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes] = await Promise.all([
+    const [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes, deliveryRes, childDeliveryRes, correctionRes] = await Promise.all([
       supabase.from("privacy_rights_requests" as any).select("*, requester:requested_by(full_name,email,role), child:child_id(full_name), garden:garden_id(name,city)").order("created_at", { ascending: false }).limit(160),
       supabase.from("legal_holds" as any).select("*").order("created_at", { ascending: false }).limit(120),
       supabase.from("data_retention_policies" as any).select("*").order("data_category").limit(120),
       supabase.from("privacy_request_scope_items" as any).select("*").order("created_at", { ascending: false }).limit(300),
       supabase.from("privacy_execution_actions" as any).select("*").order("created_at", { ascending: false }).limit(200),
-      supabase.from("retention_review_queue" as any).select("*").order("due_at", { ascending: true }).limit(120)
+      supabase.from("retention_review_queue" as any).select("*").order("due_at", { ascending: true }).limit(120),
+      supabase.from("privacy_self_delivery_grants" as never).select("privacy_request_id,expires_at,revoked_at,access_count").limit(160),
+      supabase.from("privacy_child_garden_delivery_grants" as never).select("privacy_request_id,expires_at,revoked_at,access_count").limit(160),
+      supabase.from("privacy_parent_name_correction_proposals" as never).select("privacy_request_id,requester_profile_id,proposed_full_name,applied_at").limit(160)
     ]);
-    [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes].forEach((query, index) => logSupabaseError(`privacy rights query ${index}`, (query as any).error));
+    [requestsRes, holdsRes, policiesRes, scopeRes, executionRes, queueRes, deliveryRes, childDeliveryRes, correctionRes].forEach((query, index) => logSupabaseError(`privacy rights query ${index}`, (query as any).error));
     return {
       requests: requestsRes.data ?? [],
       holds: holdsRes.data ?? [],
@@ -176,11 +200,14 @@ export default async function AdminPrivacyRightsPage() {
       scope: scopeRes.data ?? [],
       execution: executionRes.data ?? [],
       queue: queueRes.data ?? [],
-      queryError: [requestsRes.error, holdsRes.error, policiesRes.error, scopeRes.error, executionRes.error, queueRes.error].some(Boolean)
+      delivery: (deliveryRes.data ?? []) as SelfDeliveryGrant[],
+      childDelivery: (childDeliveryRes.data ?? []) as SelfDeliveryGrant[],
+      correction: (correctionRes.data ?? []) as Array<{ privacy_request_id: string; requester_profile_id: string; proposed_full_name: string; applied_at: string | null }>,
+      queryError: [requestsRes.error, holdsRes.error, policiesRes.error, scopeRes.error, executionRes.error, queueRes.error, deliveryRes.error, childDeliveryRes.error, correctionRes.error].some(Boolean)
         ? "חלק מנתוני זכויות הפרטיות לא נטענו. ייתכן שמיגרציית Phase 156 עדיין לא הורצה."
         : null
     };
-  }, { requests: [] as any[], holds: [] as any[], policies: [] as any[], scope: [] as any[], execution: [] as any[], queue: [] as any[], queryError: null as string | null });
+  }, { requests: [] as any[], holds: [] as any[], policies: [] as any[], scope: [] as any[], execution: [] as any[], queue: [] as any[], delivery: [] as SelfDeliveryGrant[], childDelivery: [] as SelfDeliveryGrant[], correction: [] as Array<{ privacy_request_id: string; requester_profile_id: string; proposed_full_name: string; applied_at: string | null }>, queryError: null as string | null });
 
   const requests = result.data.requests;
   const open = requests.filter((request: any) => !["completed", "rejected", "cancelled"].includes(String(request.status))).length;
@@ -196,6 +223,9 @@ export default async function AdminPrivacyRightsPage() {
     list.push(item);
     scopeByRequest.set(item.privacy_request_id, list);
   }
+  const deliveryByRequest = new Map(result.data.delivery.map((grant) => [grant.privacy_request_id, grant]));
+  const childDeliveryByRequest = new Map(result.data.childDelivery.map((grant) => [grant.privacy_request_id, grant]));
+  const correctionByRequest = new Map(result.data.correction.map((item) => [item.privacy_request_id, item]));
 
   return (
     <DashboardShell role="admin" title="Privacy Rights">
@@ -211,6 +241,14 @@ export default async function AdminPrivacyRightsPage() {
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
+      {decisionFeedback.decision_error ? <p role="alert" className="pill bad">לא ניתן לשנות את מצב הבקשה. בדקו את המעבר, הסיבה והרשאות הטיפול.</p> : null}
+      {decisionFeedback.decision ? <p role="status" className="pill good">ההחלטה נרשמה לבדיקה ולהמשך טיפול.</p> : null}
+      {decisionFeedback.scope_error || decisionFeedback.hold_error ? <p role="alert" className="pill bad">הפעולה לא נשמרה. הנתונים הקודמים נותרו ללא שינוי; בדקו הרשאות ונסו שוב.</p> : null}
+      {decisionFeedback.scope || decisionFeedback.hold ? <p role="status" className="pill good">הפעולה נשמרה יחד עם תיעוד הביקורת.</p> : null}
+      {decisionFeedback.delivery_error ? <p role="alert" className="pill bad">מסירה מוגבלת לא זמינה. בדקו שהבקשה אושרה לפרופיל העצמי, את ההיקף ואת חובות השימור.</p> : null}
+      {decisionFeedback.delivery ? <p role="status" className="pill good">חלון המסירה עודכן ותועד בביקורת.</p> : null}
+      {decisionFeedback.correction_error ? <p role="alert" className="pill bad">לא ניתן להחיל את תיקון השם. בדקו אישור, היקף, סמכות ושינויים מאוחרים בפרופיל.</p> : null}
+      {decisionFeedback.correction ? <p role="status" className="pill good">שם הפרופיל האישי תוקן והפעולה נרשמה ביומן הביקורת.</p> : null}
 
       <section className="grid cols-4 dashboard-kpis">
         <StatCard label="Open requests" value={open} tone={open ? "warn" : "good"} />
@@ -264,12 +302,16 @@ export default async function AdminPrivacyRightsPage() {
         {requests.length === 0 ? <div className="empty-state"><strong>No privacy requests</strong><span>User requests will appear here.</span></div> : <div className="procedure-list">
           {requests.map((request: any) => {
             const requestScope = scopeByRequest.get(request.id) ?? [];
+            const delivery = deliveryByRequest.get(request.id);
+            const childDelivery = childDeliveryByRequest.get(request.id);
+            const correction = correctionByRequest.get(request.id);
             return (
               <article className="card procedure-card" key={request.id}>
                 <div>
                   <span className={`pill ${statusTone(request.status)}`}>{request.status}</span>
                   <h3>{requestLabels[request.request_type] ?? request.request_type}</h3>
                   <p>{request.request_reason ?? request.response_summary ?? "No reason supplied."}</p>
+                  {correction ? <p>תיקון שם אישי בלבד: <strong>{request.requester?.full_name ?? ""}</strong> ← <strong>{correction.proposed_full_name}</strong>{correction.applied_at ? " · הוחל" : " · ממתין להחלה"}</p> : null}
                   <small>
                     {request.requester?.full_name ?? "Unknown user"} · {request.garden?.name ?? "No garden"} · {request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""}
                   </small>
@@ -280,11 +322,32 @@ export default async function AdminPrivacyRightsPage() {
                   </div> : null}
                 </div>
                 <div className="procedure-meta">
-                  <form action={calculateRequestScope}><input type="hidden" name="id" value={request.id} /><button className="button secondary"><FileSearch size={16} /> Scope</button></form>
-                  <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="approved" /><button className="button secondary"><CheckCircle2 size={16} /> Approve</button></form>
-                  <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="completed" /><button className="button secondary">Complete</button></form>
-                  <form action={createLegalHoldForRequest}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="hold_reason" value="Privacy request requires evidence preservation review" /><button className="button danger"><Gavel size={16} /> Legal hold</button></form>
-                  <form action={updatePrivacyRequestStatus}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="rejected" /><button className="button secondary"><Trash2 size={16} /> Reject</button></form>
+                  {!['completed', 'rejected', 'cancelled'].includes(request.status) ? <>
+                    <form action={calculateRequestScope}><input type="hidden" name="id" value={request.id} /><button className="button secondary"><FileSearch size={16} /> Scope</button></form>
+                    {request.status !== "approved" ? <form action={updatePrivacyRequestStatus} className="form"><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="approved" /><label>נימוק לאישור<input name="decision_reason" minLength={12} maxLength={1200} required /></label><button className="button secondary"><CheckCircle2 size={16} /> Approve</button></form> : null}
+                    {request.status === "approved" && ["access", "export"].includes(request.request_type)
+                      && request.subject_user_id === request.requester_profile_id
+                      && !request.child_id && !request.garden_id ? (
+                      delivery ? <div className="form">
+                        <span className="pill warn">פרופיל אישי בלבד · עד {new Date(delivery.expires_at).toLocaleString("he-IL")} · {delivery.access_count}/3 קריאות{delivery.revoked_at ? " · בוטל" : ""}</span>
+                        {!delivery.revoked_at ? <form action={changeSelfDelivery}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="operation" value="revoke" /><button className="button secondary">ביטול מסירה</button></form> : null}
+                      </div> : <form action={changeSelfDelivery}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="operation" value="issue" /><button className="button secondary">מסירה מוגבלת של פרופיל עצמי ל־24 שעות</button></form>
+                    ) : null}
+                    {request.status === "approved" && correction && !correction.applied_at ? <form action={applyParentNameCorrection}>
+                      <input type="hidden" name="id" value={request.id} />
+                      <button className="button secondary"><FileSearch size={16} /> החלת תיקון שם אישי לאחר אימות</button>
+                    </form> : null}
+                    {request.status === "approved" && ["access", "export"].includes(request.request_type)
+                      && request.data_subject_type === "child" && request.child_id && request.garden_id ? (
+                      childDelivery ? <div className="form">
+                        <span className="pill warn">זהות ילד וגן בלבד · עד {new Date(childDelivery.expires_at).toLocaleString("he-IL")} · {childDelivery.access_count}/3 קריאות{childDelivery.revoked_at ? " · בוטל" : ""}</span>
+                        {!childDelivery.revoked_at ? <form action={changeChildGardenDelivery}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="operation" value="revoke" /><button className="button secondary">ביטול מסירת ילד וגן</button></form> : null}
+                      </div> : <form action={changeChildGardenDelivery}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="operation" value="issue" /><button className="button secondary">מסירה מוגבלת של זהות ילד וגן ל־24 שעות</button></form>
+                    ) : null}
+                    <span className="pill warn">סיום דורש ביצוע מתועד ובדיקת שימור</span>
+                    <form action={createLegalHoldForRequest}><input type="hidden" name="id" value={request.id} /><input type="hidden" name="hold_reason" value="Privacy request requires evidence preservation review" /><button className="button danger"><Gavel size={16} /> Legal hold</button></form>
+                    <form action={updatePrivacyRequestStatus} className="form"><input type="hidden" name="id" value={request.id} /><input type="hidden" name="status" value="rejected" /><label>סיבת דחייה<input name="decision_reason" minLength={12} maxLength={1200} required /></label><button className="button secondary"><Trash2 size={16} /> Reject</button></form>
+                  </> : null}
                 </div>
               </article>
             );

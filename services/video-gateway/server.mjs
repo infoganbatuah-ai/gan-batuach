@@ -1573,15 +1573,26 @@ async function discoverPrivateNvr(payload, channelCount) {
 function probeRtsp(url) {
   return new Promise((resolve) => {
     const timeoutMs = Number.isFinite(PROBE_TIMEOUT_MS) ? Math.max(1000, PROBE_TIMEOUT_MS) : 3500;
-    const input = protectedRtspInput(url);
+    let input;
+    try {
+      input = protectedRtspInput(url);
+    } catch {
+      resolve({ ok: false, reason: "invalid_probe_input" });
+      return;
+    }
     const args = [
       "-v", "error",
       ...input.args,
       "-show_entries", "stream=codec_name,codec_type,width,height",
       "-of", "json"
     ];
-    const child = spawn("ffprobe", args, { stdio: ["pipe", "pipe", "ignore"] });
-    input.attach(child);
+    let child;
+    try {
+      child = spawn("ffprobe", args, { stdio: ["pipe", "pipe", "ignore"] });
+    } catch {
+      resolve({ ok: false, reason: "probe_unavailable" });
+      return;
+    }
     let output = "";
     let bytes = 0, settled = false;
     let timeout;
@@ -1594,6 +1605,11 @@ function probeRtsp(url) {
       if (terminate && child.exitCode === null && !child.killed) child.kill("SIGKILL");
     };
     timeout = setTimeout(() => finish({ ok: false, reason: "timeout" }, true), timeoutMs + 500);
+    // An exited child can still report a late EPIPE from stdin.end().
+    // Keep pipe errors handled through close, even after the probe settles.
+    const inputUnavailable = () => finish({ ok: false, reason: "probe_input_unavailable" }, true);
+    child.stdin.on("error", inputUnavailable);
+    child.stdout.on("error", () => finish({ ok: false, reason: "probe_output_unavailable" }, true));
     child.stdout.on("data", (chunk) => {
       if (settled) return;
       bytes += chunk.byteLength;
@@ -1608,6 +1624,11 @@ function probeRtsp(url) {
       if (settled) return;
       finish(code === 0 ? parseProbeResult(output) : { ok: false, reason: "unreachable" });
     });
+    try {
+      input.attach(child);
+    } catch {
+      inputUnavailable();
+    }
   });
 }
 

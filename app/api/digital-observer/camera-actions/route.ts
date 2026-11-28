@@ -31,7 +31,7 @@ const requestSchema = z.union([
 ]);
 
 type Source = {
-  id: string; observer_site_id: string; status: string | null; health_status: string | null;
+  id: string; observer_site_id: string; source_mode: string | null; status: string | null; health_status: string | null;
   metadata: Record<string, unknown> | null;
 };
 
@@ -120,10 +120,11 @@ async function accessibleSource(
   cameraSourceId: string
 ) {
   const result = await admin.from("digital_observer_camera_sources")
-    .select("id,observer_site_id,status,health_status,metadata").eq("id", cameraSourceId).maybeSingle();
+    .select("id,observer_site_id,source_mode,status,health_status,metadata").eq("id", cameraSourceId).maybeSingle();
   if (result.error || !result.data) return { error: fail("המצלמה לא נמצאה.", 404) };
   const site = await getObserverSiteAccess(supabase, profile, result.data.observer_site_id, { manage: true });
   if (!site) return { error: fail("אין הרשאת ניהול למצלמה הזו.", 403) };
+  if (result.data.source_mode === "demo") return { error: fail("המצלמה לא נמצאה.", 404) };
   return { source: result.data as Source };
 }
 
@@ -170,6 +171,9 @@ export async function POST(request: Request) {
       if (found.data.task_kind !== "physical_command" || found.data.requested_by !== session.profile.id) return fail("האישור אינו שייך למשתמש או לפעולה הזו.", 403);
       const site = await getObserverSiteAccess(supabase, session.profile, found.data.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאת ניהול למצלמה הזו.", 403);
+      const access = await accessibleSource(supabase, admin, session.profile, found.data.camera_source_id);
+      if (access.error) return access.error;
+      if (access.source?.observer_site_id !== found.data.observer_site_id) return fail("המצלמה לא נמצאה.", 404);
       const confirmed = await admin.rpc("confirm_camera_physical_command", {
         requested_action_id: input.request_id, confirming_actor_id: session.profile.id,
         confirmation_value: input.confirmation_id, confirmation_nonce: input.confirmation_nonce

@@ -27,13 +27,15 @@ export async function POST(request: Request) {
       sourceMode: result.data.source_mode
     });
     let gatewayProbeError: string | null = null;
+    const demoSource = result.data.source_mode === "demo";
+    if (demoSource) manifest = { ...manifest, source: "simulated" };
     try {
-      if (result.data.connector_type !== "demo") {
+      if (!demoSource && result.data.connector_type !== "demo") {
         const probe = await probeCameraCapabilities(result.data.id);
         manifest = { ...probe.manifest, cameraZoneName: manifest.cameraZoneName };
         manifest.raw = { evidence_id: probe.evidenceId, verified_at: probe.verifiedAt, gateway_provider: probe.gatewayProvider, capability_manifest_verified: true };
       }
-      if (result.data.connector_type === "demo") {
+      if (demoSource && result.data.connector_type === "demo") {
         // Backfill older seeded/demo rows on first discovery so subsequent
         // dashboard and Guard requests use the same complete capability map.
         await supabase.from("digital_observer_camera_sources").update({

@@ -18,7 +18,7 @@ assert.match(player, /onTimeUpdate[\s\S]*setState\("playing"\)/, "LIVE must requ
 assert.match(player, /data-playback-state=\{state\}/, "player must expose playback health independently");
 assert.match(player, /עיבוד המקור עשוי להמשיך/, "playback failure must remain distinct from processing health");
 assert.doesNotMatch(cameras, /\$\{connectedCount\} מצלמות פעילות/, "source health must not be presented as verified playback health");
-assert.match(route, /connector_device_type === "SOFTWARE_CONNECTOR"[\s\S]*18083[\s\S]*18082/, "playback claims must route to the correct local component");
+assert.match(route, /profile === "SOFTWARE_CONNECTOR"[\s\S]*18083[\s\S]*18082/, "playback claims must route to the correct local component");
 const allowedNorthStarStates = new Set([
   "DONE + REAL PROOF", "IMPLEMENTED — NEEDS REAL PROOF", "FOUNDATION", "PARTIAL", "NOT STARTED", "EXTERNAL COVERAGE GAP"
 ]);

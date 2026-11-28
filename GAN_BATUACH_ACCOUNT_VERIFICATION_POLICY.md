@@ -8,7 +8,9 @@ Supabase Auth remains the identity authority. Email-link/OTP confirmation and re
 
 ## Phone verification
 
-A typed phone number remains unverified. A `phone_confirmed_at` Auth result mirrored to `profiles.phone_verified_at` establishes verified phone ownership. `verified_phone_action` in the central evaluator requires that evidence. Phone change continues to use Supabase `phone_change` OTP; its API reports acceptance by Auth, not confirmed delivery. If no SMS/WhatsApp provider is configured, the normal email-verified account remains usable. No new WhatsApp OTP is claimed without a real configured provider.
+Owner decision, 2026-10-19: SMS-based user verification and automatic SMS authentication fallback are disabled. The phone request/confirmation endpoints fail closed before calling Supabase Auth or any messaging provider, and the Product does not present an SMS verification form. Historical `phone_confirmed_at` and `profiles.phone_verified_at` records are preserved; generic SMS delivery contracts are also preserved for non-authentication use. The typed `verified_phone_action` evaluator remains only as a compatibility/read boundary for historical verified records and does not authorize sending a new SMS code.
+
+WhatsApp verification is not active, cannot be the sole recovery factor, and requires a separately approved provider, lawful-use/cost review and real sandbox proof. Direct Meta WhatsApp Business Platform must be evaluated before adding a paid intermediary. Normal email-verified accounts remain usable.
 
 ## Higher assurance
 
@@ -21,7 +23,7 @@ The evaluator returns `mfa_or_reauthentication_required` for `high_assurance_act
 | Normal Parent, Staff Candidate, Owner and Inspector Candidate registration/login | Confirmed email for newly enrolled accounts | Domain-specific approval/relationship still required |
 | Parent enrollment and Garden onboarding | Confirmed email | Guardian/Garden authority and activation checks remain |
 | Staff employment and Inspector approval | Confirmed email | Garden/Admin decision and transactional activation remain |
-| Explicit phone-ownership action | Confirmed phone | Action-specific authorization remains |
+| Historical phone-ownership action | Previously confirmed phone only; no new SMS verification | Action-specific authorization remains |
 | Camera, financial/Admin and sensitive recovery actions | Existing stronger route policy | MFA/reauthentication review remains a separate gate; phone is not a substitute |
 
 Legacy accounts with `contact_verification_required=false` keep their previous compatibility status. This is not a general authorization bypass: tenant, employment, Inspector assignment, guardian and Admin guards still run. The prior GB-M04 statement requiring email **and** phone is superseded only for normal Management account verification; preserved historical reports are not edited.

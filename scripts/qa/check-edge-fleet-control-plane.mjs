@@ -20,7 +20,7 @@ assert.equal(fleet.validateFleetCommand({command:"HEALTH_PROBE",expiresAt:new Da
 const alerts=fleet.dedupeInfrastructureAlerts([{...devices[0],health:"OFFLINE",dependentPhysicalCameras:10}]);assert.equal(alerts.length,1);assert.equal(alerts[0].affectedPhysicalCameras,10);
 assert.equal(fleet.classifyFleetHealth({lastSeenAt:new Date().toISOString(),lifecycleState:"REVOKED",credentialState:"REVOKED",runtimeHealth:"HEALTHY"}),"AUTH_DEGRADED");
 for(const [path,needles] of Object.entries({
-  "app/api/digital-observer/admin/fleet/route.ts":["hasObserverAdminClaim","resolveFleetTargets","idempotency_key","target_count","writeAuditEvent"],
+  "app/api/digital-observer/admin/fleet/route.ts":["hasCurrentObserverAdmin","resolveFleetTargets","idempotency_key","target_count","writeAuditEvent"],
   "app/api/video-gateway/device-heartbeat/route.ts":["claim_observer_edge_fleet_commands","expires_at","command_results","PGRST202","42883","CONTRACT_UNAVAILABLE_NO_COMMANDS"],
   "supabase/migrations/20260909030000_observer_edge_fleet_control_plane.sql":["enable row level security","COMMAND_TTL_EXPIRED","for update skip locked","revoke all"]})){
   const source=readFileSync(path,"utf8");for(const needle of needles)assert.ok(source.includes(needle),`${path} missing ${needle}`);

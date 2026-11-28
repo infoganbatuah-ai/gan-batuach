@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
 import { digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
 import {
@@ -97,7 +97,7 @@ export async function POST(request: Request) {
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const payload = schema.parse(await request.json());
     redactUnsafeOnboardingPayload(payload);
-    const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
+    const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
     // This migration-era endpoint powers support/admin reassessment only. The
     // normal Product surface uses UniversalCameraOnboarding and the canonical
     // Connection Orchestrator. A tenant manager must not be able to bypass

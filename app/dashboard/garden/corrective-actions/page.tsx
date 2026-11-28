@@ -12,17 +12,19 @@ type ProfileWithImage = { profile_image_url?: string | null };
 export default async function GardenCorrectiveActionsPage() {
   const { profile } = await requireOperationalRole(["manager", "owner"]);
   const supabase = await createClient();
-  const { data } = await supabase.from("violations" as never)
+  const { data, error } = await supabase.from("violations" as never)
     .select("id,title,description,category,severity,score,status,correction_due_at,correction_note,review_note,correction_files,created_at,submitted_at,approved_at,gardens(name,city)")
     .eq("garden_id", profile.garden_id).order("created_at", { ascending: false }).limit(100);
   const rows = (data ?? []) as unknown as CorrectiveRows;
-  const eventsRes = rows.length ? await supabase.from("corrective_action_events" as never)
-    .select("id,violation_id,action,from_status,to_status,note,created_at").in("violation_id", rows.map((row) => row.id)).order("created_at") : { data: [] };
+  const eventsRes = !error && Array.isArray(data) && rows.length ? await supabase.from("corrective_action_events" as never)
+    .select("id,violation_id,action,from_status,to_status,note,created_at").in("violation_id", rows.map((row) => row.id)).order("created_at") : { data: [], error: null };
+  const unavailable = Boolean(error || !Array.isArray(data) || eventsRes.error || !Array.isArray(eventsRes.data));
   const events = (eventsRes.data ?? []) as unknown as CorrectiveEventRow[];
   const enriched = rows.map((row) => ({ ...row, events: events.filter((event) => event.violation_id === row.id) }));
   return <DashboardShell role="manager" title="פעולות תיקון" appHome>
     <TeacherAppFrame title="פעולות תיקון" subtitle="ממצא, תגובה וראיה" avatarUrl={(profile as ProfileWithImage).profile_image_url ?? null} active="more">
-      <CorrectiveActionWorkspace rows={enriched} role="garden" scopeMessage="מוצגות רק פעולות תיקון של הגן הפעיל. הראיות נשמרות פרטיות ונפתחות בגישה חתומה." />
+      {unavailable ? <div className="work-empty" role="alert"><h2>נתוני פעולות התיקון אינם זמינים כרגע</h2><p>לא ניתן לאמת את הממצאים ואת ציר הטיפול. נסו שוב מאוחר יותר.</p></div>
+        : <CorrectiveActionWorkspace rows={enriched} role="garden" scopeMessage="מוצגות רק פעולות תיקון של הגן הפעיל. הראיות נשמרות פרטיות ונפתחות בגישה חתומה." />}
     </TeacherAppFrame>
   </DashboardShell>;
 }

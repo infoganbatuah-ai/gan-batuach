@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { LogIn, LogOut } from "lucide-react";
 import Link from "next/link";
 
@@ -16,24 +16,35 @@ export function GardenAttendanceActionButton({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
   const [message, setMessage] = useState<string | null>(null);
   const isCheckedIn = currentStatus === "present";
   if (isCheckedIn) return <Link className="ganenet-attendance-action" href="/dashboard/garden/pickup"><LogOut size={18} /> שחרור באישור איסוף</Link>;
 
   async function submit(action: "check_in" | "mark_absent" | "correct_to_present", reason?: string) {
-    if (disabled || isPending) return;
+    if (disabled || isPending || inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
     setMessage(null);
-    const response = await fetch("/api/garden/attendance-action", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ child_id: childId, action, reason })
-    });
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      setMessage(payload?.error ?? "לא ניתן לעדכן נוכחות כרגע");
-      return;
+    try {
+      const response = await fetch("/api/garden/attendance-action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ child_id: childId, action, reason })
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        setMessage(payload?.error ?? "לא ניתן לעדכן נוכחות כרגע");
+        return;
+      }
+      startTransition(() => router.refresh());
+    } catch {
+      setMessage("לא ניתן להתחבר כרגע. בדקו את מצב הנוכחות לפני ניסיון חוזר.");
+    } finally {
+      inFlight.current = false;
+      setBusy(false);
     }
-    startTransition(() => router.refresh());
   }
 
   function correctAbsence() {
@@ -47,14 +58,14 @@ export function GardenAttendanceActionButton({
       <button
         className="ganenet-attendance-action"
         type="button"
-        disabled={disabled || isPending}
+        disabled={disabled || isPending || busy}
         onClick={currentStatus === "absent" ? correctAbsence : () => submit("check_in")}
       >
         <LogIn size={18} />
-        {isPending ? "שומר..." : currentStatus === "absent" ? "תיקון היעדרות" : "צ׳ק אין"}
+        {isPending || busy ? "שומר..." : currentStatus === "absent" ? "תיקון היעדרות" : "צ׳ק אין"}
       </button>
-      {currentStatus === "not_updated" ? <button className="ganenet-attendance-action" type="button" disabled={disabled || isPending} onClick={() => submit("mark_absent")}>סימון היעדרות</button> : null}
-      {message ? <small className="ganenet-inline-error">{message}</small> : null}
+      {currentStatus === "not_updated" ? <button className="ganenet-attendance-action" type="button" disabled={disabled || isPending || busy} onClick={() => submit("mark_absent")}>סימון היעדרות</button> : null}
+      {message ? <small className="ganenet-inline-error" role="alert">{message}</small> : null}
     </span>
   );
 }

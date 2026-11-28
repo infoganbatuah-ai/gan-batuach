@@ -186,7 +186,7 @@ export default async function StaffOperationsPage() {
           <ActionCard title="בריאות" text="תרופה או הערה" href="/dashboard/staff/child-journal?health=1" icon={HeartPulse} />
           <ActionCard title="משימות" text="מה נשאר" href="/dashboard/staff/tasks" icon={ClipboardList} tone={tasks.length ? "warn" : "good"} />
           <ActionCard title="הודעות" text="מנהלת וצוות" href="/dashboard/staff/messages" icon={MessageSquare} />
-          <ActionCard title="אירוע מהיר" text="פחות מ-30 שניות" href="/dashboard/staff/incidents" icon={Siren} tone="warn" />
+          <ActionCard title="אירוע מהיר" text="פחות מ-30 שניות" href="/dashboard/staff/incidents?new=1" icon={Siren} tone="warn" />
         </section>
 
         <section className="staff-two-column">

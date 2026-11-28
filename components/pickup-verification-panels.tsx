@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShieldCheck, ShieldAlert } from "lucide-react";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 
@@ -77,8 +77,8 @@ export function ParentPickupCenter({ children, contacts, events }: { children: R
 
   return (
     <div className="stack">
-      {message ? <div className="success-banner">{message}</div> : null}
-      {error ? <div className="error-banner">{error}</div> : null}
+      {message ? <div className="success-banner" role="status">{message}</div> : null}
+      {error ? <div className="error-banner" role="alert">{error}</div> : null}
       <section className="grid cols-2 dashboard-panels">
         <form className="card form compact-form" action={submitContact}>
           <div className="section-heading"><h2>הוספת מורשה איסוף</h2><p>הגן עדיין מבצע בדיקה אנושית לפני שחרור ילד. אין אישור אוטומטי.</p></div>
@@ -110,6 +110,8 @@ export function ParentPickupCenter({ children, contacts, events }: { children: R
 }
 
 export function GardenPickupVerificationPanel({ childRows, contacts, events, currentTime }: { childRows: Row[]; contacts: Row[]; events: Row[]; currentTime: string }) {
+  const releaseTrigger = useRef<HTMLButtonElement>(null);
+  const dialogBack = useRef<HTMLButtonElement>(null);
   const [eventRows, setEventRows] = useState(events);
   const [selectedChildId, setSelectedChildId] = useState(childRows[0]?.id ?? "");
   const [selectedContactId, setSelectedContactId] = useState("");
@@ -133,6 +135,15 @@ export function GardenPickupVerificationPanel({ childRows, contacts, events, cur
   }), [contacts, selectedChildId, currentTime]);
   const selectedContact = contactsForChild.find((contact) => contact.id === selectedContactId);
 
+  useEffect(() => {
+    if (confirming) dialogBack.current?.focus();
+  }, [confirming]);
+
+  function closeConfirmation() {
+    setConfirming(false);
+    requestAnimationFrame(() => releaseTrigger.current?.focus());
+  }
+
   async function recordPickup() {
     setBusy(true); setError(null); setMessage(null);
     try {
@@ -141,10 +152,12 @@ export function GardenPickupVerificationPanel({ childRows, contacts, events, cur
         child_id: selectedChildId,
         pickup_contact_id: selectedContactId
       });
-      setEventRows((current) => [data, ...current]);
-      setMessage("השחרור אושר ונרשם על ידי הצוות.");
+      if (data.id && !data.idempotent) setEventRows((current) => current.some((row) => row.id === data.id) ? current : [data, ...current]);
+      setMessage(!data.event_read_available
+        ? "השחרור בוצע, אך תיעוד האירוע אינו זמין כרגע. רעננו לפני פעולה נוספת."
+        : data.idempotent ? "השחרור כבר נרשם; לא נוצר אירוע נוסף." : "השחרור אושר ונרשם על ידי הצוות.");
       setSelectedContactId("");
-      setConfirming(false);
+      closeConfirmation();
     } catch (err) {
       setError(err instanceof Error ? err.message : "רישום האיסוף נכשל");
     } finally {
@@ -154,8 +167,8 @@ export function GardenPickupVerificationPanel({ childRows, contacts, events, cur
 
   return (
     <div className="stack">
-      {message ? <div className="success-banner">{message}</div> : null}
-      {error ? <div className="error-banner">{error}</div> : null}
+      {message ? <div className="success-banner" role="status">{message}</div> : null}
+      {error ? <div className="error-banner" role="alert">{error}</div> : null}
       <section className="ux06-release-state-summary" aria-label="מצב אישורי האיסוף לילד הנבחר">
         <span className="allowed"><ShieldCheck /><b>{contactsForChild.length}</b><small>מורשים תקפים</small></span>
         <span className={blockedContactsForChild.length ? "blocked" : "clear"}><ShieldAlert /><b>{blockedContactsForChild.length}</b><small>חסומים או שפג תוקפם</small></span>
@@ -168,7 +181,7 @@ export function GardenPickupVerificationPanel({ childRows, contacts, events, cur
             <label>ילד/ה<select value={selectedChildId} onChange={(event) => { setSelectedChildId(event.target.value); setSelectedContactId(""); setConfirming(false); }} required>{childRows.map((child) => <option value={child.id} key={child.id}>{cleanSyntheticLabel(child.full_name, "ילד/ה")}</option>)}</select></label>
             <label>מורשה איסוף<select name="pickup_contact_id" value={selectedContactId} onChange={(event) => { setSelectedContactId(event.target.value); setConfirming(false); }} required><option value="">בחרו מורשה פעיל</option>{contactsForChild.map((contact) => <option value={contact.id} key={contact.id}>{cleanSyntheticLabel(contact.full_name, "מורשה איסוף")} · {relationLabels[contact.relation] ?? contact.relation}</option>)}</select></label>
           </div>
-          <button className="button primary" disabled={busy || !selectedChildId || !selectedContactId}>בדיקה לפני שחרור</button>
+          <button ref={releaseTrigger} className="button primary" disabled={busy || !selectedChildId || !selectedContactId}>בדיקה לפני שחרור</button>
         </form>
 
         <article className="card action-panel">
@@ -177,15 +190,22 @@ export function GardenPickupVerificationPanel({ childRows, contacts, events, cur
           {blockedContactsForChild.length ? <div className="ux06-blocked-pickups" aria-label="הרשאות חסומות">{blockedContactsForChild.map((contact) => <div className="list-item" key={contact.id}><div><strong>{cleanSyntheticLabel(contact.full_name, "מורשה איסוף")}</strong><span>{relationLabels[contact.relation] ?? contact.relation} · אין לאשר שחרור</span></div><span className="pill bad">{!contact.active ? "בוטל" : contact.authorization_status === "approved" ? "פג תוקף" : "לא מאושר"}</span></div>)}</div> : null}
         </article>
       </section>
-      {confirming && selectedContact ? <section className="ux06-release-confirmation" role="dialog" aria-modal="true" aria-labelledby="release-confirmation-title">
+      {confirming && selectedContact ? <section className="ux06-release-confirmation" role="dialog" aria-modal="true" aria-labelledby="release-confirmation-title" aria-describedby="release-confirmation-note" onKeyDown={(event) => {
+        if (event.key === "Escape" && !busy) { event.preventDefault(); closeConfirmation(); }
+        if (event.key !== "Tab") return;
+        const buttons = [...event.currentTarget.querySelectorAll<HTMLButtonElement>("button:not([disabled])")];
+        if (!buttons.length) return;
+        if (event.shiftKey && document.activeElement === buttons[0]) { event.preventDefault(); buttons.at(-1)?.focus(); }
+        else if (!event.shiftKey && document.activeElement === buttons.at(-1)) { event.preventDefault(); buttons[0].focus(); }
+      }}>
         <div>
           <ShieldCheck size={34} />
           <span>אישור צוות נדרש</span>
           <h2 id="release-confirmation-title">לאשר שחרור?</h2>
           <p><b>{cleanSyntheticLabel(childRows.find((child) => child.id === selectedChildId)?.full_name, "ילד/ה")}</b> יימסר/תימסר ל־<b>{cleanSyntheticLabel(selectedContact.full_name, "מורשה איסוף")}</b>.</p>
           <dl><div><dt>קרבה</dt><dd>{relationLabels[selectedContact.relation] ?? selectedContact.relation}</dd></div><div><dt>מצב הרשאה</dt><dd>מאושר ותקף</dd></div></dl>
-          <div><button className="button secondary" type="button" disabled={busy} onClick={() => setConfirming(false)}>חזרה</button><button className="button primary" type="button" disabled={busy} onClick={recordPickup}>{busy ? "מאמת בשרת..." : "אישור שחרור ורישום"}</button></div>
-          <small>השרת בודק שוב נוכחות, הקשר גן והרשאה ברגע האישור.</small>
+          <div><button ref={dialogBack} className="button secondary" type="button" disabled={busy} onClick={closeConfirmation}>חזרה</button><button className="button primary" type="button" disabled={busy} onClick={recordPickup}>{busy ? "מאמת בשרת..." : "אישור שחרור ורישום"}</button></div>
+          <small id="release-confirmation-note">השרת בודק שוב נוכחות, הקשר גן והרשאה ברגע האישור.</small>
         </div>
       </section> : null}
       <section className="card action-panel">

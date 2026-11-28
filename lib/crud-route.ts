@@ -2,7 +2,8 @@ import { type ZodSchema } from "zod";
 import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requirePermission } from "@/lib/auth";
+import { getSessionProfile, requirePermission } from "@/lib/auth";
+import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 import type { Permission } from "@/lib/roles";
 import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 import { buildMaskedConnectionSummary } from "@/lib/domain/camera-connection-builder";
@@ -30,6 +31,10 @@ export function createCrudHandlers(config: CrudConfig) {
   return {
     async GET(request: Request) {
       try {
+        if (config.table === "camera_streams") {
+          const session = await getSessionProfile();
+          if (!session.user || !session.profile) return fail("נדרשת התחברות", 401);
+        }
         const permission = await requirePermission(config.read);
         if (!permission.allowed) return fail("Forbidden", 403);
 
@@ -37,12 +42,20 @@ export function createCrudHandlers(config: CrudConfig) {
         const { searchParams } = new URL(request.url);
         const limit = Number(searchParams.get("limit") ?? 50);
         const gardenId = searchParams.get("garden_id");
+        let staffGardenId: string | null = null;
+        if (config.table === "camera_streams" && permission.session.profile.role === "staff") {
+          const staffContext = await resolveStaffEmploymentContext(permission.session.profile);
+          if (!staffContext.available) return fail("לא ניתן לאמת שיוך צוות פעיל", 503);
+          staffGardenId = staffContext.activeEmployment?.garden_id ?? null;
+          if (!staffGardenId || (gardenId && gardenId !== staffGardenId)) return fail("אין הרשאה למצלמות הגן הזה", 403);
+        }
         const selectColumns =
           config.table === "camera_streams"
             ? CAMERA_BROWSER_SAFE_SELECT
             : "*";
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
+        if (staffGardenId) query = query.eq("garden_id", staffGardenId).eq("active", true).eq("staff_view_allowed", true);
         if (config.defaultOrder) query = query.order(config.defaultOrder, { ascending: false });
         let { data, error } = await query;
         if (error && config.table === "camera_streams") {
@@ -50,6 +63,7 @@ export function createCrudHandlers(config: CrudConfig) {
           const fallbackColumns = "id,garden_id,name,area,camera_type,protocol,status,active,parent_view_allowed,last_health_check_at,video_gateway_stream_id,gateway_stream_id,live_preview_status,playback_hls_ready,playback_webrtc_ready,viewing_hours,created_at,updated_at";
           let fallbackQuery = (supabase as any).from(config.table).select(fallbackColumns).limit(Math.min(limit, 200));
           if (gardenId) fallbackQuery = fallbackQuery.eq("garden_id", gardenId);
+          if (staffGardenId) fallbackQuery = fallbackQuery.eq("garden_id", staffGardenId).eq("active", true).eq("staff_view_allowed", true);
           if (config.defaultOrder) fallbackQuery = fallbackQuery.order(config.defaultOrder, { ascending: false });
           const fallback = await fallbackQuery;
           data = fallback.data;

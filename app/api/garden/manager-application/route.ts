@@ -4,12 +4,15 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { operationalDistrictForCity } from "@/lib/domain/kindergarten-onboarding";
+import { assertGanAddressProviderBudget, verifyGanAddressSelection } from "@/lib/management/verified-address";
+import { assertTrustedMutationOrigin, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   kindergarten_name: z.string().trim().min(2), legal_entity_name: z.string().trim().optional(), business_id: z.string().trim().optional(),
   manager_full_name: z.string().trim().min(2), manager_id_number: z.string().trim().optional(), manager_phone: z.string().trim().optional(),
   manager_email: z.string().trim().email().optional().or(z.literal("")), city: z.string().trim().min(2), street: z.string().trim().optional(),
   address_details: z.string().trim().optional(), public_description: z.string().trim().optional(), opening_hours: z.string().trim().optional(),
+  address_place_id: z.string().trim().max(300).optional(), address_session_token: z.string().uuid().optional().or(z.literal("")),
   contact_phone: z.string().trim().optional(), contact_email: z.string().trim().email().optional().or(z.literal("")),
   registrant_type: z.enum(["teacher_operator", "owner_teacher", "owner_only"]).default("teacher_operator")
 });
@@ -21,15 +24,27 @@ export async function POST(request: Request) {
     if (!session.user || !session.profile) return fail("נדרשת התחברות", 401);
     if (!(["manager", "owner"] as string[]).includes(String(session.profile.role))) return fail("אין הרשאה לפתוח תהליך קליטה", 403);
     const payload = schema.parse(await request.json());
+    if (payload.address_place_id) {
+      assertTrustedMutationOrigin(request);
+      await assertGanAddressProviderBudget(privateRateLimitIdentifier({ headers: request.headers }));
+    }
+    const selectedAddress = await verifyGanAddressSelection({ placeId: payload.address_place_id, sessionToken: payload.address_session_token,
+      city: payload.city, street: payload.street, buildingNumber: payload.address_details }, "full");
+    if (payload.address_place_id && selectedAddress.status !== "verified") return fail("בחירת הכתובת אינה תואמת לפרטים המאומתים. בחרו שוב או המשיכו בהזנה ידנית.", 422);
     const supabase = await createClient();
-    const address = [payload.street, payload.address_details].map(clean).filter(Boolean).join(" ");
+    const city = selectedAddress.address?.city ?? payload.city;
+    const street = selectedAddress.address?.street ?? payload.street;
+    const address = selectedAddress.address?.formattedAddress ?? [payload.street, payload.address_details, payload.city].map(clean).filter(Boolean).join(" ");
     const { data, error } = await supabase.rpc("start_garden_onboarding" as never, {
       details: {
-        name: payload.kindergarten_name, city: payload.city, address,
+        name: payload.kindergarten_name, city, address,
         phone: clean(payload.contact_phone) ?? clean(payload.manager_phone), email: clean(payload.contact_email) ?? clean(payload.manager_email),
         manager_name: payload.manager_full_name, business_name: clean(payload.legal_entity_name), business_id: clean(payload.business_id),
         manager_id_number_review_required: Boolean(clean(payload.manager_id_number)), manager_phone: clean(payload.manager_phone),
-        manager_email: clean(payload.manager_email), operational_district: operationalDistrictForCity(payload.city), street: clean(payload.street),
+        manager_email: clean(payload.manager_email), operational_district: operationalDistrictForCity(city), street: clean(street),
+        building_number: selectedAddress.address?.buildingNumber ?? clean(payload.address_details),
+        address_verification_status: selectedAddress.status,
+        ...(selectedAddress.address ? { address_provider: "google_places", address_place_id: selectedAddress.address.placeId } : {}),
         operating_hours: clean(payload.opening_hours), public_description: clean(payload.public_description)
       }, requested_registrant_type: payload.registrant_type
     } as never);

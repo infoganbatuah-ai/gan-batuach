@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Bot, Building2, Camera, CheckCircle2, ClipboardList, CreditCard, FileCheck2, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ContactAvailabilityGuard } from "@/components/contact-availability-guard";
+import { GanAddressFields } from "@/components/gan-address-fields";
 import { createGardenLead } from "@/app/actions";
-import { israeliCityStreetMap, kindergartenAgeGroups, regulatoryAcceptanceItems } from "@/lib/domain/kindergarten-onboarding";
+import { kindergartenAgeGroups, regulatoryAcceptanceItems } from "@/lib/domain/kindergarten-onboarding";
 import { publicMetadata } from "@/lib/seo/public-metadata";
 
 export const metadata = publicMetadata("/join-kindergarten", "הצטרפות גן ילדים", "הצטרפו לגן בטוח: מערכת לניהול גן ילדים, תהליכי בקרה, פיקוח ושקיפות להורים.");
@@ -35,8 +36,6 @@ const faq = [
 
 export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
   const params = await searchParams;
-  const cities = Object.keys(israeliCityStreetMap);
-  const streets = [...new Set(Object.values(israeliCityStreetMap).flat())].sort((a, b) => a.localeCompare(b, "he"));
 
   return (
     <>
@@ -129,9 +128,7 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
               <label>טלפון מנהלת *<input name="phone" required /></label>
               <label>מייל מנהלת *<input name="email" type="email" required /></label>
               <label>שם הגן *<input name="garden_name" required /></label>
-              <label>עיר *<select name="city" required><option value="">בחרו עיר</option>{cities.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
-              <label>רחוב *<select name="street" required><option value="">בחרו רחוב</option>{streets.map((street) => <option key={street} value={street}>{street}</option>)}</select></label>
-              <label>מספר בניין *<input name="building_number" required inputMode="numeric" /></label>
+              <GanAddressFields requiredCity requiredStreet requiredBuilding />
               <label>שם בעלים<input name="owner_name" /></label>
             </div>
             <ContactAvailabilityGuard />

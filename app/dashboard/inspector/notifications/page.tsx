@@ -23,6 +23,7 @@ export default async function InspectorNotificationsPage() {
   const notifications = (notificationsRes.data ?? []) as any[];
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
   const pushCategoryPreferences = Object.fromEntries(((pushPreferencesRes.data ?? []) as Array<{ category: string; enabled: boolean }>).map((row) => [row.category, row.enabled]));
+  const preferencesAvailable = !preferencesRes.error && !pushPreferencesRes.error;
 
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/settings" title="התראות מפקח" subtitle="פיקוחים, ליקויים ואירועים שדורשים פעולה" badge="התראות">
@@ -36,7 +37,9 @@ export default async function InspectorNotificationsPage() {
         <NotificationCenter notifications={notifications} />
       </InspectorSection>
       <InspectorSection title="העדפות ושעות שקט" subtitle="רק ערוצים שמוכנים באמת ניתנים להפעלה" icon={Bell}>
-        <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="התראות הפיקוח שלך" />
+        {preferencesAvailable
+          ? <NotificationPreferencesPanel preferences={preferencesRes.data as NotificationPreferences | null} pushCategoryPreferences={pushCategoryPreferences} capability={managementDeliveryCapability()} audienceLabel="התראות הפיקוח שלך" />
+          : <div role="alert">לא ניתן לטעון את העדפות ההתראות כרגע. רעננו את העמוד ונסו שוב; לא בוצע שינוי בהעדפות.</div>}
       </InspectorSection>
     </InspectorAppFrame>
   );

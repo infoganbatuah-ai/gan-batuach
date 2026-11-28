@@ -4,6 +4,7 @@ type SupabaseLike = {
 
 import { createHash } from "crypto";
 import { getPushProviderForPlatform } from "./push-provider";
+import type { PushProviderResult } from "./push-provider";
 
 export type PushPlatform = "web" | "android" | "ios";
 export type PushProvider = "mock" | "mock_push" | "web_push" | "fcm" | "apns" | "capacitor" | "custom";
@@ -45,7 +46,18 @@ function hashDeviceToken(token: string) {
 
 export async function registerPushDevice(supabase: SupabaseLike, input: RegisterPushDeviceInput) {
   const now = new Date().toISOString();
-  const result = await supabase.from("push_device_tokens").upsert({
+  const table = supabase.from("push_device_tokens");
+  const existing = await table.select("id, profile_id, device_trust_status")
+    .eq("device_token", input.deviceToken).maybeSingle();
+  if (existing.error) return { ok: false, device: null, error: existing.error.message };
+  // A token cannot transfer to another account through registration. A
+  // blocked/revoked trust decision cannot be cleared by a client re-registering.
+  if (existing.data && (existing.data.profile_id !== input.profileId ||
+      existing.data.device_trust_status === "blocked" ||
+      existing.data.device_trust_status === "revoked")) {
+    return { ok: false, device: null, error: "push_token_registration_denied" };
+  }
+  const values = {
     profile_id: input.profileId,
     role: input.role,
     platform: input.platform,
@@ -57,19 +69,55 @@ export async function registerPushDevice(supabase: SupabaseLike, input: Register
     disabled_reason: null,
     revoked_at: null,
     provider: getPushProviderForPlatform(input.platform).name,
+    // Device form factor and client metadata do not prove product ownership.
+    // Every registration loses any previous positive device_trust_status.
+    // A future private product-binding table requires its own atomic
+    // invalidation; no such table is deployed by this change.
+    app_channel: input.platform === "web" ? "web" : "unknown",
+    device_trust_status: "unknown",
+    device_model: null,
+    os_version: null,
+    build_number: null,
+    biometric_capable: null,
     last_seen_at: now,
     updated_at: now,
     metadata: input.metadata ?? {}
-  }, { onConflict: "device_token" }).select("id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata").single();
+  };
+  const columns = "id, profile_id, role, platform, device_id, app_version, is_active, last_seen_at, created_at, updated_at, metadata";
+  const result = existing.data
+    ? await table.update(values).eq("id", existing.data.id)
+      .eq("profile_id", input.profileId).eq("device_token", input.deviceToken)
+      .eq("device_trust_status", existing.data.device_trust_status)
+      .select(columns).maybeSingle()
+    : await table.insert(values).select(columns).single();
 
   return {
-    ok: !result.error,
+    // Zero updated rows means the compare-and-update lost a race. Never
+    // reinterpret that as a successful registration.
+    ok: !result.error && !!result.data,
     device: result.data,
-    error: result.error?.message ?? null
+    error: result.error?.message ?? (result.data ? null : "push_token_registration_conflict")
   };
 }
 
 export async function unregisterPushDevice(supabase: SupabaseLike, profileId: string, deviceToken?: string | null, deviceId?: string | null) {
+  // This operation removes one current device. An empty selector must not
+  // silently revoke every Gan and Observer token belonging to the profile.
+  if (!deviceToken && !deviceId) return { ok: false, rows: [], error: "push_device_selector_required" };
+  let exactTokenId: string | null = null;
+  if (!deviceToken && deviceId) {
+    // device_id is client-supplied and not a product identity. Never let a
+    // native logout revoke several token rows with the same local reference.
+    const match = await supabase.from("push_device_tokens")
+      .select("id").eq("profile_id", profileId).eq("device_id", deviceId)
+      .eq("is_active", true).limit(2);
+    if (match.error) return { ok: false, rows: [], error: match.error.message };
+    if ((match.data ?? []).length > 1) {
+      return { ok: false, rows: [], error: "push_device_id_ambiguous" };
+    }
+    if (!(match.data ?? []).length) return { ok: true, rows: [], error: null };
+    exactTokenId = match.data[0].id;
+  }
   let query = supabase.from("push_device_tokens").update({
     is_active: false,
     disabled_reason: "unregistered_by_user",
@@ -78,7 +126,7 @@ export async function unregisterPushDevice(supabase: SupabaseLike, profileId: st
   }).eq("profile_id", profileId);
 
   if (deviceToken) query = query.eq("device_token", deviceToken);
-  else if (deviceId) query = query.eq("device_id", deviceId);
+  else if (exactTokenId) query = query.eq("id", exactTokenId).eq("is_active", true);
   else query = query.eq("is_active", true);
 
   const result = await query.select("id, is_active");
@@ -95,7 +143,7 @@ async function preferencesAllowPush(supabase: SupabaseLike, profileId: string, c
     .select("receive_push, critical_push_allowed")
     .eq("profile_id", profileId)
     .maybeSingle();
-  if (error) return { allowed: true, error: error.message };
+  if (error) return { allowed: false, error: error.message };
   if (!data) return { allowed: true, error: null };
   if (critical && data.critical_push_allowed !== false) return { allowed: true, error: null };
   return { allowed: data.receive_push !== false, error: null };
@@ -109,7 +157,7 @@ async function categoryPreferencesAllowPush(supabase: SupabaseLike, profileId: s
     .eq("profile_id", profileId)
     .eq("category", category)
     .maybeSingle();
-  if (error) return { allowed: true, error: error.message };
+  if (error) return { allowed: false, error: error.message };
   if (!data) return { allowed: true, error: null };
   if (data.enabled === false) return { allowed: false, error: null };
   if (data.critical_only && !critical) return { allowed: false, error: null };
@@ -134,6 +182,25 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
   const actionUrl = input.actionUrl ?? template?.default_action_url ?? null;
   const preference = await preferencesAllowPush(supabase, input.profileId, input.critical);
   const categoryPreference = await categoryPreferencesAllowPush(supabase, input.profileId, category, input.critical);
+  const preferenceError = preference.error ?? categoryPreference.error;
+  if (preferenceError) {
+    const failed = await supabase.from("push_notification_logs").insert({
+      notification_id: input.notificationId ?? null,
+      profile_id: input.profileId,
+      platform: "web",
+      template_id: template?.id ?? null,
+      category,
+      title: input.title,
+      body: input.body ?? null,
+      action_url: actionUrl,
+      deep_link_type: deepLinkType,
+      status: "failed",
+      provider: "preferences",
+      failure_reason: preferenceError,
+      metadata: input.metadata ?? {}
+    });
+    return { ok: false, logs: [], error: failed.error?.message ?? preferenceError };
+  }
   const { data: tokens, error: tokensError } = await supabase
     .from("push_device_tokens")
     .select("id, platform, device_token, is_active")
@@ -200,18 +267,27 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
 
   const rows = await Promise.all(activeTokens.map(async (token) => {
     const provider = getPushProviderForPlatform(token.platform);
-    const providerResult = await provider.send({
-      profileId: input.profileId,
-      deviceTokenId: token.id,
-      deviceToken: token.device_token,
-      platform: token.platform,
-      title: input.title,
-      body: input.body ?? null,
-      actionUrl,
-      category,
-      deepLinkType,
-      metadata: input.metadata ?? {}
-    });
+    let providerResult: PushProviderResult;
+    let outcomeUnknown = false;
+    try {
+      providerResult = await provider.send({
+        profileId: input.profileId,
+        deviceTokenId: token.id,
+        deviceToken: token.device_token,
+        platform: token.platform,
+        title: input.title,
+        body: input.body ?? null,
+        actionUrl,
+        category,
+        deepLinkType,
+        metadata: input.metadata ?? {}
+      });
+    } catch {
+      // A provider may have accepted the message before its response failed.
+      // Record this token independently without scheduling an unsafe retry.
+      outcomeUnknown = true;
+      providerResult = { ok: false, status: "failed", provider: provider.name, failureReason: "provider_submission_outcome_unknown" };
+    }
     return {
       notification_id: input.notificationId ?? null,
       profile_id: input.profileId,
@@ -230,7 +306,7 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
       failure_reason: providerResult.failureReason ?? null,
       sent_at: providerResult.sentAt ?? null,
       failed_at: providerResult.status === "failed" ? new Date().toISOString() : null,
-      next_retry_at: providerResult.status === "failed" ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null,
+      next_retry_at: providerResult.status === "failed" && !outcomeUnknown ? new Date(Date.now() + 15 * 60 * 1000).toISOString() : null,
       metadata: {
         ...(input.metadata ?? {}),
         ...(providerResult.metadata ?? {})
