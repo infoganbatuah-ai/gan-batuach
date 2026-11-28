@@ -38,6 +38,52 @@
   ],
   "units": [
     {
+      "id": "gan-stage-3-parent-active-revalidation",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Gan Batuach Management",
+      "title": "Reuse current Parent eligibility for synthetic camera revalidation",
+      "owner": "Canonical Gan Management executor",
+      "sourceBranch": "codex/gan-stage3-parent-active-revalidation",
+      "sourceCommits": [
+        "da7407fc49b6148d4bfb51e64ff9d5e29a4358db"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gan-stage3-parent-active-revalidation@da7407fc49b6148d4bfb51e64ff9d5e29a4358db"
+        ]
+      },
+      "validation": {
+        "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
+        "evidence": [
+          "35 focused tests passed for grant, Parent/Staff policy and launch environment.",
+          "Default-off private loopback scope check requires a distinct bearer, current matching Auth session, exact viewer/Garden/camera/site binding and the same canonical Parent eligibility as issuance. Abort and exceptions deny."
+        ],
+        "limits": "Synthetic qualification only. Private bridge live-session check, standardized fixture seeding, actual Parent AAL2 Product playback and callback evidence remain pending."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "0562667e4ca18acc43d4637873674efa9a2fe987",
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-691",
+          "do-stage-3-pilot-pr-690"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PENDING_CUMULATIVE_SYNTHETIC_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Wait for exact-head CI and coordinate the Development merge. Qualify one Parent Product window on a seeded isolated loopback-only backend."
+    },
+    {
       "id": "gan-stage-3-pilot-pr-691",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Gan Batuach Management",
