@@ -30,7 +30,7 @@ try {
   if (!uiOnly && existsSync(cameraPilotFile)) {
     const info = lstatSync(cameraPilotFile);
     if (!info.isFile() || info.uid !== process.getuid() || (info.mode & 0o077) ||
-        info.size > 16_384 || !realpathSync(cameraPilotFile).startsWith('/Volumes/DIGITAL_OBSERVER/')) {
+        info.size > 16_384 || realpathSync(cameraPilotFile) !== resolve(realpathSync(databaseConfig.runtimeRoot), 'gan-camera-pilot.private.env')) {
       throw new Error('Synthetic camera pilot configuration must be an owner-only file on the external volume.');
     }
     cameraPilot = parseEnv(readFileSync(cameraPilotFile, 'utf8'));
