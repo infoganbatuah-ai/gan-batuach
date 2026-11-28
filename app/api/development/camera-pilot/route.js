@@ -1,11 +1,10 @@
 import { createPrivateKey } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
-import { createCameraPilotLoopbackTransport, createCameraPilotWindow } from "@/lib/management/camera-pilot-grant.mjs";
+import { createCameraPilotLoopbackTransport, createCameraPilotWindow, isCameraPilotSameOrigin } from "@/lib/management/camera-pilot-grant.mjs";
 
 export const runtime = "nodejs";
 
-const appOrigin = "http://127.0.0.1:3000";
 const identifier = /^[A-Za-z0-9_-]{1,128}$/;
 let pilot;
 
@@ -64,13 +63,8 @@ function getPilot() {
   }
 }
 
-function sameOrigin(request) {
-  const url = new URL(request.url);
-  return url.origin === appOrigin && !url.search && request.headers.get("origin") === appOrigin;
-}
-
 export async function POST(request) {
-  if (!sameOrigin(request)) return unavailable();
+  if (!isCameraPilotSameOrigin(request)) return unavailable();
   const window = getPilot();
   if (!window) return unavailable();
   const answer = await window.start(request);
@@ -80,7 +74,7 @@ export async function POST(request) {
 }
 
 export async function DELETE(request) {
-  if (!sameOrigin(request)) return unavailable();
+  if (!isCameraPilotSameOrigin(request)) return unavailable();
   try {
     const window = getPilot();
     if (!window) return unavailable();
