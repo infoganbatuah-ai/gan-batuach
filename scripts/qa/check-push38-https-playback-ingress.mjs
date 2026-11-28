@@ -37,7 +37,7 @@ const child = spawn(process.execPath, ["scripts/qa/start-push38-https-playback-i
   `--gateway-host=${gatewayHost}`, `--connector-host=${connectorHost}`, `--port=${port}`,
   "--bind-address=::1",
   `--tls-key=${keyPath}`, `--tls-cert=${certPath}`,
-  "--browser-origin=https://gateway.ganbatuach.com",
+  "--browser-origin=https://gan-batuach.vercel.app",
   `--gateway-origin=http://127.0.0.1:${gateway.address().port}`,
   `--connector-origin=http://127.0.0.1:${connector.address().port}`], { stdio: ["ignore", "pipe", "pipe"] });
 const ready = await Promise.race([
@@ -47,7 +47,7 @@ const ready = await Promise.race([
 assert.match(String(ready[0]), /observer-push38-https-playback-ingress-v1/);
 const request = (host, path, method = "GET", body = "") => new Promise((resolve, reject) => {
   const outgoing = httpsRequest({ hostname: "::1", port, servername: host, rejectUnauthorized: false,
-    method, path, headers: { host: `${host}:${port}`, origin: "https://gateway.ganbatuach.com",
+    method, path, headers: { host: `${host}:${port}`, origin: "https://gan-batuach.vercel.app",
       ...(body ? { "content-type": "application/json", "content-length": Buffer.byteLength(body) } : {}) } }, response => {
     const chunks = [];
     response.on("data", chunk => chunks.push(chunk));
@@ -61,7 +61,7 @@ const request = (host, path, method = "GET", body = "") => new Promise((resolve,
 try {
   const gatewayClaim = await request(gatewayHost, "/playback/claim", "POST", '{"grant":"test"}');
   assert.equal(gatewayClaim.status, 200);
-  assert.equal(gatewayClaim.headers["access-control-allow-origin"], "https://gateway.ganbatuach.com");
+  assert.equal(gatewayClaim.headers["access-control-allow-origin"], "https://gan-batuach.vercel.app");
   assert.equal(JSON.parse(gatewayClaim.body).playback.hls_url,
     `https://${gatewayHost}:${port}/hls/stream/index.m3u8?token=${"a".repeat(32)}`);
   const connectorClaim = await request(connectorHost, "/playback/claim", "POST", '{"grant":"test"}');
