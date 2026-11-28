@@ -153,3 +153,53 @@ test("headerless Web and native HLS use rewritten paths and one shared ledger", 
   const malicious = await server.issueManifest(input);
   assert.equal((await open(malicious)).status, 404);
 });
+
+test("QA runtime routes pinned DVR and Connector media and audits without signed URLs", async t => {
+  const { createQaPilotRuntime } = await import("../../services/video-gateway/qa-pilot-runtime.mjs");
+  const f = fixture(t);
+  const candidateSha = "a".repeat(40);
+  const issuerKey = "c".repeat(64);
+  const releaseDigest = "d".repeat(64);
+  const registry = f.approval.sources.map((sourceId, i) => ({
+    sourceId, siteId: "site", gatewayId: i === 10 ? "connector" : "gateway", streamId: `stream-${i}`,
+    profile: i === 10 ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY", route: i === 0 ? "ch1" : "general", releaseDigest
+  }));
+  const seen = [], audit = [];
+  const reader = label => async ({ binding, object }) => {
+    seen.push([label, binding.streamId]);
+    return Buffer.from(object === "index.m3u8" ?
+      "#EXTM3U\n#EXT-X-TARGETDURATION:2\n#EXTINF:2,\nsegment-1.ts\n" : label);
+  };
+  const options = {
+    ...f.options, issuerKey, manifest: { kind: "observer-qa-pilot-v1", candidateSha, registry },
+    gateway: { environment: "isolated-qa", gatewayId: "gateway", releaseDigest, read: reader("dvr"), readCh1: reader("ch1") },
+    connector: { environment: "isolated-qa", gatewayId: "connector", releaseDigest, read: reader("tapo") },
+    audit: event => audit.push(event)
+  };
+  assert.throws(() => createQaPilotRuntime({ ...options, connector: { ...options.connector, releaseDigest: "e".repeat(64) } }),
+    /QA_RUNTIME_READER_MISMATCH/);
+  const runtime = createQaPilotRuntime(options);
+  const { issuerPort, mediaPort } = await runtime.listen();
+  t.after(runtime.close);
+  await runtime.authorize({ ...f.approval, workerId: runtime.workerId, candidateSha });
+  const issuer = `http://127.0.0.1:${issuerPort}`;
+  const media = `http://127.0.0.1:${mediaPort}`;
+  const request = { method: "POST", headers: { authorization: `Bearer ${issuerKey}`, "content-type": "application/json" } };
+  assert.equal((await fetch(media + "/internal/issue", request)).status, 404);
+  assert.equal((await fetch(media + "/hls/direct/index.m3u8?token=should-not-log")).status, 404);
+  for (const [index, label] of [[0, "ch1"], [1, "dvr"], [10, "tapo"]]) {
+    const issue = await fetch(issuer + "/internal/issue", {
+      ...request, body: JSON.stringify({ ...registry[index], session: "viewer", runId: "run", expectedSha: candidateSha })
+    });
+    assert.equal(issue.status, 200);
+    const { path } = await issue.json();
+    const manifest = await fetch(media + path);
+    assert.equal(manifest.headers.get("x-observer-qa-build"), candidateSha);
+    const part = (await manifest.text()).split("\n").find(line => line.startsWith("/qa/"));
+    assert.equal(await (await fetch(media + part)).text(), label);
+  }
+  assert.deepEqual(seen, [["ch1", "stream-0"], ["ch1", "stream-0"], ["dvr", "stream-1"], ["dvr", "stream-1"], ["tapo", "stream-10"], ["tapo", "stream-10"]]);
+  assert.ok(audit.some(event => event.outcome === "served"));
+  assert.ok(audit.every(event => Object.keys(event).sort().join(",") === "event,outcome"));
+  assert.doesNotMatch(JSON.stringify(audit), /should-not-log|\/qa\/|\?r=|Bearer/);
+});
