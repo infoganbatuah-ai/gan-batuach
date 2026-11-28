@@ -2691,3 +2691,16 @@ acceptance QA is blocked by the external Development Colima runtime.
 - 2026-11-27 — Stage 1 Parent discovery Product verification on canonical Development `d6687b39e8ee9f5c3f4c572f4b3d7387430926dc`. The existing gbi instance recovered without a host reboot. Drift passed for 276 expected migrations. An authenticated, provisioned multi-child QA Parent exercised both 1440 × 1024 and 390 × 844. Each viewport returned 12 Gardens unfiltered, one for the matching category and zero for the excluded category. Clearing, changing Child, accessible names, RTL and overflow passed. One temporary classroom was removed and four table counts and row digests returned to baseline. Scoped Product receipt SHA-256 `67e2ff302b1a80b3a2d7643b723f296ab0ead7bd14de518049f1166087bbfbe3`. No migrations, provider changes or Production release.
 
 - 2026-11-28 — Stage 2 core Management qualification on isolated Development `2f09db077eb29bcce444467957fb5b444af133d1`. All ten journey groups have authenticated Product evidence across six role families. Seventeen prior receipts were verified alongside current role and tenant checks. A private QA expectation on the complaints route was corrected and all five follow-up assertions passed. Restricted acceptance matrix SHA-256 `667ad0e3c2e829d6a991427cc21667c3e6ae576dc17c906dfe8d282e1a3fc67a`. This receipt changes only the ledgers. External provider, visual, security, cost and release qualification remain separate. Stage 3 awaits owner authorization.
+
+## Stage 3 synthetic camera pilot preservation
+
+Development base `5a0f639d3696bdb9d6017503e3dd89008c158d30`. The entries below are remotely preserved and pending a coordinated Development integration window. All four units have no migrations.
+
+| PR | Source branch | Exact source | Prerequisites |
+| --- | --- | --- | --- |
+| [#681](https://github.com/infoganbatuah-ai/gan-batuach/pull/681) | `codex/gan-stage-3-camera-playback` | `db018ff6e8dfce19454157331b74e150dca95acc` | None |
+| [#682](https://github.com/infoganbatuah-ai/gan-batuach/pull/682) | `codex/do-stage3-gan-integration-candidate-20261128` | `b57370094500bf57399ebbcefd9eccd62af18a15` | None |
+| [#684](https://github.com/infoganbatuah-ai/gan-batuach/pull/684) | `codex/do-stage3-protected-webrtc-20261128` | `8a224dd5a9303e7e30e4664029cc916e5aea632c` | #682 |
+| [#683](https://github.com/infoganbatuah-ai/gan-batuach/pull/683) | `codex/gan-stage-3-camera-pilot-adapter` | `3e694002fc99c6f760e5ce23c42da63729becc68` | #681, #684 |
+
+The recorded checks qualify component boundaries. Cumulative gbi Product playback, role denials, active revocation and hardware remain pending. Stage 3 stays open. No release eligibility or Production action.
