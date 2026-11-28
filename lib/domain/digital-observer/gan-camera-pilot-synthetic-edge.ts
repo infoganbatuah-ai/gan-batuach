@@ -126,15 +126,55 @@ export function openGanCameraPilotSyntheticEdge({ databasePath, windowId, scope,
         return { scope: requestedScope, handle, expiresAtMs: grant.expires };
       });
     },
-    async revoke(handle) {
-      if (!handlePattern.test(handle)) return;
-      transaction(() => {
-        const key = digest(handle);
-        db.prepare("UPDATE pilot_grants SET revoked = 1 WHERE handle = ?").run(key);
-        if (read()?.lease === key) stop("REVOKED");
+    async revoke(handle) { revokeKnownHandle(handle); }
+  };
+
+  function revokeKnownHandle(handle: string) {
+    if (!handlePattern.test(handle)) return false;
+    return transaction(() => {
+      const key = digest(handle);
+      const result = db.prepare("UPDATE pilot_grants SET revoked = 1 WHERE handle = ?").run(key);
+      if (read()?.lease === key) stop("REVOKED");
+      return result.changes === 1;
+    });
+  }
+
+  function transportAllowed(handle: string, requestedScope: GanCameraPilotScope) {
+    if (!handlePattern.test(handle) || scopeHash(requestedScope) !== expectedScope) return false;
+    try {
+      return transaction(() => {
+        const row = active();
+        if (!row || row.lease !== digest(handle)) return false;
+        if (row.reserved >= ganCameraPilotLimits.cumulativeBytes) {
+          stop("BYTE_LIMIT");
+          return false;
+        }
+        return true;
       });
     }
-  };
+    catch { return false; }
+  }
+
+  // Charge the encrypted byte stream at the serving boundary, independently
+  // of frame observations or the publisher's bitrate. Never refund a write.
+  function reserveTransportBytes(handle: string, requestedScope: GanCameraPilotScope, bytes: number) {
+    if (!handlePattern.test(handle) || scopeHash(requestedScope) !== expectedScope || !Number.isSafeInteger(bytes) ||
+        bytes < 1 || bytes > maxChunkBytes) return false;
+    try {
+      return transaction(() => {
+        const row = active();
+        if (!row || row.lease !== digest(handle)) return false;
+        if (row.reserved + bytes > ganCameraPilotLimits.cumulativeBytes) {
+          stop("BYTE_LIMIT"); return false;
+        }
+        db.prepare("UPDATE pilot_window SET reserved = reserved + ? WHERE id = 1").run(bytes);
+        return true;
+      });
+    } catch {
+      try { transaction(() => stop("ACCOUNTING_OR_SINK")); } catch { /* An unavailable store cannot reserve bytes. */ }
+      return false;
+    }
+  }
 
   function deliverSyntheticChunk({ handle, scope: requestedScope, payload, sequence, write }: {
     handle: string; scope: GanCameraPilotScope; payload: Buffer; sequence: number;
@@ -189,5 +229,5 @@ export function openGanCameraPilotSyntheticEdge({ databasePath, windowId, scope,
     return `${payload}.${sign(null, Buffer.from(payload), key).toString("base64url")}`;
   }
 
-  return { store, deliverSyntheticChunk, signSyntheticEvidence, close: () => db.close() };
+  return { store, revokeKnownHandle, transportAllowed, reserveTransportBytes, deliverSyntheticChunk, signSyntheticEvidence, close: () => db.close() };
 }
