@@ -26,3 +26,13 @@ test("rejects incomplete config, nonloopback, UI-only and release overrides", ()
   ]) assert.throws(() => integrationEnvironment(local, { cameraPilot: { ...cameraPilot, ...patch } }));
   assert.throws(() => integrationEnvironment({}, { cameraPilot, uiOnly: true }));
 });
+
+test("ongoing scope check uses an optional distinct private bearer", () => {
+  const key = "GAN_CAMERA_PILOT_SCOPE_TOKEN";
+  const scopeToken = "r".repeat(40);
+  assert.equal(integrationEnvironment(local, { cameraPilot: { ...cameraPilot, [key]: scopeToken } })[key], scopeToken);
+  assert.throws(() => integrationEnvironment(local, {
+    cameraPilot: { ...cameraPilot, GAN_CAMERA_PILOT_SERVICE_TOKEN: scopeToken, [key]: scopeToken }
+  }));
+  assert.throws(() => integrationEnvironment(local, { cameraPilot: { ...cameraPilot, [key]: "short" } }));
+});
