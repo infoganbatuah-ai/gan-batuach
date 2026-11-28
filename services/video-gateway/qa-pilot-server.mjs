@@ -9,6 +9,8 @@ const segment = /^(?:\/ch1\/)?(segment-[0-9]{1,12}\.ts)$/;
 const mediaTag = /^(?:#EXTM3U|#EXT-X-(?:VERSION|TARGETDURATION|MEDIA-SEQUENCE|DISCONTINUITY-SEQUENCE):\d+|#EXT-X-(?:ENDLIST|DISCONTINUITY|INDEPENDENT-SEGMENTS)|#EXTINF:\d+(?:\.\d+)?,)$/;
 const receiptQuery = /^r=([A-Za-z0-9_-]{43})$/;
 const receiptMs = 30_000;
+const commitPattern = /^[a-f0-9]{40}$/;
+const opaqueId = /^[A-Za-z0-9_-]{1,80}$/;
 
 function rewritePlaylist(body, segmentUrl) {
   if (body.length > 64 * 1024) throw new Error("QA_PLAYLIST_DENIED");
@@ -28,7 +30,35 @@ export function createQaPilotServer(options) {
   if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
     throw new Error("QA_PILOT_PRODUCTION_DENIED");
   }
-  const coordinator = createQaPilotCoordinator(options);
+  const { candidateSha, registry } = options ?? {};
+  if (!commitPattern.test(candidateSha ?? "") || !Array.isArray(registry) || registry.length !== 11) {
+    throw new Error("QA_PILOT_REGISTRY_REQUIRED");
+  }
+  const bindings = new Map(registry.map(({ sourceId, siteId, gatewayId, streamId, profile, route }) => {
+    if (![sourceId, siteId, gatewayId, streamId].every(value => typeof value === "string" && opaqueId.test(value)) ||
+        !["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"].includes(profile) || !["general", "ch1"].includes(route) ||
+        (route === "ch1" && profile !== "PHYSICAL_GATEWAY")) throw new Error("QA_PILOT_REGISTRY_INVALID");
+    return [sourceId, Object.freeze({ sourceId, siteId, gatewayId, streamId, profile, route })];
+  }));
+  if (bindings.size !== 11 || new Set([...bindings.values()].map(x => x.siteId)).size !== 1 ||
+      [...bindings.values()].filter(x => x.route === "ch1").length !== 1 ||
+      [...bindings.values()].filter(x => x.profile === "SOFTWARE_CONNECTOR").length !== 1) {
+    throw new Error("QA_PILOT_REGISTRY_INVALID");
+  }
+  const coordinator = createQaPilotCoordinator({
+    ...options,
+    async verifyApproval(credential) {
+      const approval = await options.verifyApproval(credential);
+      if (approval?.candidateSha !== candidateSha || !Array.isArray(approval.sources) ||
+          approval.sources.length !== bindings.size || approval.sources.some(sourceId => {
+            const row = bindings.get(sourceId);
+            return !row || row.siteId !== approval.siteId || (row.route === "ch1") !== (approval.ch1 === sourceId);
+          })) return null;
+      return approval;
+    },
+    readGeneral(input) { return options.readGeneral({ ...input, binding: bindings.get(input.sourceId) }); },
+    readCh1(input) { return options.readCh1({ ...input, binding: bindings.get(input.sourceId) }); }
+  });
   const secret = randomBytes(32);
   const now = options?.now ?? Date.now;
   let run;
@@ -64,6 +94,7 @@ export function createQaPilotServer(options) {
           response.writeHead(200, {
             "cache-control": "no-store",
             "referrer-policy": "no-referrer",
+            "x-observer-qa-build": candidateSha,
             "content-length": body.length,
             "content-type": object === "index.m3u8" ? "application/vnd.apple.mpegurl" : "video/mp2t"
           });
@@ -83,8 +114,8 @@ export function createQaPilotServer(options) {
   return Object.freeze({
     workerId: coordinator.workerId,
     async authorize(credential) { run = await coordinator.open(credential); },
-    async issueManifest({ session, runId, sourceId, path } = {}) {
-      if (!run) throw new Error("QA_PILOT_DENIED");
+    async issueManifest({ session, runId, sourceId, path, expectedSha } = {}) {
+      if (!run || expectedSha !== candidateSha) throw new Error("QA_PILOT_DENIED");
       await run.permit({ session, runId, sourceId, path });
       const issued = now();
       const prefix = `/qa/${runId}/${path}/${sourceId}/`;

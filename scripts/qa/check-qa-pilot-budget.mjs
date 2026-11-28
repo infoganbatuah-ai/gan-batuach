@@ -94,20 +94,30 @@ test("headerless Web and native HLS use rewritten paths and one shared ledger", 
     readCh1: async ({ object }) => Buffer.from(object === "index.m3u8" ?
       playlist.replace("segment-1.ts", "/ch1/segment-1.ts") : "ch1")
   });
-  const server = createQaPilotServer(f.options);
+  const candidateSha = "a".repeat(40);
+  const registry = f.approval.sources.map((sourceId, i) => ({
+    sourceId, siteId: "site", gatewayId: i === 10 ? "connector" : "gateway", streamId: sourceId,
+    profile: i === 10 ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY", route: i === 0 ? "ch1" : "general"
+  }));
+  const server = createQaPilotServer({ ...f.options, candidateSha, registry });
   const listener = server.listen();
   t.after(server.close);
   await once(listener, "listening");
   assert.equal(listener.address().address, "127.0.0.1");
   const origin = `http://127.0.0.1:${listener.address().port}`;
   const open = url => fetch(origin + url);
-  const input = { session: "viewer", runId: "run", sourceId: "source-0", path: "general" };
+  const input = { session: "viewer", runId: "run", sourceId: "source-0", path: "general", expectedSha: candidateSha };
   await assert.rejects(server.issueManifest(input), /QA_PILOT_DENIED/);
-  await server.authorize({ ...f.approval, workerId: server.workerId });
+  const approval = { ...f.approval, workerId: server.workerId, candidateSha };
+  await assert.rejects(server.authorize({ ...approval, candidateSha: "b".repeat(40) }), /QA_PILOT_DENIED/);
+  await server.authorize(approval);
+  await assert.rejects(server.issueManifest({ ...input, expectedSha: "b".repeat(40) }), /QA_PILOT_DENIED/);
   await assert.rejects(server.issueManifest({ ...input, session: "foreign" }), /QA_PILOT_DENIED/);
   const web = await server.issueManifest(input);
   assert.equal((await open(web.split("?")[0])).status, 404);
-  const manifest = await (await open(web)).text();
+  const webResponse = await open(web);
+  assert.equal(webResponse.headers.get("x-observer-qa-build"), candidateSha);
+  const manifest = await webResponse.text();
   const webSegment = manifest.split("\n").find(line => line.startsWith("/qa/"));
   assert.equal((await open(webSegment.replace("source-0", "source-1"))).status, 404);
   assert.equal((await open(webSegment.replace("segment-1", "segment-2"))).status, 404);
