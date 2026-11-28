@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { createRequire } from "node:module";
+import { PassThrough } from "node:stream";
 import { generateKeyPairSync, verify } from "node:crypto";
 import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion, verifyCameraPilotParentScope } from "../../lib/management/camera-pilot-grant.mjs";
 
@@ -334,8 +336,10 @@ test("private scope check reruns Parent authorization and fails closed on loss, 
     camera: { id: "camera-a", gardenId: "garden-a", siteId: "site-a", active: true }
   };
   const request = (patch = {}, signal) => new Request("http://127.0.0.1:3000/api/development/camera-pilot", {
-    method: "PUT", signal,
+    method: "PUT", signal, duplex: "half",
+    body: new ReadableStream({ start(controller) { controller.close(); } }),
     headers: {
+      "content-length": "0",
       origin: "http://127.0.0.1:3000", host: "127.0.0.1:3000", authorization: "Bearer " + token,
       "x-gan-pilot-session": "session-a", "x-gan-pilot-viewer": "parent-a", "x-gan-pilot-garden": "garden-a",
       "x-gan-pilot-camera": "camera-a", "x-gan-pilot-site": "site-a", ...patch
@@ -351,7 +355,8 @@ test("private scope check reruns Parent authorization and fails closed on loss, 
   assert.equal(decisions, 2);
   for (const patch of [
     { authorization: "Bearer " + "x".repeat(40) }, { "x-gan-pilot-garden": "garden-b" },
-    { "x-gan-pilot-viewer": "parent-b" }, { origin: "http://example.invalid" }
+    { "x-gan-pilot-viewer": "parent-b" }, { origin: "http://example.invalid" },
+    { "content-length": "1" }, { "transfer-encoding": "chunked" }, { "content-type": "application/json" }
   ]) assert.equal(await check(request(patch)), false);
   assert.equal(decisions, 2);
   assert.equal(await check(request(), async () => ({ ...context, sessionId: "session-b" })), false);
@@ -364,4 +369,32 @@ test("private scope check reruns Parent authorization and fails closed on loss, 
     controller.abort();
     return context;
   }), false);
+});
+
+test("Next Node request adapter exposes empty PUT as a body stream", async () => {
+  const require = createRequire(import.meta.url);
+  const { NodeNextRequest } = require("next/dist/server/base-http/node.js");
+  const { NextRequestAdapter } = require("next/dist/server/web/spec-extension/adapters/next-request.js");
+  const origin = "http://127.0.0.1:3000";
+  const token = "t".repeat(40);
+  const input = Object.assign(new PassThrough(), {
+    method: "PUT",
+    url: origin + "/api/development/camera-pilot",
+    headers: {
+      origin, host: "127.0.0.1:3000", "content-length": "0", authorization: "Bearer " + token,
+      "x-gan-pilot-session": "session", "x-gan-pilot-viewer": "viewer",
+      "x-gan-pilot-garden": "garden", "x-gan-pilot-camera": "camera", "x-gan-pilot-site": "site"
+    }
+  });
+  input.end();
+  const request = NextRequestAdapter.fromNodeNextRequest(new NodeNextRequest(input), new AbortController().signal);
+  assert.notEqual(request.body, null);
+  const config = { viewerId: "viewer", gardenId: "garden", cameraId: "camera", siteId: "site" };
+  const resolveContext = async () => ({
+    sessionId: "session",
+    viewer: { id: "viewer", role: "parent", active: true },
+    camera: { id: "camera", siteId: "site", gardenId: "garden", active: true }
+  });
+  assert.equal(await verifyCameraPilotParentScope({ request, config, token, resolveContext }), true);
+  assert.equal(await request.text(), "");
 });

@@ -45,20 +45,23 @@
       "owner": "Canonical Gan Management executor",
       "sourceBranch": "codex/gan-stage3-parent-active-revalidation",
       "sourceCommits": [
-        "da7407fc49b6148d4bfb51e64ff9d5e29a4358db"
+        "da7407fc49b6148d4bfb51e64ff9d5e29a4358db",
+        "723544c4532d89ec963d0e27fa1e733fc63c1b29"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "status": "PRESERVED_PENDING_INTEGRATION",
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/gan-stage3-parent-active-revalidation@da7407fc49b6148d4bfb51e64ff9d5e29a4358db"
+          "origin/codex/gan-stage3-parent-active-revalidation@da7407fc49b6148d4bfb51e64ff9d5e29a4358db",
+          "origin/codex/gan-stage3-parent-empty-callback@723544c4532d89ec963d0e27fa1e733fc63c1b29"
         ]
       },
       "validation": {
         "status": "FOCUSED_TESTS_PASS_PRODUCT_QA_PENDING",
         "evidence": [
           "35 focused tests passed for grant, Parent/Staff policy and launch environment.",
+          "Parent Product attempt on 4c6f537d failed closed before issuance. Zero issued grants and zero relay bytes. Follow-up adapter regression reproduced a non-null body stream on empty PUT and verified the corrected zero-length-only framing guard. Focused suites passed 36/36.",
           "Default-off private loopback scope check requires a distinct bearer, current matching Auth session, exact viewer/Garden/camera/site binding and the same canonical Parent eligibility as issuance. Abort and exceptions deny."
         ],
         "limits": "Synthetic qualification only. Private bridge live-session check, standardized fixture seeding, actual Parent AAL2 Product playback and callback evidence remain pending."

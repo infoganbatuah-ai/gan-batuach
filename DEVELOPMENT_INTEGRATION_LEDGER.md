@@ -2718,3 +2718,5 @@ The recorded checks qualify component boundaries. Cumulative gbi Product playbac
 - Stage 3 synthetic Parent and Staff camera authorization [#691](https://github.com/infoganbatuah-ai/gan-batuach/pull/691), implementation `54549f2e2c049edf2593fe1cc72ef4cb0cb89507`. Focused 31/31, exact-head CI and Product proof pending. Requires isolated eligible MFA and policy fixture. No migration or release eligibility.
 
 - Stage 3 Parent active eligibility revalidation: implementation `da7407fc49b6148d4bfb51e64ff9d5e29a4358db`, focused grants, role policy and launcher tests 35/35. Private loopback scope check reuses issuance eligibility. CI, isolated live-session callback and Parent Product QA pending. No migrations or Production activation.
+
+- Parent Product preflight on `4c6f537d` failed closed before issuance. Next Node adapter exposes an empty PUT as a stream. Guard now validates zero-byte HTTP framing and rejects body media types. Follow-up `723544c4532d89ec963d0e27fa1e733fc63c1b29` passed 36 focused tests including the installed adapter. Product retry remains open.
