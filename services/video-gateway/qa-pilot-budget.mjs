@@ -62,19 +62,24 @@ export function createQaPilotCoordinator({ enabled, environment, storage, assert
     try { record(0); } catch { stop(); throw denied(); }
     timer = setTimeout(stop, Math.min(wallDeadline - startsAt, QA_PILOT_LIMITS.wallMs));
     timer.unref();
-    async function playback({ session, runId, sourceId, path: route, object, deliver } = {}) {
+    async function permit({ session, runId, sourceId, path: route, signal } = {}) {
       check();
-      if (busy || runId !== id || !sources.has(sourceId) || !["general", "ch1"].includes(route) ||
-          (sourceId === ch1) !== (route === "ch1") || typeof deliver !== "function") throw denied();
+      if (runId !== id || !sources.has(sourceId) || !["general", "ch1"].includes(route) ||
+          (sourceId === ch1) !== (route === "ch1")) throw denied();
+      const actor = await authenticate(session, { signal });
+      check();
+      if (actor?.id !== viewerId || actor?.siteId !== siteId) throw denied();
+    }
+    async function playback({ session, runId, sourceId, path: route, object, prepare, deliver } = {}) {
+      check();
+      if (busy || typeof deliver !== "function") throw denied();
       busy = true;
       let ch1Timer;
       const request = new AbortController();
       const abort = () => request.abort();
       controller.signal.addEventListener("abort", abort, { once: true });
       try {
-        const actor = await authenticate(session, { signal: request.signal });
-        check();
-        if (actor?.id !== viewerId || actor?.siteId !== siteId) throw denied();
+        await permit({ session, runId, sourceId, path: route, signal: request.signal });
         if (route === "ch1") {
           ch1Started ??= monotonicNow();
           ch1Wall ??= now();
@@ -85,7 +90,11 @@ export function createQaPilotCoordinator({ enabled, environment, storage, assert
           ch1Timer.unref();
         }
         const read = route === "ch1" ? readCh1 : readGeneral;
-        const body = await read({ sourceId, object, signal: request.signal, maxBytes: QA_PILOT_LIMITS.bytes - used });
+        const contents = await read({ sourceId, object, signal: request.signal, maxBytes: QA_PILOT_LIMITS.bytes - used });
+        if (!Buffer.isBuffer(contents) || !contents.length || contents.length > QA_PILOT_LIMITS.bytes - used) {
+          stop(); throw denied();
+        }
+        const body = prepare ? prepare(contents) : contents;
         check();
         if (request.signal.aborted || (route === "ch1" &&
             (monotonicNow() - ch1Started >= QA_PILOT_LIMITS.ch1Ms || now() - ch1Wall >= QA_PILOT_LIMITS.ch1Ms))) throw denied();
@@ -102,7 +111,7 @@ export function createQaPilotCoordinator({ enabled, environment, storage, assert
         busy = false;
       }
     }
-    return Object.freeze({ playback, stop });
+    return Object.freeze({ permit, playback, stop });
   }
   return Object.freeze({ workerId, open });
 }
