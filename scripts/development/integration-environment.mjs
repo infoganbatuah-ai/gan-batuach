@@ -21,10 +21,13 @@ const cameraPilotKeys = new Set([
 function validatedCameraPilot(pilot, uiOnly) {
   if (Object.keys(pilot).length === 0) return {};
   const scopeKey = "GAN_CAMERA_PILOT_SCOPE_TOKEN";
+  const roleKey = "GAN_CAMERA_PILOT_SCOPE_ROLE";
   if (uiOnly || ![...cameraPilotKeys].every(key => Object.hasOwn(pilot, key)) ||
-      !Object.keys(pilot).every(key => cameraPilotKeys.has(key) || key === scopeKey) ||
+      !Object.keys(pilot).every(key => cameraPilotKeys.has(key) || key === scopeKey || key === roleKey) ||
       (Object.hasOwn(pilot, scopeKey) &&
         (!/^[A-Za-z0-9_-]{32,128}$/.test(pilot[scopeKey]) || pilot[scopeKey] === pilot.GAN_CAMERA_PILOT_SERVICE_TOKEN)) ||
+      (Object.hasOwn(pilot, roleKey) &&
+        (!Object.hasOwn(pilot, scopeKey) || !["parent", "staff"].includes(pilot[roleKey]))) ||
       !Object.values(pilot).every(value => typeof value === "string" && value.trim()) ||
       pilot.GAN_CAMERA_PILOT_QA !== "1") throw new Error("Invalid private synthetic camera pilot configuration.");
   const origin = pilot.GAN_CAMERA_PILOT_ORIGIN;

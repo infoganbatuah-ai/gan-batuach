@@ -3,7 +3,7 @@ import test from "node:test";
 import { createRequire } from "node:module";
 import { PassThrough } from "node:stream";
 import { generateKeyPairSync, verify } from "node:crypto";
-import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion, verifyCameraPilotParentScope } from "../../lib/management/camera-pilot-grant.mjs";
+import { cameraPilotGrant, createCameraPilotSessionRegistry, createCameraPilotWindow, createCameraPilotLoopbackTransport, readCameraPilotOffer, requestCameraPilotPlayback, signCameraPilotAssertion, verifyCameraPilotRoleScope } from "../../lib/management/camera-pilot-grant.mjs";
 
 function fixture(patch = {}) {
   const handle = "a".repeat(48);
@@ -348,7 +348,7 @@ test("private scope check reruns Parent authorization and fails closed on loss, 
   let current = context;
   let decisions = 0;
   const check = (req, resolveContext = async () => { decisions++; return current; }) =>
-    verifyCameraPilotParentScope({ request: req, config, token, resolveContext });
+    verifyCameraPilotRoleScope({ request: req, config, token, resolveContext });
   assert.equal(await check(request()), true);
   current = null;
   assert.equal(await check(request()), false);
@@ -369,6 +369,22 @@ test("private scope check reruns Parent authorization and fails closed on loss, 
     controller.abort();
     return context;
   }), false);
+
+  const staffRequest = request({ "x-gan-pilot-role": "staff" });
+  const staffConfig = { ...config, scopeRole: "staff" };
+  const staffContext = { ...context, viewer: { ...context.viewer, role: "staff" } };
+  const scopeCheck = (req, currentContext, config = staffConfig) => verifyCameraPilotRoleScope({
+    request: req, config, token, resolveContext: async () => currentContext
+  });
+  assert.equal(await scopeCheck(staffRequest, staffContext), true);
+  assert.equal(await scopeCheck(staffRequest, null), false);
+  assert.equal(await scopeCheck(staffRequest, context), false);
+  assert.equal(await scopeCheck(request(), staffContext), false);
+  assert.equal(await scopeCheck(request({ "x-gan-pilot-role": "staff", "x-gan-pilot-garden": "other" }), staffContext), false);
+  for (const role of ["manager", "inspector", "admin"]) {
+    assert.equal(await scopeCheck(request({ "x-gan-pilot-role": role }),
+      { ...context, viewer: { ...context.viewer, role } }, { ...config, scopeRole: role }), false);
+  }
 });
 
 test("Next Node request adapter exposes empty PUT as a body stream", async () => {
@@ -395,6 +411,6 @@ test("Next Node request adapter exposes empty PUT as a body stream", async () =>
     viewer: { id: "viewer", role: "parent", active: true },
     camera: { id: "camera", siteId: "site", gardenId: "garden", active: true }
   });
-  assert.equal(await verifyCameraPilotParentScope({ request, config, token, resolveContext }), true);
+  assert.equal(await verifyCameraPilotRoleScope({ request, config, token, resolveContext }), true);
   assert.equal(await request.text(), "");
 });
