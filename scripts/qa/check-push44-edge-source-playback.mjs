@@ -48,7 +48,11 @@ const bindingModule = load(compile("lib/domain/digital-observer/edge-playback-so
   "@/lib/domain/digital-observer/camera-live-status": health,
 });
 
-function fixture({ delivery = "remote", signedIn = true } = {}) {
+const qaSha = "a".repeat(40);
+const qaOrigin = "https://observer-qa.ganbatuach.com";
+const qaPath = source => `/qa/run/general/${source}/index.m3u8?r=${"b".repeat(43)}`;
+
+function fixture({ delivery = "remote", signedIn = true, issuerStatus = 200 } = {}) {
   const sources = fixtureProfiles.map((edge) => ({
     id: edge.camera, observer_site_id: site, source_mode: "gateway_test",
     status: "connected", health_status: "healthy", last_seen_at: minutesAgo(1), last_health_check_at: minutesAgo(1),
@@ -83,7 +87,7 @@ function fixture({ delivery = "remote", signedIn = true } = {}) {
     return { select() { return this; }, eq(key, value) { filters.set(key, value); return this; },
       single: finish, maybeSingle: finish };
   }
-  const client = { from: table };
+  const client = { from: table, auth: { async getSession() { return { data: { session: { access_token: "fixture-session" } } }; } } };
   const api = {
     fail: (_error, status) => new Response(null, { status }),
     ok: (data) => Response.json({ data }),
@@ -95,6 +99,10 @@ function fixture({ delivery = "remote", signedIn = true } = {}) {
     OBSERVER_PLAYBACK_EDGE_ORIGINS_JSON: delivery === "remote"
       ? JSON.stringify(Object.fromEntries(fixtureProfiles.map((edge) => [edge.gateway, edge.origin]))) : "{}",
   };
+  if (delivery === "qa") Object.assign(env, {
+    OBSERVER_QA_BUDGET_ENABLED: "1", OBSERVER_QA_ISSUER_PORT: "55790",
+    OBSERVER_QA_ISSUER_KEY: "a".repeat(64), OBSERVER_QA_RUN_ID: "run", OBSERVER_QA_BUILD_SHA: qaSha
+  });
   const modules = {
     zod: { z },
     "@/lib/api": api,
@@ -113,10 +121,21 @@ function fixture({ delivery = "remote", signedIn = true } = {}) {
     "@/lib/domain/digital-observer/dvr-gateway": {
       createDvrPlaybackSession: () => assert.fail("channel-only route must not run"),
     },
-  }, env);
+  }, env, {
+    AbortSignal,
+    async fetch(url, init) {
+      assert.equal(url, "http://127.0.0.1:55790/internal/issue");
+      assert.equal(init.redirect, "error");
+      const input = JSON.parse(init.body);
+      assert.equal(input.expectedSha, qaSha);
+      assert.equal(input.session, "fixture-session");
+      assert.equal(input.siteId, site);
+      return Response.json({ path: qaPath(input.sourceId), sha: qaSha }, { status: issuerStatus });
+    },
+  });
   const redeem = load(redeemModule, modules, env);
   const issueFor = (edge, siteId = site) => issue.POST(new Request(
-    `${delivery === "local" ? "http://127.0.0.1:3100" : "https://app.fixture.invalid"}/api/digital-observer/dvr-gateway`,
+    `${delivery === "local" ? "http://127.0.0.1:3100" : delivery === "qa" ? qaOrigin : "https://app.fixture.invalid"}/api/digital-observer/dvr-gateway`,
     { method: "POST", body: JSON.stringify({ observer_site_id: siteId, camera_source_id: edge.camera }) },
   ));
   const redeemAt = (edge, grant) => redeem.POST(new Request(
@@ -223,8 +242,8 @@ const mobileModule = compile("lib/domain/digital-observer/mobile-playback-lifecy
 
 // The actual player attaches the fixture URL. There is no browser, codec, socket
 // or physical source behind these synthetic fetch and media implementations.
-function playerFixture(t, edge, nativeHls) {
-  const h = fixture();
+function playerFixture(t, edge, nativeHls, qa = false) {
+  const h = fixture(qa ? { delivery: "qa" } : {});
   const listeners = new EventTarget();
   const mobile = load(mobileModule, {}, {}, { window: listeners });
   const mobileSession = nativeHls ? mobile.openMobilePlaybackPublisher() : null;
@@ -233,7 +252,7 @@ function playerFixture(t, edge, nativeHls) {
   const jsx = (type, props) => ({ type, props });
   const claimPath = "/playback/claim";
   const signedMedia = "a".repeat(32);
-  const playlist = `${edge.origin}/hls/${edge.stream}/index.m3u8?token=${signedMedia}`;
+  const playlist = qa ? qaOrigin + qaPath(edge.camera) : `${edge.origin}/hls/${edge.stream}/index.m3u8?token=${signedMedia}`;
   const segment = `/hls/${edge.stream}/segment-1.ts`;
   const segmentQuery = `?generation=10000000-0000-4000-8000-000000000001&revision=1&token=${signedMedia}`;
   const { promise: played, resolve: recordPlay, reject: failPlay } = Promise.withResolvers();
@@ -318,4 +337,24 @@ for (const edge of fixtureProfiles) {
         }
       });
   }
+}
+
+test("QA issuance never returns direct Edge URLs, even when the issuer rejects", async () => {
+  const edge = fixtureProfiles[0];
+  const f = fixture({ delivery: "qa" });
+  const result = await f.issueFor(edge);
+  assert.equal(result.status, 200);
+  assert.deepEqual((await result.json()).data.playback,
+    { hls_url: qaOrigin + qaPath(edge.camera), qa_build_sha: qaSha });
+  assert.equal((await f.redeemAt(edge, "fixture")).status, 403);
+  const unavailable = fixture({ delivery: "qa", issuerStatus: 503 });
+  assert.equal((await unavailable.issueFor(edge)).status, 403);
+});
+
+for (const native of [false, true]) {
+  test(`QA ${native ? "native HLS" : "Web"} attaches only the budget URL`, { timeout: 2000 }, async t => {
+    const f = playerFixture(t, fixtureProfiles[0], native, true);
+    assert.equal(await f.played, f.playlist);
+    assert.deepEqual(f.calls, ["/api/digital-observer/dvr-gateway"]);
+  });
 }

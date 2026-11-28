@@ -30,7 +30,8 @@ export function createQaPilotServer(options) {
   if (process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production") {
     throw new Error("QA_PILOT_PRODUCTION_DENIED");
   }
-  const { candidateSha, registry } = options ?? {};
+  const { candidateSha, registry, issuerKey } = options ?? {};
+  if (issuerKey !== undefined && !/^[a-f0-9]{64}$/.test(issuerKey)) throw new Error("QA_ISSUER_KEY_INVALID");
   if (!commitPattern.test(candidateSha ?? "") || !Array.isArray(registry) || registry.length !== 11) {
     throw new Error("QA_PILOT_REGISTRY_REQUIRED");
   }
@@ -71,7 +72,47 @@ export function createQaPilotServer(options) {
     return createHmac("sha256", secret).update(receipt.nonce + "\n" + receipt.exp + "\n" + path).digest("base64url");
   }
   function href(path, receipt) { return `${path}?r=${sign(path, receipt)}`; }
-  const server = createServer(async (request, response) => {
+  async function issueManifest({ session, runId, sourceId, path, expectedSha } = {}) {
+    if (!run || expectedSha !== candidateSha) throw new Error("QA_PILOT_DENIED");
+    await run.permit({ session, runId, sourceId, path });
+    const issued = now();
+    const prefix = `/qa/${runId}/${path}/${sourceId}/`;
+    revokeReceipt();
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), receiptMs);
+    timer.unref();
+    activeReceipt = { session, issued, exp: issued + receiptMs, prefix,
+      nonce: randomBytes(16).toString("hex"), controller, timer };
+    return href(prefix + "index.m3u8", activeReceipt);
+  }
+  async function issueFromLoopback(request, response) {
+    const auth = request.headers.authorization || "";
+    if (!issuerKey || request.method !== "POST" || request.socket.remoteAddress !== "127.0.0.1" ||
+        !/^Bearer [a-f0-9]{64}$/.test(auth) ||
+        !timingSafeEqual(Buffer.from(auth.slice(7)), Buffer.from(issuerKey))) return fail(response, 404);
+    try {
+      let size = 0;
+      const chunks = [];
+      for await (const chunk of request) {
+        size += chunk.length;
+        if (size > 8192) return fail(response, 404);
+        chunks.push(chunk);
+      }
+      const input = JSON.parse(Buffer.concat(chunks).toString());
+      const match = bindings.get(input.sourceId);
+      if (!match || !["siteId", "gatewayId", "streamId", "profile"].every(key => input[key] === match[key])) {
+        return fail(response, 404);
+      }
+      const path = await issueManifest({ ...input, path: match.route });
+      response.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" })
+        .end(JSON.stringify({ path, sha: candidateSha }));
+    } catch { fail(response, 404); }
+  }
+  const server = createServer({ requestTimeout: 5_000, headersTimeout: 5_000 }, async (request, response) => {
+    if (request.url === "/internal/issue") {
+      await issueFromLoopback(request, response);
+      return;
+    }
     const [pathname, search, extra] = (request.url || "").split("?");
     const match = mediaPath.exec(pathname);
     const token = receiptQuery.exec(search || "");
@@ -114,19 +155,7 @@ export function createQaPilotServer(options) {
   return Object.freeze({
     workerId: coordinator.workerId,
     async authorize(credential) { run = await coordinator.open(credential); },
-    async issueManifest({ session, runId, sourceId, path, expectedSha } = {}) {
-      if (!run || expectedSha !== candidateSha) throw new Error("QA_PILOT_DENIED");
-      await run.permit({ session, runId, sourceId, path });
-      const issued = now();
-      const prefix = `/qa/${runId}/${path}/${sourceId}/`;
-      revokeReceipt();
-      const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), receiptMs);
-      timer.unref();
-      activeReceipt = { session, issued, exp: issued + receiptMs, prefix,
-        nonce: randomBytes(16).toString("hex"), controller, timer };
-      return href(prefix + "index.m3u8", activeReceipt);
-    },
+    issueManifest,
     listen(port = 0) { return server.listen(port, "127.0.0.1"); },
     close() { stop(); server.close(); server.closeAllConnections(); }
   });

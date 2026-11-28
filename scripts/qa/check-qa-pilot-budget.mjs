@@ -99,7 +99,8 @@ test("headerless Web and native HLS use rewritten paths and one shared ledger", 
     sourceId, siteId: "site", gatewayId: i === 10 ? "connector" : "gateway", streamId: sourceId,
     profile: i === 10 ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY", route: i === 0 ? "ch1" : "general"
   }));
-  const server = createQaPilotServer({ ...f.options, candidateSha, registry });
+  const issuerKey = "c".repeat(64);
+  const server = createQaPilotServer({ ...f.options, candidateSha, registry, issuerKey });
   const listener = server.listen();
   t.after(server.close);
   await once(listener, "listening");
@@ -113,7 +114,20 @@ test("headerless Web and native HLS use rewritten paths and one shared ledger", 
   await server.authorize(approval);
   await assert.rejects(server.issueManifest({ ...input, expectedSha: "b".repeat(40) }), /QA_PILOT_DENIED/);
   await assert.rejects(server.issueManifest({ ...input, session: "foreign" }), /QA_PILOT_DENIED/);
-  const web = await server.issueManifest(input);
+  const issue = (body, key = issuerKey) => fetch(origin + "/internal/issue", {
+    method: "POST", headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  const binding = registry[1];
+  const request = { ...input, ...binding };
+  assert.equal((await issue(request, "d".repeat(64))).status, 404);
+  assert.equal((await issue({ ...request, gatewayId: "wrong" })).status, 404);
+  assert.equal((await issue({ ...request, siteId: "foreign" })).status, 404);
+  const issued = await issue(request);
+  assert.equal(issued.status, 200);
+  const { path: web, sha } = await issued.json();
+  assert.equal(sha, candidateSha);
+  assert.ok(web.startsWith("/qa/run/general/source-0/index.m3u8?r="));
   assert.equal((await open(web.split("?")[0])).status, 404);
   const webResponse = await open(web);
   assert.equal(webResponse.headers.get("x-observer-qa-build"), candidateSha);
