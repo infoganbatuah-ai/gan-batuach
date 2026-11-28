@@ -38,6 +38,56 @@
   ],
   "units": [
     {
+      "id": "do-stage-3-pilot-pr-690",
+      "taskId": "GAN-STAGE-3-CAMERA-PILOT",
+      "project": "Digital Observer",
+      "title": "Revalidate access during active synthetic camera playback",
+      "owner": "Digital Observer executor with Gan Management resolver owner",
+      "sourceBranch": "codex/do-stage3-active-pilot-revalidation-20261128",
+      "sourceCommits": [
+        "34105370d9c54d6a92f8ae57869e38707385a465"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/do-stage3-active-pilot-revalidation-20261128@34105370d9c54d6a92f8ae57869e38707385a465"
+        ]
+      },
+      "validation": {
+        "status": "IMPLEMENTATION_CI_AND_TCP_QA_PASS_FINAL_LEDGER_HEAD_PENDING",
+        "evidence": [
+          "PR #690 implementation head 34105370d9c54d6a92f8ae57869e38707385a465 passed all nine checks. Digital Observer CI 46090180319, Management context CI 46090180344 and Snyk passed.",
+          "21 focused tests passed, including successful renewal followed by denial, HTTP 503, timeout and prior explicit revoke, byte and duration regressions. TypeScript, focused lint, diff and secret scan passed.",
+          "The default-off QA host sends a private loopback POST with binding and sessionId and a dedicated service bearer. Gan returns 204 only for the current session, exact role, Garden, Site, camera and current policy. A failed check stops the serving sockets and persists revocation. Explicit remote revoke remains immediate.",
+          "One viewer, one source, 300 seconds, at most 150 access checks, one in flight, two seconds between starts and a 750 ms maximum wait. The JSON request-body upper bound for that window is 113,850 bytes, before headers and network overhead. No network check per media chunk."
+        ],
+        "limits": "Isolated synthetic transport and callback only. The real gbi access-loss and callback-outage Product runs, Parent policy verification, actual resolver usage, and deployed economics are open. No physical camera or release qualification."
+      },
+      "integration": {
+        "branch": "integration/development",
+        "baseCommit": "e776e6bd1a339c7d5598924d46c269f622293852",
+        "pullRequests": [
+          690
+        ],
+        "status": "PENDING_EXCLUSIVE_WINDOW"
+      },
+      "dependencies": {
+        "units": [
+          "gan-stage-3-pilot-pr-689"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_ISOLATED_TCP_ACTIVE_ACCESS_REVOCATION",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Verify exact final PR-head CI and integrate through the exclusive Development window. Qualify separate gbi synthetic windows using Gan's current-role resolver. Measure attempts, response time, bytes and frame cessation after access loss and callback failure."
+    },
+    {
       "id": "gan-stage-3-pilot-pr-689",
       "taskId": "GAN-STAGE-3-CAMERA-PILOT",
       "project": "Gan Batuach Management",

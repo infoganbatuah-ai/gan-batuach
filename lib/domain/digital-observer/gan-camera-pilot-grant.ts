@@ -40,6 +40,26 @@ export type GanCameraPilotScope = Binding & {
 };
 export type GanCameraPilotGrantRecord = { scope: GanCameraPilotScope; handle: string; expiresAtMs: number };
 
+/** Private single-host QA callback. Gan owns identity and authorization checks. */
+export function createGanCameraPilotAccessResolver({ environment, endpoint, bearer }: {
+  environment: string; endpoint: string; bearer: string;
+}) {
+  const url = new URL(endpoint);
+  if (environment !== "development" || url.origin !== `http://127.0.0.1:${url.port}` ||
+      url.href !== endpoint || !/^\/[A-Za-z0-9_-]+(?:\/[A-Za-z0-9_-]+)*$/.test(url.pathname) ||
+      url.pathname.length > 160 || url.search || url.hash || url.username || url.password ||
+      !/^[A-Za-z0-9_-]{43,128}$/.test(bearer)) throw Error("INVALID_GAN_PILOT_RESOLVER_CONFIGURATION");
+  return async ({ viewerId, role, gardenId, siteId, cameraId, protocol, sessionId }: GanCameraPilotScope, signal: AbortSignal) => {
+    const response = await fetch(url, {
+      method: "POST", headers: { Authorization: `Bearer ${bearer}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ binding: { viewerId, role, gardenId, siteId, cameraId, protocol }, sessionId }),
+      signal, redirect: "error", cache: "no-store"
+    });
+    if (response.body) void response.body.cancel().catch(() => {});
+    return response.status === 204;
+  };
+}
+
 export const ganCameraPilotLimits = Object.freeze({
   durationSeconds: 300,
   cumulativeBytes: 100 * 1024 * 1024,
