@@ -63,7 +63,7 @@ function assertBrowserSafePlaybackUrl(value: string) {
   if (isPrivatePlaybackHost(parsed.hostname)) throw new Error("Internal camera or gateway address cannot be exposed to the browser");
 }
 
-function parseViewingWindow(input: Record<string, any> | null | undefined) {
+export function parseViewingWindow(input: Record<string, any> | null | undefined) {
   const policy = input?.viewing_hours ?? input?.operating_hours;
   const windowText = typeof policy === "string" ? policy : typeof policy?.window === "string" ? policy.window : null;
   if (!windowText || !/^\d{2}:\d{2}-\d{2}:\d{2}$/.test(windowText)) return { allowed: true, reason: null };
