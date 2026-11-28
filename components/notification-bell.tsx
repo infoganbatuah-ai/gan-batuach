@@ -3,8 +3,20 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { BellRing, CheckCheck } from "lucide-react";
+import { safeGanNotificationDestination } from "@/lib/domain/gan-notification-destination";
+import { requestGanMarkAllRead } from "@/lib/domain/gan-notification-read-all";
+import { parseGanNotificationFeed } from "@/lib/domain/gan-notification-feed";
 
-type NotificationRow = Record<string, any>;
+type NotificationRow = {
+  id: string;
+  title?: string | null;
+  message?: string | null;
+  body?: string | null;
+  read_at?: string | null;
+  status?: string | null;
+  action_url?: string | null;
+  metadata?: { href?: string | null } | null;
+};
 
 const centerByRole: Record<string, string> = {
   admin: "/dashboard/admin/notifications",
@@ -16,25 +28,30 @@ const centerByRole: Record<string, string> = {
 };
 
 function actionHref(item: NotificationRow) {
-  return item.action_url || item.metadata?.href || "/dashboard";
+  return safeGanNotificationDestination(item.action_url) ??
+    safeGanNotificationDestination(item.metadata?.href) ?? "/dashboard";
 }
 
 export function NotificationBell({ role }: { role: string }) {
   const [open, setOpen] = useState(false);
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [unread, setUnread] = useState(0);
+  const [loadError, setLoadError] = useState(false);
   const centerHref = centerByRole[role] ?? "/dashboard";
 
   useEffect(() => {
     let cancelled = false;
     fetch("/api/notifications")
-      .then((response) => response.json())
-      .then((body) => {
+      .then(async (response) => ({ response, body: await response.json() }))
+      .then(({ response, body }) => {
         if (cancelled) return;
-        setRows(body.data?.rows ?? []);
-        setUnread(body.data?.unread ?? 0);
+        const feed = parseGanNotificationFeed(response.ok, body);
+        if (!feed) { setLoadError(true); return; }
+        setLoadError(false);
+        setRows(feed.rows as NotificationRow[]);
+        setUnread(feed.unread);
       })
-      .catch(() => undefined);
+      .catch(() => { if (!cancelled) setLoadError(true); });
     return () => {
       cancelled = true;
     };
@@ -43,10 +60,7 @@ export function NotificationBell({ role }: { role: string }) {
   const previewRows = useMemo(() => rows.slice(0, 5), [rows]);
 
   async function markAllRead() {
-    const ids = rows.map((row) => row.id);
-    if (!ids.length) return;
-    const response = await fetch("/api/notifications/mark-read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids }) });
-    if (response.ok) {
+    if (await requestGanMarkAllRead(fetch)) {
       setRows((current) => current.map((row) => ({ ...row, status: "read", read_at: new Date().toISOString() })));
       setUnread(0);
     }
@@ -60,8 +74,8 @@ export function NotificationBell({ role }: { role: string }) {
       </button>
       {open ? (
         <div className="notification-popover">
-          <div className="notification-popover-head"><strong>מה דורש תשומת לב?</strong><button type="button" onClick={markAllRead}><CheckCheck size={15} /> הכל נקרא</button></div>
-          {previewRows.length === 0 ? <div className="empty-mini">אין התראות פתוחות כרגע.</div> : previewRows.map((item) => (
+          <div className="notification-popover-head"><strong>מה דורש תשומת לב?</strong><button type="button" disabled={loadError} onClick={markAllRead}><CheckCheck size={15} /> הכל נקרא</button></div>
+          {loadError ? <div className="empty-mini" role="alert">לא ניתן לטעון התראות כרגע.</div> : previewRows.length === 0 ? <div className="empty-mini">אין התראות פתוחות כרגע.</div> : previewRows.map((item) => (
             <Link className="notification-preview-row" href={actionHref(item)} key={item.id}>
               <span className={item.read_at ? "dot good" : "dot warn"} />
               <div><strong>{item.title}</strong><small>{item.message ?? item.body ?? "עדכון חדש במערכת"}</small></div>

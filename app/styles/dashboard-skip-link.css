@@ -1,0 +1,28 @@
+.dashboard-skip-link {
+  position: fixed;
+  z-index: 10000;
+  inset-block-start: 12px;
+  inset-inline-start: 12px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 2px solid #fff;
+  border-radius: 10px;
+  background: #092f6c;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 16px));
+}
+
+.dashboard-skip-link:focus-visible {
+  transform: none;
+  outline: 3px solid #ffcf57;
+  outline-offset: 2px;
+}
+
+main#dashboard-primary-content:focus-visible {
+  outline: 3px solid #1664d9;
+  outline-offset: -3px;
+}

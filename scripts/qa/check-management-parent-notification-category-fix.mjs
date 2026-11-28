@@ -14,14 +14,16 @@ test("forward migration permits every Parent notification preference category", 
   assert.match(migration, /add constraint push_category_preferences_category_check/);
 });
 
-test("route filters writes to the same canonical Parent category list", () => {
+test("route rejects unsupported categories before writes", () => {
   for (const category of parentCategories) assert.match(route, new RegExp(`"${category}"`));
   assert.match(route, /includes\(category\)/);
+  assert.match(route, /Unsupported push category preference/);
 });
 
 test("Parent UI persists quiet hours and category preferences through the canonical endpoint", () => {
   assert.match(component, /\/api\/profile\/communication-preferences/);
-  assert.match(component, /push_category_preferences: categoryEnabled/);
+  assert.match(component, /push_category_preferences: Object\.fromEntries\(Object\.entries\(categoryEnabled\)/);
+  assert.match(component, /filter\(\(\[category\]\) => pushToggleCategories\.has\(category\)\)/);
   assert.match(component, /quiet_hours_start/);
   assert.match(component, /quiet_hours_end/);
 });

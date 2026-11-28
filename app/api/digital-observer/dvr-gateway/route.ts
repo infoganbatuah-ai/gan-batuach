@@ -2,8 +2,32 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
-import { digitalObserverCameraIsConnected } from "@/lib/domain/digital-observer/camera-live-status";
+import {
+  EDGE_PLAYBACK_SOURCE_COLUMNS, resolveEdgePlaybackSource, type EdgePlaybackSourceRow,
+} from "@/lib/domain/digital-observer/edge-playback-source";
 import { issueGatewayPlaybackGrant } from "@/lib/domain/gateway-device-enrollment";
+import { edgePlaybackOrigin, localPlaybackAllowed } from "@/lib/domain/digital-observer/edge-playback-origin";
+import { createAdminClient } from "@/lib/supabase/admin";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
+
+// These Observer tables predate the generated Database type. Keep the selected
+// shape explicit until the canonical generated schema includes them.
+type ObserverRouteTable<Row> = {
+  Row: Row;
+  Insert: Record<string, unknown>;
+  Update: Record<string, unknown>;
+  Relationships: [];
+};
+type ObserverRouteDatabase = Database & {
+  public: {
+    Tables: {
+      observer_intelligence_signals: ObserverRouteTable<DvrGatewayEventRow & { observer_site_id: string }>;
+      digital_observer_camera_sources: ObserverRouteTable<EdgePlaybackSourceRow>;
+    };
+  };
+};
+type ObserverRouteClient = SupabaseClient<ObserverRouteDatabase>;
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,13 +44,13 @@ async function requireSiteAccess(request: Request, observerSiteId: string) {
   const session = await getDigitalObserverApiUser(request);
   if (!session) return { error: fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401) };
 
-  const site = await getObserverSiteAccess(session.supabase as any, session.profile, observerSiteId);
+  const site = await getObserverSiteAccess(session.supabase, session.profile, observerSiteId);
   if (!site) return { error: fail("אין הרשאה לצפות באתר הזה.", 403) };
   return { session, site };
 }
-async function loadReviewedEvents(supabase: any, observerSiteId: string): Promise<DvrGatewayEventRow[]> {
+async function loadReviewedEvents(supabase: ObserverRouteClient, observerSiteId: string): Promise<DvrGatewayEventRow[]> {
   const { data, error } = await supabase
-    .from("observer_intelligence_signals" as any)
+    .from("observer_intelligence_signals")
     .select("id,camera_id,camera_source_id,signal_type,severity,confidence,review_status,recommended_action,created_at,reviewed_at,resolved_at")
     .eq("observer_site_id", observerSiteId)
     .order("created_at", { ascending: false })
@@ -44,7 +68,8 @@ export async function GET(request: Request) {
     const access = await requireSiteAccess(request, observerSiteId);
     if (access.error) return access.error;
 
-    const events = await loadReviewedEvents((access.session as any).supabase, observerSiteId);
+    if (!access.session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+    const events = await loadReviewedEvents(access.session.supabase as unknown as ObserverRouteClient, observerSiteId);
     return ok(await buildDvrGatewayStatus(observerSiteId, events));
   } catch (error) {
     return handleRouteError(error);
@@ -58,27 +83,41 @@ export async function POST(request: Request) {
     if (access.error) return access.error;
 
     if (payload.camera_source_id) {
-      const { data: source, error } = await (access.session as any).supabase
+      if (!access.session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+      const { data: source, error } = await (access.session.supabase as unknown as ObserverRouteClient)
         .from("digital_observer_camera_sources")
-        .select("id,observer_site_id,status,health_status,metadata")
+        .select(EDGE_PLAYBACK_SOURCE_COLUMNS)
         .eq("id", payload.camera_source_id)
         .eq("observer_site_id", payload.observer_site_id)
         .single();
       if (error || !source) return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
-      if (!digitalObserverCameraIsConnected(source)) return fail("ערוץ ה-DVR אינו מחובר כרגע.", 409);
-      const gatewayStreamId = String(source.metadata?.gateway_stream_id || "").trim();
-      if (!gatewayStreamId) return fail("למקור המצלמה עדיין אין מזהה Gateway.", 409);
-      const gatewayId = String(source.metadata?.gateway_id || "").trim();
+      const binding = resolveEdgePlaybackSource(source);
+      if (binding.status === "mode_denied") return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
+      if (binding.status === "not_online") return fail("מקור המצלמה אינו זמין לצפייה כרגע.", 409);
+      if (binding.status === "stream_unmapped") return fail("מיפוי השידור של מקור המצלמה אינו תואם.", 409);
+      if (binding.status === "profile_unmapped") return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
       const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
-      if (!gatewayId || !secret) return fail("זהות ה-Gateway המקומי אינה זמינה.", 503);
+      if (binding.status === "gateway_unmapped" || !secret) return fail("זהות רכיב ה־Edge אינה זמינה.", 503);
+      const { gatewayId, streamId, profile } = binding;
+      const enrollment = await createAdminClient().from("video_gateway_device_enrollments")
+        .select("id,observer_site_id,gateway_id,status,lifecycle_state,deployment_profile")
+        .eq("gateway_id", gatewayId).eq("observer_site_id", payload.observer_site_id)
+        .eq("status", "delivered").maybeSingle();
+      if (enrollment.error || !enrollment.data || enrollment.data.lifecycle_state !== "ACTIVE")
+        return fail("שיוך ה־Gateway לאתר אינו פעיל.", 409);
+      if (enrollment.data.deployment_profile !== profile)
+        return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
+      const remoteOrigin = edgePlaybackOrigin(gatewayId, process.env.OBSERVER_PLAYBACK_EDGE_ORIGINS_JSON);
+      const localAllowed = localPlaybackAllowed(request.url, process.env.NODE_ENV);
+      if (!remoteOrigin && !localAllowed) return fail("גישה מרחוק ל־Edge טרם הוגדרה.", 503);
       const grant = issueGatewayPlaybackGrant({
         gateway_id: gatewayId,
         observer_site_id: payload.observer_site_id,
         camera_source_id: source.id,
-        gateway_stream_id: gatewayStreamId
+        gateway_stream_id: streamId
       }, secret);
       const requestedLocalPort = Number(source.metadata?.connector_local_port);
-      const localPlaybackPort = source.metadata?.connector_device_type === "SOFTWARE_CONNECTOR"
+      const localPlaybackPort = profile === "SOFTWARE_CONNECTOR"
         ? Number.isInteger(requestedLocalPort) && requestedLocalPort >= 1024 && requestedLocalPort <= 65535 ? requestedLocalPort : 18083
         : 18082;
       return ok({
@@ -87,7 +126,8 @@ export async function POST(request: Request) {
         provider: "custom",
         status: "authorized",
         playback: {
-          claim_url: `http://127.0.0.1:${localPlaybackPort}/playback/claim`,
+          claim_url: remoteOrigin ? `${remoteOrigin}/playback/claim` : `http://127.0.0.1:${localPlaybackPort}/playback/claim`,
+          allowed_origin: remoteOrigin || `http://127.0.0.1:${localPlaybackPort}`,
           grant
         },
         expires_in_seconds: 45,
@@ -96,6 +136,10 @@ export async function POST(request: Request) {
     }
 
     if (!payload.channel) return fail("חסר ערוץ או מקור מצלמה.", 422);
+    // The legacy channel-only contract has no enrolled Edge/Site binding and
+    // can return local gateway URLs. Never hand it to a remote viewer.
+    if (!localPlaybackAllowed(request.url, process.env.NODE_ENV))
+      return fail("צפייה מרחוק דורשת מקור מצלמה המשויך לרכיב Edge מאושר.", 503);
 
     return ok(await createDvrPlaybackSession({
       observerSiteId: payload.observer_site_id,

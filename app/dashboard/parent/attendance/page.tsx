@@ -6,17 +6,9 @@ import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentS
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { parentAttendanceChildren } from "@/lib/domain/parent-attendance-children";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
-
-type FamilyChild = {
-  id?: string | null;
-  child_id?: string | null;
-  permanent_child_file_id?: string | null;
-  full_name?: string | null;
-  photo_url?: string | null;
-  child?: { full_name?: string | null; photo_url?: string | null } | null;
-};
 
 type AttendanceRow = {
   id: string;
@@ -43,14 +35,8 @@ export default async function ParentAttendancePage({ searchParams }: { searchPar
   const params = await searchParams;
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase, profile);
-  const childMap = new Map<string, FamilyChild>();
-  for (const child of family.children as unknown as FamilyChild[]) if (child.id) childMap.set(String(child.id), child);
-  for (const enrollment of family.enrollments as unknown as FamilyChild[]) {
-    const id = String(enrollment.child_id ?? enrollment.permanent_child_file_id ?? "");
-    if (id && !childMap.has(id)) childMap.set(id, { ...enrollment, id, full_name: enrollment.full_name ?? enrollment.child?.full_name, photo_url: enrollment.photo_url ?? enrollment.child?.photo_url });
-  }
-  const children = [...childMap.values()];
-  const selected = children.find((child) => String(child.id) === params.child) ?? children[0] ?? null;
+  const children = parentAttendanceChildren(family.children, family.enrollments);
+  const selected = children.find((child) => child.id === params.child) ?? children[0] ?? null;
   const attendanceRes = selected
     ? await supabase.from("attendance" as never)
       .select("id,attendance_date,status,check_in_at,check_out_at,pickup_name,note,updated_at" as never)
@@ -58,12 +44,28 @@ export default async function ParentAttendancePage({ searchParams }: { searchPar
       .order("attendance_date", { ascending: false })
       .limit(60)
     : { data: [], error: null };
+  const gardenRes = selected?.garden_id
+    ? await supabase.from("gardens" as never).select("operational_timezone" as never).eq("id", selected.garden_id).maybeSingle()
+    : { data: null, error: selected ? new Error("Garden context unavailable") : null };
+  const sourceUnavailable = Boolean(family.sourceUnavailable || attendanceRes.error || gardenRes.error || (selected && !gardenRes.data));
   const rows = (attendanceRes.data ?? []) as unknown as AttendanceRow[];
-  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const zone = String((gardenRes.data as { operational_timezone?: string } | null)?.operational_timezone ?? "Asia/Jerusalem");
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: zone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
   const today = rows.find((row) => row.attendance_date === todayKey) ?? null;
   const todayMeta = attendanceMeta(today?.status, today?.check_out_at);
   const presentDays = rows.filter((row) => ["present", "checked_in", "checked_out", "departed", "late", "left_early"].includes(String(row.status))).length;
   const absentDays = rows.filter((row) => row.status === "absent").length;
+
+  if (sourceUnavailable) return (
+    <DashboardShell role="parent" title="נוכחות" appHome>
+      <ParentAppFrame active="calendar" activeHref="/dashboard/parent/attendance" profileName={profile.full_name} avatarUrl={(profile as unknown as { profile_image_url?: string | null }).profile_image_url ?? null}>
+        <ParentHero title="נוכחות" subtitle="הגעה, יציאה והיסטוריה של הילדים שלך" />
+        <ParentSection title="נתוני נוכחות אינם זמינים">
+          <div role="alert"><ParentEmptyState title="לא ניתן לאמת נוכחות כרגע" text="המידע לא נטען במלואו. נסו שוב מאוחר יותר; מצב הילד אינו מוצג כהגעה או כאפס מאומת." /></div>
+        </ParentSection>
+      </ParentAppFrame>
+    </DashboardShell>
+  );
 
   return (
     <DashboardShell role="parent" title="נוכחות" appHome>

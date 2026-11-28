@@ -48,6 +48,15 @@ function reportObserverAccountSetupFailure(
 
 async function rememberPendingRegistration(email: string, fullName?: string, accountType?: string) {
   const cookieStore = await cookies();
+  // Presentation hint only: this cookie must never authorize Observer account
+  // creation. Existing Gan users still need the explicit Observer login flow.
+  cookieStore.set("auth_callback_product", "digital_observer", {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 30,
+    path: "/"
+  });
   cookieStore.set("do_pending_email", email, {
     httpOnly: true,
     sameSite: "lax",
@@ -77,6 +86,7 @@ async function rememberPendingRegistration(email: string, fullName?: string, acc
 
 async function clearPendingRegistration() {
   const cookieStore = await cookies();
+  cookieStore.delete("auth_callback_product");
   cookieStore.delete("do_pending_email");
   cookieStore.delete("do_pending_name");
   cookieStore.delete("do_pending_account_type");

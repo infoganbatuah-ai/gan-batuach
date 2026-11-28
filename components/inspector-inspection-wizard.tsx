@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Camera, Check, ChevronLeft, ChevronRight, ClipboardCheck, Cloud, FileCheck2, FileSignature, FileText, Image as ImageIcon, ListChecks, LoaderCircle, MapPin, Save, ShieldCheck, X } from "lucide-react";
 import { EmptyState, StatusChip } from "@/components/gan-batuach-design-system";
+import { mergeLoadedInspectionAnswers, settleInspectionDraftLoad, type InspectionDraftSaveState } from "@/lib/management/inspection-draft-state";
 
 type Inspection = { id: string; garden_id: string; form_id: string; status?: string | null; started_at?: string | null; due_at?: string | null; gardens?: { name?: string | null; city?: string | null; address?: string | null } | null };
 type Question = { id: string; form_id: string; category: string; question_text: string; question_type?: string | null; weight?: number | null; critical?: boolean | null; required?: boolean | null; requires_photo?: boolean | null; requires_document?: boolean | null };
 type Answer = { score?: number; boolean_value?: boolean; text_value?: string; note?: string; photo_url?: string; document_url?: string };
 type AnswerState = Record<string, Answer>;
-type SaveState = "idle" | "loading" | "dirty" | "saving" | "saved" | "error";
+type SaveState = InspectionDraftSaveState;
 type SubmissionResult = { inspection_id?: string; weighted_score?: number; violations?: number; critical_failures?: number };
 
 function statusLabel(value?: string | null) {
@@ -79,9 +80,10 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
     fetch(`/api/inspections/${selectedInspectionId}/draft`).then((response) => response.json()).then((body) => {
       if (!active) return;
       const draftAnswers = Array.isArray(body.data?.answers) ? body.data.answers : [];
-      setAnswers(Object.fromEntries(draftAnswers.map((answer: { question_id: string }) => [answer.question_id, answer])));
+      const saved: AnswerState = Object.fromEntries(draftAnswers.map((answer: { question_id: string }) => [answer.question_id, answer]));
+      setAnswers((current) => mergeLoadedInspectionAnswers(saved, current));
       setLastSavedAt(body.data?.updated_at ? new Date(body.data.updated_at) : null);
-      setSaveState(draftAnswers.length ? "saved" : "idle");
+      setSaveState((current) => settleInspectionDraftLoad(current, draftAnswers.length));
     }).catch(() => { if (active) { setError("לא ניתן לטעון את הטיוטה השמורה."); setSaveState("error"); } });
     return () => { active = false; };
   }, [selectedInspectionId]);

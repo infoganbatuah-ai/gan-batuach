@@ -1,0 +1,251 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
+  summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { createQualificationMonitorLifecycle } from "../../lib/domain/digital-observer/qualification-monitor-lifecycle.mjs";
+import { classifyForbiddenWorkloads, evaluateQualificationHostReadiness,
+  parseQualificationPowerState, QUALIFICATION_HOST_LIMITS,
+  summarizeQualificationHostEvidence } from "./qualification-host-readiness.mjs";
+
+const start = Date.parse("2026-09-12T00:00:00.000Z");
+const channels = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
+function point(minute, { stalledChannel = null, tapoDown = false, deepProbeError = false } = {}) {
+  return {
+    sampled_at: new Date(start + minute * 60_000).toISOString(), interval_ms: 60_000,
+    empty_dvr_slots: 6,
+    dvr: { health_ok: true, auth: "ready", progressing: stalledChannel === null ? 10 : 9,
+      inputs: channels.map(channel => ({ channel, progressing: channel !== stalledChannel })) },
+    tapo: { health_ok: true, auth: "ready", progressing: tapoDown ? 0 : 1,
+      inputs: [{ channel: 1, progressing: !tapoDown }] },
+    resources: { gateway: { runtime_pid: 11, supervisor_pid: 1 }, connector: { runtime_pid: 22, supervisor_pid: 2 } },
+    ...(deepProbeError ? { deep_probe_error: "TimeoutError" } : {})
+  };
+}
+
+const clean = summarizeRealHomeSoak([point(0), point(1)], { startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000 });
+assert.equal(clean.status, "PASS");
+assert.equal(clean.checkpoint_coverage.expected_checkpoints, 2);
+assert.equal(clean.checkpoint_coverage.missing_checkpoints, 0);
+assert.equal(clean.per_camera["dvr-1"].availability, 1);
+
+const stall = summarizeRealHomeSoak([point(0), point(1, { stalledChannel: 1 })], { startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000 });
+assert.equal(stall.per_camera["dvr-1"].availability, 0.5);
+assert.equal(stall.per_camera["dvr-2"].availability, 1);
+assert.ok(stall.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"));
+assert.deepEqual(stall.gate_failure_details.source_availability.map(value => value.source), ["dvr-1"]);
+assert.equal(stall.gate_failure_details.source_availability[0].failed_checkpoints.length, 1);
+assert.equal(stall.gate_failure_details.source_availability[0].failed_checkpoints[0].sampled_at,
+  new Date(start + 60_000).toISOString());
+assert.equal(stall.gate_failure_details.source_availability[0].failed_checkpoints[0].component_liveness, null);
+
+const missing = summarizeRealHomeSoak([point(0), point(4)], { startedAt: start, endedAt: start + 300_000, requiredDurationMs: 300_000 });
+assert.equal(missing.checkpoint_coverage.expected_checkpoints, 5);
+assert.equal(missing.checkpoint_coverage.missing_checkpoints, 3);
+assert.ok(missing.gate_failures.includes("CHECKPOINT_COVERAGE_GAP"));
+
+const probe = summarizeRealHomeSoak([point(0), point(1, { deepProbeError: true })], { startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000 });
+assert.ok(probe.gate_failures.includes("DEEP_PROBE_MONITOR_FAILURE"));
+
+const diskPressurePoint = { ...point(0), host: {
+  pressure: "NORMAL", forbidden_workloads: [], power_source: "AC_POWER",
+  clamshell_closed: false,
+  disk_free_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes - 1,
+  disk_qualification_ready: false
+} };
+const diskPressure = summarizeRealHomeSoak([diskPressurePoint], {
+  startedAt: start, endedAt: start + 60_000, requiredDurationMs: 60_000 });
+assert.ok(diskPressure.gate_failures.includes("HOST_QUALIFICATION_INTERFERENCE"));
+assert.equal(diskPressure.host_qualification.low_disk_checkpoints, 1);
+assert.equal(diskPressure.host_qualification.minimum_disk_free_bytes,
+  QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes - 1);
+
+const authorizationLost = point(0);
+authorizationLost.dvr.auth = "approval_required";
+const unauthorized = summarizeRealHomeSoak([authorizationLost], {
+  startedAt: start, endedAt: start + 60_000, requiredDurationMs: 60_000 });
+assert.ok(unauthorized.gate_failures.includes("EDGE_AUTHORIZATION_NOT_READY"));
+assert.equal(unauthorized.health_dimensions.authorization.not_ready_checkpoints, 1);
+
+const legacy = point(0);
+delete legacy.dvr.inputs[0].progressing;
+const unproven = summarizeRealHomeSoak([legacy], { startedAt: start, endedAt: start + 60_000, requiredDurationMs: 60_000 });
+assert.equal(unproven.per_camera["dvr-1"].availability, null);
+assert.equal(unproven.per_camera["dvr-1"].unknown_samples, 1);
+assert.ok(unproven.gate_failures.includes("PER_CAMERA_PROGRESSION_EVIDENCE_MISSING"));
+
+const available = [1, 3, 4, 5, 6, 7, 10, 11];
+const upstreamPoint = minute => ({ ...point(minute),
+  source_available_physical_cameras: 9,
+  dvr: { health_ok: false, classification: "PASS", component_status: "degraded",
+    auth: "ready", expected: 10, source_available: 8,
+    known_upstream_unavailable: [2, 8], progressing: 8,
+    inputs: available.map(channel => ({ channel, progressing: true })) },
+  playback: { verified: 9, failed: 0 } });
+const knownUpstream = summarizeRealHomeSoak([upstreamPoint(0), upstreamPoint(1)], {
+  startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.equal(knownUpstream.status, "PASS");
+assert.equal(knownUpstream.camera_sample_availability, 1);
+assert.equal(knownUpstream.gateway.unavailable_checkpoints, 0);
+assert.ok(!knownUpstream.gate_failures.includes("COMPONENT_HEALTH_CHECK_FAILED"));
+assert.equal(knownUpstream.per_camera["dvr-2"].upstream_unavailable, true);
+assert.equal(knownUpstream.per_camera["dvr-2"].qualification_denominator, false);
+const substitutedChannel = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {
+  ...upstreamPoint(0).dvr, progressing: 8,
+  inputs: [...available.filter(channel => channel !== 1).map(channel => ({ channel, progressing: true })),
+    { channel: 2, progressing: true }, { channel: 1, progressing: false }] } }, upstreamPoint(1)], {
+  startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.ok(substitutedChannel.gate_failures.includes("EXPECTED_CAMERA_AVAILABILITY_BELOW_100_PERCENT"),
+  "a recovered excluded channel must not hide failure of a qualified channel");
+const hiddenUpstream = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {
+  ...upstreamPoint(0).dvr, component_status: "healthy" } }, upstreamPoint(1)], {
+  startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.ok(hiddenUpstream.gate_failures.includes("DVR_SOURCE_AVAILABILITY_EXCEPTION_MISREPORTED"));
+
+const canaryPoints = Array.from({ length: 15 }, (_, minute) => upstreamPoint(minute));
+const canary = summarizeRealHomeSoak(canaryPoints, {
+  startedAt: start, endedAt: start + QUALIFICATION_STAGE_MINIMUM_MS.CANARY,
+  requiredDurationMs: QUALIFICATION_STAGE_MINIMUM_MS.CANARY,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.equal(canary.status, "PASS");
+assert.equal(assertQualificationStageResult({ ...canary, qualification_stage: "CANARY" }, "CANARY"), true);
+assert.throws(() => assertQualificationStageResult({ ...canary, elapsed_ms: canary.elapsed_ms - 1 }, "CANARY"), /canary_gate_failed/);
+assert.throws(() => assertQualificationStageResult(canary, "UNKNOWN"), /stage_invalid/);
+
+const liveMonitor = readFileSync("scripts/qa/run-real-home-soak.mjs", "utf8");
+assert.match(liveMonitor, /pgrep", \["-P", String\(supervisor\.pid\)\]/,
+  "the live monitor must inspect the supervisor's direct children");
+assert.match(liveMonitor, /services\/video-gateway\/server\.mjs/,
+  "the real media HTTP child must be reported as runtime_pid");
+assert.doesNotMatch(liveMonitor, /const runtime = supervisor;/,
+  "the supervisor PID must not hide a media-child restart");
+assert.match(liveMonitor, /lifecycle\.requestStop\("SIGTERM"\)/,
+  "an external SIGTERM must be preserved as explicit evidence");
+const lifecycle = createQualificationMonitorLifecycle({
+  now: () => start,
+  pid: 44,
+  parentPid: 11
+});
+const waiting = lifecycle.wait(60_000);
+const termination = lifecycle.requestStop("SIGTERM");
+assert.equal(await waiting, false, "a stop signal must wake the monitor immediately");
+assert.deepEqual(termination, {
+  contract: "observer-qualification-monitor-termination-v1",
+  kind: "EXTERNAL_SIGNAL",
+  signal: "SIGTERM",
+  received_at: "2026-09-12T00:00:00.000Z",
+  pid: 44,
+  parent_pid: 11
+});
+
+const durableLauncher = readFileSync("scripts/qa/manage-real-home-soak-launchd.mjs", "utf8");
+assert.match(durableLauncher, /execution_owner: "MACOS_LAUNCHD_USER_DOMAIN"/);
+assert.match(durableLauncher, /terminal_session_independent: true/);
+assert.match(durableLauncher, /auto_restart: false/,
+  "a failed Product qualification must never be hidden by automatic restarts");
+assert.doesNotMatch(durableLauncher, /<key>ProcessType<\/key><string>Background<\/string>/,
+  "the live qualification monitor must not be starved behind development load");
+assert.match(durableLauncher, /"Library", "LaunchAgents"/,
+  "launchd must load the active plist from the canonical per-user LaunchAgents directory");
+assert.match(durableLauncher, /evidence_plist_path: evidencePlistPath/,
+  "the restricted evidence directory must retain an auditable plist copy");
+assert.match(durableLauncher, /"Application Support", "Digital Observer",[\s\S]*"push38-qualification"/,
+  "launchd runtime state and logs must stay on the local protected disk");
+assert.match(durableLauncher, /syncEvidence\(\)/,
+  "local durable evidence must be copied to the canonical restricted export");
+assert.match(durableLauncher, /observer-durable-qualification-runtime-bundle-v1/,
+  "the launchd job must execute a checksum-recorded local runtime bundle");
+assert.match(durableLauncher, /join\(runtimeRoot, "scripts\/qa\/run-real-home-soak\.mjs"\)/,
+  "the launchd job must not execute qualification code from a removable volume");
+const aiRoutingProof = readFileSync("scripts/qa/measure-real-home-ai-routing.mjs", "utf8");
+assert.match(aiRoutingProof, /\/opt\/homebrew\/bin\/ffmpeg/,
+  "the launchd AI proof must resolve the installed ffmpeg without an interactive PATH");
+assert.doesNotMatch(aiRoutingProof, /spawnSync\("ffmpeg"/,
+  "the launchd AI proof must not depend on the shell PATH");
+assert.match(aiRoutingProof, /export async function measureRealHomeAiRouting\(injectedIdentity = null\)/,
+  "the durable monitor must be able to reuse its already-authorized in-memory Gateway identity");
+const realHomeSoak = readFileSync("scripts/qa/run-real-home-soak.mjs", "utf8");
+assert.match(realHomeSoak, /await measureRealHomeAiRouting\(gatewayAiIdentity\)/,
+  "the monitor must not create a second macOS Keychain authorization boundary for deep AI probes");
+assert.match(realHomeSoak, /autoDetectSourceAvailability/,
+  "a recovered DVR source denominator must be established from live evidence, not a stale exception");
+assert.match(realHomeSoak, /THREE_SAMPLE_READ_ONLY_FREEZE/,
+  "automatic source availability must preserve its multi-sample provenance");
+assert.match(realHomeSoak, /progressingChannels\.length === DVR_ASSIGNED_CHANNELS\.length/,
+  "aggregate 10\/10 alone must not freeze the qualification denominator");
+assert.match(realHomeSoak, /HOST_DISK_CAPACITY_BELOW_QUALIFICATION_MINIMUM/,
+  "a qualification run must fail closed as soon as disk headroom is lost");
+assert.match(realHomeSoak, /QUALIFICATION_HOST_LIMITS\.minimum_free_disk_bytes/,
+  "the runtime abort and readiness preflight must share one disk threshold");
+
+const readyHostSample = (latency = 10) => ({
+  host: { pressure: "NORMAL", normalized_load_1m: 0.4, forbidden_workloads: [],
+    power_source: "AC_POWER", clamshell_closed: false,
+    disk_free_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes * 2,
+    disk_qualification_ready: true },
+  gateway: { ok: true, latency_ms: latency, authorization: "ready" },
+  connector: { ok: true, latency_ms: latency, authorization: "ready" }
+});
+const readyHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => readyHostSample()));
+assert.equal(readyHost.status, "PASS");
+assert.deepEqual(parseQualificationPowerState({
+  pmset: "Now drawing from 'AC Power'", ioreg: '"AppleClamshellState" = No'
+}), { power_source: "AC_POWER", clamshell_closed: false });
+assert.deepEqual(classifyForbiddenWorkloads(
+  "/opt/homebrew/bin/rg -i (horizontal|queue).*?(benchmark|throughput)"), [],
+"the process audit must not classify its own search expression as a running benchmark");
+assert.deepEqual(classifyForbiddenWorkloads(
+  "/bin/zsh -lc ps -axo pid=,command= | rg -i '(horizontal|queue).*?(benchmark|throughput)'"), [],
+"a bounded read-only process inspection wrapper must not invalidate qualification");
+assert.deepEqual(classifyForbiddenWorkloads(
+  "/usr/local/bin/node scripts/qa/run-horizontal-worker-throughput-benchmark.mjs"),
+["SYNTHETIC_SCALE_BENCHMARK"],
+"a real synthetic scale benchmark must remain forbidden during qualification");
+const busyHost = evaluateQualificationHostReadiness([
+  ...Array.from({ length: 4 }, () => readyHostSample()),
+  { ...readyHostSample(1_100), host: { pressure: "SATURATED", normalized_load_1m: 2.1,
+    forbidden_workloads: ["NEXT_DEVELOPMENT_SERVER"] } }
+]);
+assert.equal(busyHost.status, "FAIL");
+assert.ok(busyHost.failures.includes("FORBIDDEN_DEVELOPMENT_WORKLOAD_ACTIVE"));
+assert.ok(busyHost.failures.includes("HOST_LOAD_SATURATED"));
+assert.ok(busyHost.failures.includes("EDGE_HEALTH_LATENCY_SAMPLE_EXCEEDED"));
+const sleepingHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), host: { ...readyHostSample().host,
+    power_source: "BATTERY_POWER", clamshell_closed: true }
+})));
+assert.ok(sleepingHost.failures.includes("HOST_AC_POWER_REQUIRED"));
+assert.ok(sleepingHost.failures.includes("HOST_CLAMSHELL_OPEN_REQUIRED"));
+const unauthorizedHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), gateway: { ...readyHostSample().gateway,
+    authorization: "approval_required" }
+})));
+assert.ok(unauthorizedHost.failures.includes("EDGE_AUTHORIZATION_NOT_READY"));
+const lowDiskHost = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), host: { ...readyHostSample().host,
+    disk_free_bytes: QUALIFICATION_HOST_LIMITS.minimum_free_disk_bytes - 1,
+    disk_qualification_ready: false }
+})));
+assert.ok(lowDiskHost.failures.includes(
+  "HOST_DISK_CAPACITY_BELOW_QUALIFICATION_MINIMUM"));
+const missingDiskEvidence = evaluateQualificationHostReadiness(Array.from({ length: 5 }, () => ({
+  ...readyHostSample(), host: { ...readyHostSample().host,
+    disk_free_bytes: null, disk_qualification_ready: false }
+})));
+assert.ok(missingDiskEvidence.failures.includes("HOST_DISK_INSPECTION_REQUIRED"));
+const hostEvidence = summarizeQualificationHostEvidence([
+  { host: readyHostSample().host, probe_duration_ms: 10,
+    dvr: { classification: "PASS" }, tapo: { classification: "PASS" } },
+  { host: busyHost.samples.at(-1).host, probe_duration_ms: 1_100,
+    dvr: { classification: "PRODUCT_FAILURE" }, tapo: { classification: "PASS" } }
+]);
+assert.equal(hostEvidence.qualification_interference_checkpoints, 1);
+assert.equal(hostEvidence.low_disk_checkpoints, 0);
+assert.match(durableLauncher, /host_readiness: hostReadiness/,
+  "the durable launcher must preserve the host-isolation preflight");
+assert.match(realHomeSoak, /inspectQualificationHost\(\)/,
+  "every live checkpoint must preserve host-pressure and forbidden-workload evidence");
+
+console.log("PUSH38B_MONITOR_ACCURACY_PASS");

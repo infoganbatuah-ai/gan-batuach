@@ -95,9 +95,12 @@ test("provider truth stays distinct and does not imply unavailable capability", 
   assert.doesNotMatch(system, /LIVE|WhatsApp פעיל|SMS פעיל|Apple Pay|PayBox/);
 });
 
-test("UX-19 adds no migration and leaves Digital Observer core unchanged", () => {
-  const base = process.env.GB_UX19_BASE_REF ?? "b527b8cbaea7e4c06619af60e4c530114f5519ba";
-  const changed = execFileSync("git", ["diff", "--name-only", base, "--"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
+test("the original UX-19 change adds no migration and leaves Digital Observer core unchanged", () => {
+  const base = "b527b8cbaea7e4c06619af60e4c530114f5519ba";
+  const ux19 = "627bd6081969a441990f9b34559922b0cb40d6bc";
+  assert.equal(execFileSync("git", ["rev-parse", `${ux19}^`], { encoding: "utf8" }).trim(), base);
+  execFileSync("git", ["merge-base", "--is-ancestor", ux19, "HEAD"]);
+  const changed = execFileSync("git", ["diff", "--name-only", base, ux19, "--"], { encoding: "utf8" }).trim().split("\n").filter(Boolean);
   assert.deepEqual(changed.filter((path) => path.startsWith("supabase/migrations/")), []);
   const forbidden = changed.filter((path) => path.startsWith("lib/domain/digital-observer/") || path.startsWith("app/digital-observer/") || path.startsWith("components/digital-observer/") || path.startsWith("app/api/digital-observer/"));
   assert.deepEqual(forbidden, []);

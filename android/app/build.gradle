@@ -1,10 +1,23 @@
+import groovy.json.JsonSlurper
 apply plugin: 'com.android.application'
 
+def mobileProduct = System.getenv('CAPACITOR_PRODUCT') ?: 'gan'
+if (!(mobileProduct in ['gan', 'observer'])) throw new GradleException('CAPACITOR_PRODUCT_INVALID')
+if (mobileProduct == 'observer' && System.getenv('CAPACITOR_BUILD_PROFILE') != 'qa')
+    throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
+if (mobileProduct == 'observer' && file('google-services.json').isFile())
+    throw new GradleException('CAPACITOR_OBSERVER_GAN_PUSH_CONFIG_FORBIDDEN')
+
 android {
+    // Observer QA packages only generated, isolated assets. Gan keeps its
+    // existing synced main assets and build behavior unchanged.
+    if (mobileProduct == 'observer') {
+        sourceSets.main.assets.srcDirs = [layout.buildDirectory.dir('generated/observerQaOfflineAssets').get().asFile]
+    }
     namespace = "com.ganbatuach.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.ganbatuach.app"
+        applicationId 'com.ganbatuach.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -16,11 +29,49 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    flavorDimensions 'product'
+    productFlavors {
+        gan {
+            dimension 'product'
+            applicationId 'com.ganbatuach.app'
+            manifestPlaceholders = [mobileAppLabel: 'גן בטוח', mobileCallbackScheme: 'digitalobserver',
+                mobileLauncherIcon: '@mipmap/ic_launcher', mobileRoundIcon: '@mipmap/ic_launcher_round',
+                mobileLaunchTheme: '@style/AppTheme.NoActionBarLaunch']
+        }
+        observer {
+            dimension 'product'
+            applicationId 'com.digitalobserver.app'
+            manifestPlaceholders = [mobileAppLabel: 'תצפיתן דיגיטלי', mobileCallbackScheme: 'observerqaandroid',
+                mobileLauncherIcon: '@drawable/observer_qa_icon', mobileRoundIcon: '@drawable/observer_qa_icon',
+                mobileLaunchTheme: '@style/ObserverQALaunch']
+        }
+    }
     buildTypes {
+        debug {
+            // A local QA APK must never replace the installed release package.
+            applicationIdSuffix ".qa"
+            versionNameSuffix "-qa"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        observerQa {
+            initWith debug
+            matchingFallbacks = ['debug']
+            applicationIdSuffix '.qa'
+            // This offline qualification artifact must not inherit the shared
+            // Android debug signing identity or be installable by accident.
+            signingConfig null
+        }
+    }
+}
+
+androidComponents {
+    beforeVariants(selector().all()) { variant ->
+        def product = variant.productFlavors.find { it.first == 'product' }?.second
+        variant.enable = (product == 'gan' && variant.buildType in ['debug', 'release']) ||
+            (product == 'observer' && variant.buildType == 'observerQa')
     }
 }
 
@@ -43,6 +94,103 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// cap sync and Gradle are separate steps. Refuse a stale or wrong-profile
+// capacitor.config.json before packaging a QA or release artifact.
+def verifyMobileConfig = { String product, String buildType ->
+    def observerAssets = layout.buildDirectory.dir('generated/observerQaOfflineAssets').get().asFile
+    def packedConfig = product == 'observer' ? new File(observerAssets, 'capacitor.config.json') : file('src/main/assets/capacitor.config.json')
+    if (!packedConfig.isFile()) throw new GradleException('CAPACITOR_SYNC_REQUIRED')
+    def config = new JsonSlurper().parse(packedConfig)
+    def profile = System.getenv('CAPACITOR_BUILD_PROFILE') ?: 'development'
+    if (mobileProduct != product) throw new GradleException('CAPACITOR_PRODUCT_VARIANT_MISMATCH')
+    if (product == 'observer' && (buildType != 'observerQa' || profile != 'qa')) throw new GradleException('CAPACITOR_OBSERVER_QA_ONLY')
+    if (product == 'observer') {
+        def authenticated = System.getenv('OBSERVER_QA_AUTH_BUILD') == '1'
+        if (System.getenv('CAPACITOR_SERVER_URL') || System.getenv('CAPACITOR_ALLOWED_SERVER_ORIGIN') ||
+            config.appId != 'com.digitalobserver.app.qa' || config.appName != 'תצפיתן דיגיטלי' ||
+            config.webDir != 'public' ||
+            config.server?.androidScheme != 'https' ||
+            config.plugins?.PushNotifications != null)
+            throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_BOUNDARY_INVALID')
+        if (authenticated) {
+            if (config.server?.url != 'https://observer-qa.ganbatuach.com/digital-observer/dashboard' ||
+                config.server?.cleartext != false ||
+                System.getenv('OBSERVER_QA_CALLBACK') != 'observerqaandroid://return/qa/device-proof')
+                throw new GradleException('CAPACITOR_OBSERVER_AUTH_BOUNDARY_INVALID')
+        } else if (config.server?.url != null || config.server?.cleartext != null) {
+            throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_URL_FORBIDDEN')
+        }
+        def page = new File(observerAssets, 'public/index.html')
+        def plugins = new File(observerAssets, 'capacitor.plugins.json')
+        def approvedPlugins = [
+            'com.capacitorjs.plugins.app.AppPlugin',
+            'com.capacitorjs.plugins.device.DevicePlugin',
+            'com.capacitorjs.plugins.network.NetworkPlugin',
+            'com.capacitorjs.plugins.preferences.PreferencesPlugin'
+        ]
+        def expectedStatus = authenticated ? 'חיבור QA טרם אומת' : 'בדיקת התקנה מקומית בלבד'
+        if (!page.isFile() || !page.getText('UTF-8').contains(expectedStatus) ||
+            page.getText('UTF-8') =~ /(?i)https?:\/\/|fetch\(|<script/ || !plugins.isFile() ||
+            new JsonSlurper().parse(plugins).collect { it.classpath } != approvedPlugins)
+            throw new GradleException('CAPACITOR_OBSERVER_OFFLINE_ASSETS_INVALID')
+        return
+    }
+    def expectedUrl = System.getenv('CAPACITOR_SERVER_URL')
+    if (!expectedUrl || config.server?.url != expectedUrl) throw new GradleException('CAPACITOR_SERVER_URL_MISMATCH')
+    if (buildType == 'release' && profile != 'release') throw new GradleException('CAPACITOR_RELEASE_PROFILE_REQUIRED')
+    if (buildType != 'release' && !(profile in ['development', 'qa'])) throw new GradleException('CAPACITOR_DEBUG_PROFILE_REQUIRED')
+    def expectedAppId = product == 'observer' ? 'com.digitalobserver.app.qa' :
+        buildType == 'release' ? 'com.ganbatuach.app' : 'com.ganbatuach.app.qa'
+    if (config.appId != expectedAppId) throw new GradleException('CAPACITOR_APP_ID_MISMATCH')
+    if (config.appName != (product == 'observer' ? 'תצפיתן דיגיטלי' : 'גן בטוח'))
+        throw new GradleException('CAPACITOR_APP_NAME_MISMATCH')
+    def url = new URI(expectedUrl)
+    def origin = "${url.scheme}://${url.authority}"
+    if (url.rawQuery || url.rawFragment ||
+        (product == 'observer' ? url.path != '/digital-observer/dashboard' : !(url.path in ['', '/'])))
+        throw new GradleException('CAPACITOR_PRODUCT_LAUNCH_PATH_MISMATCH')
+    if (profile != 'development' || url.scheme == 'https') {
+        if (url.scheme != 'https' || origin != System.getenv('CAPACITOR_ALLOWED_SERVER_ORIGIN') || config.server.cleartext != false)
+            throw new GradleException('CAPACITOR_APPROVED_HTTPS_REQUIRED')
+    } else if (url.scheme != 'http' || !(url.host in ['localhost', '127.0.0.1']) || config.server.cleartext != true) {
+        throw new GradleException('CAPACITOR_LOCAL_URL_INVALID')
+    }
+}
+tasks.register('verifyGanDebugMobileConfig') { doLast { verifyMobileConfig('gan', 'debug') } }
+tasks.register('verifyGanReleaseMobileConfig') { doLast { verifyMobileConfig('gan', 'release') } }
+tasks.register('prepareObserverQaOfflineAssets', Sync) {
+    inputs.property('observerQaAuthBuild', System.getenv('OBSERVER_QA_AUTH_BUILD') ?: '')
+    inputs.property('observerQaOrigin', System.getenv('OBSERVER_QA_ORIGIN') ?: '')
+    inputs.property('observerQaLaunchUrl', System.getenv('OBSERVER_QA_LAUNCH_URL') ?: '')
+    inputs.property('observerQaCallback', System.getenv('OBSERVER_QA_CALLBACK') ?: '')
+    from('../qa-observer/capacitor.config.json')
+    from('../qa-observer/capacitor.plugins.json')
+    from(System.getenv('OBSERVER_QA_AUTH_BUILD') == '1' ? '../../ios/qa-observer/auth-unavailable.html' : '../../ios/qa-observer/index.html') {
+        into 'public'
+        rename { 'index.html' }
+    }
+    into layout.buildDirectory.dir('generated/observerQaOfflineAssets')
+    doLast {
+        if (System.getenv('OBSERVER_QA_AUTH_BUILD') == '1') {
+            def generated = layout.buildDirectory.dir('generated/observerQaOfflineAssets').get().asFile
+            def output = new File(generated, 'capacitor.auth-candidate.json')
+            exec {
+                commandLine 'node', '../../scripts/qa/prepare-observer-qa-auth-config.mjs',
+                    'android', '../qa-observer/capacitor.config.json', output.absolutePath
+                environment 'OBSERVER_QA_BUNDLE_ID', 'com.digitalobserver.app.qa'
+            }
+            java.nio.file.Files.move(output.toPath(), new File(generated, 'capacitor.config.json').toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+}
+tasks.register('verifyObserverQaMobileConfig') { doLast { verifyMobileConfig('observer', 'observerQa') } }
+tasks.named('verifyObserverQaMobileConfig') { dependsOn 'prepareObserverQaOfflineAssets' }
+tasks.matching { it.name == 'mergeObserverObserverQaAssets' }.configureEach { dependsOn 'prepareObserverQaOfflineAssets' }
+tasks.matching { it.name == 'preGanDebugBuild' }.configureEach { dependsOn 'verifyGanDebugMobileConfig' }
+tasks.matching { it.name == 'preGanReleaseBuild' }.configureEach { dependsOn 'verifyGanReleaseMobileConfig' }
+tasks.matching { it.name == 'preObserverObserverQaBuild' }.configureEach { dependsOn 'verifyObserverQaMobileConfig' }
 
 try {
     def servicesJSON = file('google-services.json')

@@ -19,4 +19,10 @@
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
     </style>
+
+    <style name="ObserverQALaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#071d35</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/observer_qa_launch_mark</item>
+        <item name="android:background">@drawable/observer_qa_splash</item>
+    </style>
 </resources>

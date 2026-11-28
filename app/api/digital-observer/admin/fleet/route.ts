@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fail, handleSafeRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
-import { hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { FLEET_COMMANDS, resolveFleetTargets, validateFleetCommand } from "@/lib/domain/digital-observer/fleet-control-plane";
 import { loadFleetSnapshot } from "@/lib/domain/digital-observer/fleet-data";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -18,7 +18,7 @@ const mutation=z.discriminatedUnion("action",[
   z.object({action:z.literal("schedule"),filters,command:z.enum(FLEET_COMMANDS),confirmed:z.literal(true),idempotency_key:z.string().min(16).max(160),ttl_seconds:z.number().int().min(30).max(1800),safe_parameters:z.record(z.string(),z.union([z.string().max(160),z.number(),z.boolean(),z.null()])).default({})}).strict(),
   z.object({action:z.literal("grant_support_access"),tenant_id:z.string().uuid(),site_id:z.string().uuid().optional(),device_id:z.string().uuid().optional(),reason:z.string().trim().min(8).max(500),ttl_minutes:z.number().int().min(5).max(240)}).strict()
 ]);
-async function authorized(request:Request){const session=await getDigitalObserverApiUser(request);return session&&hasObserverAdminClaim(session.user.app_metadata)?session:null;}
+async function authorized(request:Request){const session=await getDigitalObserverApiUser(request);return session&&await hasCurrentObserverAdmin(session.user.id)?session:null;}
 function response(data:unknown){return NextResponse.json({data},{headers:{"Cache-Control":"private, no-store"}});}
 export async function GET(request:Request){try{if(!await authorized(request))return fail("Fleet administration requires platform authorization.",403);const u=new URL(request.url);return response(await loadFleetSnapshot({tenantId:u.searchParams.get("tenant")||undefined,siteId:u.searchParams.get("site")||undefined,profile:u.searchParams.get("profile")||undefined,health:u.searchParams.get("health")||undefined,cursor:u.searchParams.get("cursor")||undefined,limit:Number(u.searchParams.get("limit")||100)}));}catch(error){return handleSafeRouteError(error);}}
 export async function POST(request:Request){try{assertTrustedMutationOrigin(request);const session=await authorized(request);if(!session)return fail("Fleet administration requires platform authorization.",403);await assertRateLimit(privateRateLimitIdentifier({headers:request.headers,userId:session.profile.id}),"observer-fleet-admin",30,60);const body=mutation.parse(await parseBoundedJson(request,32*1024));const admin=createAdminClient() as any;

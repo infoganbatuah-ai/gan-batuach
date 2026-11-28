@@ -278,16 +278,19 @@ export async function DashboardShell({
   role,
   title,
   children,
-  appHome = false
+  appHome = false,
+  contentElement = "main"
 }: {
   role: UserRole;
   title: string;
   children: React.ReactNode;
   appHome?: boolean;
+  contentElement?: "main" | "div";
 }) {
   const mobileNav = mobileNavByRole[role];
   const navGroups = groupedNav(role);
   const isAppHome = appHome || role === "manager" || role === "owner";
+  const ContentElement = contentElement;
   return (
     <>
       <div className={`dashboard-layout responsive-dashboard-shell dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
@@ -319,7 +322,7 @@ export async function DashboardShell({
             <PasskeyEnrollmentPrompt />
           </aside>
         )}
-        <main className="dashboard-main responsive-dashboard-main">
+        <ContentElement className="dashboard-main responsive-dashboard-main">
           {isAppHome ? null : (
             <div className="app-workspace-header">
               <div>
@@ -348,7 +351,7 @@ export async function DashboardShell({
           </section>
           {isAppHome ? null : <AIAssistantPanel role={role} />}
           {isAppHome ? null : <PilotFeedbackWidget role={role} />}
-        </main>
+        </ContentElement>
         {isAppHome ? null : <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>}
         {isAppHome ? null : <FloatingActionCenter role={role} />}
       </div>

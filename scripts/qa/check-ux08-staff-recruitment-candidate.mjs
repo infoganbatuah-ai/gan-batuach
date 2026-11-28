@@ -72,7 +72,10 @@ test("application states, signed invitations and activation handoff stay canonic
   assert.match(invitationApi, /resolveSignedInvitation/);
   assert.match(invitationApi, /verifiedEmail/);
   assert.match(invitationApi, /activate_staff_employment/);
-  assert.match(actions, /window\.location\.assign\("\/dashboard\/staff"\)/);
+  assert.match(actions, /window\.location\.assign\(new URL\("\/dashboard\/staff", window\.location\.origin\)\.href\)/);
+  for (const origin of ["https://qa-iphone-test.ganbatuach.com", "http://127.0.0.1:3000"]) {
+    assert.equal(new URL("/dashboard/staff", origin).href, `${origin}/dashboard/staff`);
+  }
 });
 
 test("UX-08 visual layer has distinct desktop and mobile compositions", () => {

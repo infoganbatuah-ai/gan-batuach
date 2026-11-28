@@ -3,7 +3,15 @@
 // changes configuration, or treats a heartbeat as proof of live video.
 export function createPrivateNvrHeartbeat({ sessions, fetchImpl = fetch, now = Date.now, timeoutMs = 3500 }) {
   let pending = null;
-  const status = { attempts: 0, responses_ok: 0, failures: 0, authentication_rejected: 0, last_response_at: null };
+  const status = {
+    attempts: 0,
+    responses_ok: 0,
+    failures: 0,
+    consecutive_failures: 0,
+    authentication_rejected: 0,
+    last_response_at: null,
+    last_failure_at: null
+  };
   async function send(session) {
     if (!session?.token || !session.baseUrl || session.refreshPromise) return;
     status.attempts++;
@@ -35,8 +43,13 @@ export function createPrivateNvrHeartbeat({ sessions, fetchImpl = fetch, now = D
       try { payload = JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { payload = null; }
       if (!response.ok || !payload || payload.result === "failed" || payload.result === "error") throw Error("heartbeat_unavailable");
       status.responses_ok++;
+      status.consecutive_failures = 0;
       status.last_response_at = new Date(now()).toISOString();
-    } catch { status.failures++; }
+    } catch {
+      status.failures++;
+      status.consecutive_failures++;
+      status.last_failure_at = new Date(now()).toISOString();
+    }
   }
   return {
     tick() {

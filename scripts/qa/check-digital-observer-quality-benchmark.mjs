@@ -46,7 +46,7 @@ assert.match(learningMetricMeaning({ baseline_type: "normal_camera_activity", ba
 assert.equal(learningMetricMeaning({ baseline_type: "normal_zone_usage", baseline_value: {} }).measurable, false);
 
 for (const [path, needles] of Object.entries({
-  "app/api/digital-observer/admin/quality/route.ts": ["hasObserverAdminClaim", "private, no-store", "loadCurrentQualityBenchmark", "formatBenchmarkReport"],
+  "app/api/digital-observer/admin/quality/route.ts": ["hasCurrentObserverAdmin", "private, no-store", "loadCurrentQualityBenchmark", "formatBenchmarkReport"],
   "app/digital-observer/admin/quality/page.tsx": ["Benchmark ניתן לשחזור", "עדיין לא ניתן למדידה", "Run ID"],
   "app/digital-observer/rules/page.tsx": ["כיסוי למידה", "מצלמות פיזיות צפויות", "learningMetricMeaning"],
   "lib/domain/digital-observer/learning-coverage.ts": ["samples/288", "אינו דיוק AI", "עדיין לא ניתן למדידה"],

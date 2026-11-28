@@ -1,4 +1,4 @@
-import { constants, closeSync, fstatSync, lstatSync, mkdtempSync, openSync, readdirSync, readFileSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
+import { constants, closeSync, fstatSync, lstatSync, mkdirSync, mkdtempSync, openSync, readdirSync, readFileSync, rmdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, dirname, basename } from "node:path";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
@@ -6,14 +6,25 @@ import { randomUUID } from "node:crypto";
 const prefix = "gan-batuach-anchored-event-";
 const markerName = ".evidence-owner.json";
 const namespace = "gan-batuach:event-capture:v1";
+const defaultWorkspaceRoot = join(tmpdir(), "gan-batuach-event-capture-workspaces-v1");
 const allowed = name => [markerName, "evidence.m3u8", "clip.mp4", "thumbnail.jpg"].includes(name) || /^segment-[0-9]{1,18}\.ts$/.test(name);
 const alive = pid => { try { process.kill(pid, 0); return true; } catch (error) { return error.code !== "ESRCH"; } };
+
+function privateWorkspaceRoot(root, uid) {
+  mkdirSync(root, { recursive: true, mode: 0o700 });
+  const info = lstatSync(root);
+  if (!info.isDirectory() || info.isSymbolicLink() || uid !== undefined && info.uid !== uid || (info.mode & 0o077) !== 0) {
+    throw new Error("EVENT_CAPTURE_WORKSPACE_ROOT_UNSAFE");
+  }
+  return root;
+}
 
 /** Reap only privately marked directories produced by this module. Never
  * traverse symlinks, unknown files or unmarked directories; never delete a
  * broad tmp root. All cleanup is bounded and isolated from relay storage. */
-export function createEventCaptureWorkspace({ root = tmpdir(), now = Date.now, pid = process.pid,
+export function createEventCaptureWorkspace({ root = defaultWorkspaceRoot, now = Date.now, pid = process.pid,
   uid = process.getuid?.(), isProcessAlive = alive, maxAgeMs = 300_000 } = {}) {
+  root = privateWorkspaceRoot(root, uid);
   const owned = new Map();
   let scanCursor = 0;
   function inspect(path) {

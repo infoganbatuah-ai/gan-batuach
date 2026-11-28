@@ -62,7 +62,7 @@ test("Garden and health views use aggregate operational data without broad priva
   assert.match(gardenDetail, /ספירה מצרפית בלבד/);
   assert.match(gardenDetail, /אינו פותח רשומות פרטיות/);
   assert.doesNotMatch(health, /from\("children"|medical_notes|allergies|emergency_phone|full_name/);
-  assert.match(health, /אין הצגת מצב ירוק/);
+  assert.match(health, /היעדר נתונים, ספק לא מאומת או סביבת בדיקה אינם מסומנים כבריאים/);
 });
 
 test("Audit output redacts raw payload and direct network identifiers", () => {

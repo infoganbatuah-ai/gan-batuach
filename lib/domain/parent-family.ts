@@ -1,5 +1,39 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+type DashboardChild = {
+  id?: unknown;
+  child_id?: unknown;
+  permanent_child_file_id?: unknown;
+  child?: { permanent_child_file_id?: unknown } | null;
+};
+
+type DashboardEnrollment = {
+  child_id?: unknown;
+  permanent_child_file_id?: unknown;
+  status?: unknown;
+};
+
+function id(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+// A garden child row, permanent file and enrollment have different IDs. Keep
+// each route/query bound to its canonical ID after the authorized selection.
+export function resolveParentDashboardChild<T extends DashboardEnrollment>(selected: DashboardChild | null, enrollments: T[]) {
+  const contextId = id(selected?.child_id) || id(selected?.permanent_child_file_id) || id(selected?.id);
+  const fileId = id(selected?.permanent_child_file_id) || id(selected?.child?.permanent_child_file_id) || (!selected?.child_id ? id(selected?.id) : "");
+  const matches = selected ? enrollments.filter(enrollment =>
+    (fileId && id(enrollment.permanent_child_file_id) === fileId)
+    || (contextId && id(enrollment.child_id) === contextId)
+  ) : [];
+  const enrollment = matches.find(row => ["active", "approved"].includes(String(row.status))) ?? matches[0];
+  return { contextId, fileId, gardenChildId: id(enrollment?.child_id), enrollment };
+}
+
+export function requestMatchesParentChild(request: { child_profile_id?: unknown }, selectedFileId: string) {
+  return Boolean(selectedFileId && id(request.child_profile_id) === selectedFileId);
+}
+
 function uniqById(rows: any[]) {
   return rows.filter((row, index, all) => row?.id && all.findIndex((item) => item?.id === row.id) === index);
 }
@@ -117,6 +151,7 @@ export async function getParentFamilyContext(userSupabase: SupabaseClient<any, a
   if (gardensRes.error) console.error("Parent family gardens query failed", gardensRes.error);
 
   return {
+    sourceUnavailable: Boolean(parentByProfile.error || parentByUser.error || guardianLinks.error || linkRows.error || childByParent.error || fileRows.error || enrollmentRows.error || gardensRes.error),
     parents,
     parentIds,
     guardianLinks: guardianLinks.data ?? [],

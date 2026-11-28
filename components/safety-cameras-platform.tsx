@@ -111,7 +111,7 @@ function CameraTruthCard({ camera, base, filter, searchQuery }: { camera: Safety
         </div>
         <dl>
           <div><dt>הרשאה</dt><dd><LockKeyhole size={14} /> {camera.permissionLabel}</dd></div>
-          <div><dt>ניטור</dt><dd><Activity size={14} /> {camera.monitoring ? "פעיל לפי חוזה" : "לא פעיל"}</dd></div>
+          <div><dt>ניטור</dt><dd><Activity size={14} /> {camera.monitoringLabel}</dd></div>
           <div><dt>בדיקה אחרונה</dt><dd><Clock3 size={14} /> {formatDate(camera.lastCheck)}</dd></div>
         </dl>
         <Link className="safety-camera-open" href={cameraQuery(base, camera, filter, searchQuery)} aria-label={`פתיחת פרטי ${camera.name}`}>

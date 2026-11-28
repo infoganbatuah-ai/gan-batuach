@@ -9,7 +9,7 @@ import { writeAuditEvent } from "@/lib/security/audit-log-service";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { createDigitalObserverAdminDataClient, hasCurrentObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
 import {
   assertSafeCameraConnectionAssessmentPayload,
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     await assertRateLimit(privateRateLimitIdentifier({ userId: session.profile.id, tenantId: payload.observer_site_id, headers: request.headers }), "digital-observer:connection-assessment", 30, 60);
     assertSafeCameraConnectionAssessmentPayload(payload);
     const { profile, supabase: sessionSupabase } = session;
-    const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
+    const observerAdmin = await hasCurrentObserverAdmin(session.user.id);
     // The runtime table is migration-backed and not yet present in the generated Supabase type snapshot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = (observerAdmin ? createDigitalObserverAdminDataClient() : sessionSupabase) as any;

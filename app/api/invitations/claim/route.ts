@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 import { normalizeInvitationEmail, resolveSignedInvitation } from "@/lib/management/signed-invitation";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -11,7 +11,9 @@ const schema = z.object({ token: z.string().min(40).max(2048) });
 
 export async function POST(request: Request) {
   try {
-    const { user, profile } = await requireRole(["parent"], "/app/login");
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות מחדש.", 401);
+    if (profile.role !== "parent") return fail("ההזמנה אינה מיועדת לתפקיד המשתמש.", 403);
     assertTrustedMutationOrigin(request);
     await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers, userId: profile.id }), "management:invitation-claim", 10, 60);
     if (!isAdminClientConfigured()) return fail("שירות ההזמנות אינו זמין כרגע.", 503);

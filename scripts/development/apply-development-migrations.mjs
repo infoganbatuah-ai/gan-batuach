@@ -6,6 +6,8 @@ import {schemaFingerprint} from './verify-baseline-schema.mjs';
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:'pipe',maxBuffer:8*1024*1024}).trim();
 const quote=value=>`'${String(value).replaceAll("'","''")}'`;
 const head=git('rev-parse','HEAD');
+const argumentsList=process.argv.slice(2);
+const reviewedOuterTransaction=argumentsList.includes('--reviewed-outer-transaction');
 // A clean isolated checkout may use a different local branch while the canonical
 // integration worktree has unrelated, in-progress changes. The remote commit is
 // the authority; never apply from an uncommitted or stale snapshot.
@@ -14,7 +16,7 @@ if(git('ls-remote','origin','refs/heads/integration/development').split(/\s/)[0]
 const baseline=JSON.parse(sql('select row_to_json(b) from development_metadata.baselines b;'));
 if(baseline.id!==config.baselineId)throw Error('Wrong development baseline');
 const ledger=JSON.parse(readFileSync('DEVELOPMENT_MIGRATION_LEDGER.json','utf8'));
-const requested=process.argv.slice(2);
+const requested=argumentsList.filter(value=>value!=='--reviewed-outer-transaction');
 if(!requested.length)throw Error('Explicit reviewed migration filenames required');
 for(const filename of requested){
   if(!/^\d{14}_[a-z0-9_]+\.sql$/.test(filename))throw Error('Invalid canonical migration filename');
@@ -28,10 +30,20 @@ for(const filename of requested){
   if(prior){if(prior.source_digest!==digest||!prior.schema_fingerprint)throw Error('Applied migration checksum/receipt differs');console.log(`Already DEVELOPMENT_APPLIED: ${filename}`);continue;}
   for(const dependency of entries[0].developmentDependsOn||[])if(!applied.some(m=>m.version===dependency)&&!baseline.source_mapping.some(m=>m.version===dependency))throw Error(`Unapplied dependency ${dependency}`);
   if(schemaFingerprint('postgres')!==(applied.at(-1)?.schema_fingerprint||baseline.fingerprint))throw Error('Pre-apply schema drift; no mutation allowed');
-  if(splitSql(source).some(s=>/^(BEGIN|COMMIT|ROLLBACK)\b/i.test(leadingCode(s))))throw Error('Top-level transaction controls need explicit migration review');
+  const statements=splitSql(source);
+  const controls=statements
+    .map((statement,index)=>({index,kind:leadingCode(statement).match(/^(BEGIN|COMMIT|ROLLBACK)\b/i)?.[1]?.toUpperCase()}))
+    .filter(item=>item.kind);
+  let appliedSource=source;
+  if(controls.length){
+    if(!reviewedOuterTransaction)throw Error('Top-level transaction controls need explicit migration review');
+    const expected=controls.length===2&&controls[0].index===0&&controls[0].kind==='BEGIN'&&controls[1].index===statements.length-1&&controls[1].kind==='COMMIT';
+    if(!expected)throw Error('Only one reviewed outer BEGIN/COMMIT wrapper may be normalized');
+    appliedSource=statements.slice(1,-1).join('\n');
+  }
   // Original, reviewed new migration, not baseline-transformed historical SQL.
   sql(`BEGIN; SELECT pg_advisory_xact_lock(19192026); SET LOCAL lock_timeout='5s'; SET LOCAL statement_timeout='60s';
-${source}
+${appliedSource}
 INSERT INTO development_metadata.migrations(version,filename,source_digest,source_commit) VALUES (${quote(version)},${quote(file)},${quote(digest)},${quote(head)}); COMMIT;`);
   const fingerprint=schemaFingerprint('postgres');
   sql(`UPDATE development_metadata.migrations SET schema_fingerprint=${quote(fingerprint)} WHERE version=${quote(version)} AND source_digest=${quote(digest)}; NOTIFY pgrst,'reload schema';`);

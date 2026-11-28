@@ -2,6 +2,7 @@ const connectedStatuses = new Set(["connected", "healthy", "online", "active"]);
 const unavailableStatuses = new Set(["offline", "failed", "error", "disabled", "blocked"]);
 
 type CameraStatusInput = {
+  source_mode?: unknown;
   metadata?: Record<string, unknown> | null;
   gateway_stream_id?: unknown;
   video_gateway_stream_id?: unknown;
@@ -14,7 +15,7 @@ type CameraStatusInput = {
 
 export const DIGITAL_OBSERVER_CAMERA_FRESH_MS = 45 * 60 * 1000;
 export const DIGITAL_OBSERVER_CAMERA_RECOVERY_MS = 90 * 60 * 1000;
-export type DigitalObserverCameraOperationalState = "ONLINE" | "RECOVERING" | "OFFLINE" | "CHANNEL_EMPTY";
+export type DigitalObserverCameraOperationalState = "ONLINE" | "RECOVERING" | "OFFLINE" | "CHANNEL_EMPTY" | "SIMULATION";
 
 export function digitalObserverCameraStreamReference(camera: CameraStatusInput) {
   const value = camera.metadata?.canonical_stream_reference
@@ -49,6 +50,7 @@ export function digitalObserverCameraOperationalState(
   options: { now?: number; freshMs?: number; recoveryMs?: number } = {}
 ): DigitalObserverCameraOperationalState {
   if (!digitalObserverCameraIsAssigned(camera)) return "CHANNEL_EMPTY";
+  if (camera.source_mode === "demo") return "SIMULATION";
   const status = String(camera.status ?? "").toLowerCase();
   const health = String(camera.health_status ?? "").toLowerCase();
   if (unavailableStatuses.has(status) || unavailableStatuses.has(health)) return "OFFLINE";
@@ -60,7 +62,7 @@ export function digitalObserverCameraOperationalState(
     if (age <= (options.recoveryMs ?? DIGITAL_OBSERVER_CAMERA_RECOVERY_MS)) return "RECOVERING";
     return "OFFLINE";
   }
-  return ["connecting", "reconnecting", "readiness", "ready_to_test", "testing"].includes(status)
+  return ["connecting", "reconnecting", "recovering", "readiness", "ready_to_test", "testing"].includes(status)
     ? "RECOVERING"
     : "OFFLINE";
 }
@@ -68,13 +70,15 @@ export function digitalObserverCameraOperationalState(
 export function digitalObserverCameraHealthProjection(camera: CameraStatusInput, now = Date.now()) {
   const operationalState = digitalObserverCameraOperationalState(camera, { now });
   if (operationalState === "CHANNEL_EMPTY") return { operationalState, status: "unassigned", healthStatus: "unknown", live: false };
+  if (operationalState === "SIMULATION") return { operationalState, status: "readiness", healthStatus: "unknown", live: false };
   if (operationalState === "ONLINE") return { operationalState, status: "connected", healthStatus: "healthy", live: true };
   if (operationalState === "RECOVERING") return { operationalState, status: "recovering", healthStatus: "degraded", live: false };
   return { operationalState, status: "offline", healthStatus: "offline", live: false };
 }
 
-export function digitalObserverCameraHasLiveStream(camera: CameraStatusInput) {
-  return Boolean(digitalObserverCameraStreamReference(camera) && digitalObserverCameraOperationalState(camera) === "ONLINE");
+export function digitalObserverCameraHasLiveStream(camera: CameraStatusInput, options: { now?: number } = {}) {
+  return Boolean(camera.source_mode !== "demo" && digitalObserverCameraStreamReference(camera)
+    && digitalObserverCameraOperationalState(camera, options) === "ONLINE");
 }
 
 // Compatibility alias for callers written before the vendor-agnostic source contract.

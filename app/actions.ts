@@ -2,10 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { kindergartenAgeGroups, regulatoryAcceptanceItems } from "@/lib/domain/kindergarten-onboarding";
 import { normalizeOptionalEmail, normalizeOptionalPhone } from "@/lib/onboarding/user-provisioning";
+import { assertGanAddressProviderBudget, verifyGanAddressSelection } from "@/lib/management/verified-address";
+import { privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 function value(formData: FormData, key: string) {
   const rawValue = formData.get(key);
@@ -227,10 +230,15 @@ export async function createGardenLead(formData: FormData) {
   const requiredTerms = regulatoryAcceptanceItems.map((item) => item.key);
   const missingTerms = requiredTerms.filter((item) => !acceptedTerms.includes(item));
   if (missingTerms.length) redirect("/join-kindergarten?error=" + encodeURIComponent("יש לאשר את כל תנאי הרישום והאמנה"));
-  const city = value(formData, "city");
-  const street = value(formData, "street");
-  const buildingNumber = value(formData, "building_number");
-  const address = value(formData, "address") || [street, buildingNumber, city].filter(Boolean).join(", ");
+  const placeId = value(formData, "address_place_id");
+  if (placeId) await assertGanAddressProviderBudget(privateRateLimitIdentifier({ headers: await headers() }));
+  const selectedAddress = await verifyGanAddressSelection({ placeId, sessionToken: value(formData, "address_session_token"),
+    city: value(formData, "city"), street: value(formData, "street"), buildingNumber: value(formData, "building_number") }, "full");
+  if (placeId && selectedAddress.status !== "verified") redirect("/join-kindergarten?error=" + encodeURIComponent("בחירת הכתובת אינה תואמת לפרטים המאומתים. בחרו שוב או המשיכו בהזנה ידנית."));
+  const city = selectedAddress.address?.city ?? value(formData, "city");
+  const street = selectedAddress.address?.street ?? value(formData, "street");
+  const buildingNumber = selectedAddress.address?.buildingNumber ?? value(formData, "building_number");
+  const address = selectedAddress.address?.formattedAddress ?? [street, buildingNumber, city].filter(Boolean).join(", ");
   const notes = [
     value(formData, "notes"),
     validAgeGroups.length ? `קבוצות גיל: ${validAgeGroups.join(", ")}` : "",
@@ -259,6 +267,8 @@ export async function createGardenLead(formData: FormData) {
     urgency: value(formData, "urgency") || null,
     street: street || null,
     building_number: buildingNumber || null,
+    address_verification_status: selectedAddress.status,
+    ...(selectedAddress.address ? { address_provider: "google_places", address_place_id: selectedAddress.address.placeId } : {}),
     age_groups: validAgeGroups,
     regulatory_acceptance: acceptedTerms,
     regulatory_terms_version: value(formData, "regulatory_terms_version") || "2026-06-13",

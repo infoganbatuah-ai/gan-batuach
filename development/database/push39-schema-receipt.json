@@ -1,0 +1,56 @@
+{
+  "observedAt": "2026-10-18T20:39:40.853Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "d31c2651f89e6135d36be91fc2138a712e2b3061",
+  "migrations": [
+    "20261018010000_digital_observer_push39_orchestration.sql",
+    "20261018204500_digital_observer_push39_delivery_read_grant.sql"
+  ],
+  "migrationPresent": true,
+  "deliveryGrantMigrationPresent": true,
+  "authenticatedCanReadPush39Status": true,
+  "tables": [
+    {
+      "table": "digital_observer_action_audit",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_action_intents",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_delivery_attempts",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_escalation_steps",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_escalations",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_provider_callbacks",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_provider_channels",
+      "rls": true
+    },
+    {
+      "table": "digital_observer_webhook_endpoints",
+      "rls": true
+    }
+  ],
+  "productionProviders": 0,
+  "enabledAutomationPolicies": 0,
+  "serviceRoleCanAutonomouslyExecute": false,
+  "externalQaAttempts": 0,
+  "productionAccess": false,
+  "limitations": [
+    "Read-only schema and policy verification",
+    "No external provider or Production environment contacted"
+  ]
+}
